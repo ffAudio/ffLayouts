@@ -136,6 +136,9 @@ public:
     Layout (Orientation o=Unknown, Component* owner=nullptr);
     virtual ~Layout();
     
+    /**
+     Changes the orientation of the layout
+     */
     void setOrientation (const Orientation);
     
     /**
@@ -177,6 +180,9 @@ public:
      */
     virtual void updateGeometry (Rectangle<int> bounds);
     
+    /**
+     Cummulates all stretch factors inside the nested layout
+     */
     void getCummulatedStretch (float& w, float& h) const;
     
 
@@ -189,12 +195,23 @@ private:
 
 };
 
+/**
+ A SubLayout can be used to add a nested layout inside a layout.
+ 
+ @see Layout
+ */
 class SubLayout : public Layout, public LayoutItem
 {
 public:
     SubLayout (Orientation o=Unknown);
     virtual ~SubLayout() {};
     
+    /**
+     Cummulates all stretch factors inside the nested layout
+     
+     Along the orientation the factors are summed up. In the other
+     dimension the maximum of the stretch factors is returned.
+     */
     void getStretch (float& w, float& h) const override;
     
 };
