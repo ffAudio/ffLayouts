@@ -13,8 +13,6 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include <deque>
-
 class Layout;
 
 //==============================================================================
