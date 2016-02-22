@@ -17,6 +17,14 @@
 
 class Layout;
 
+//==============================================================================
+/**
+ LayoutItems are used to store links to components to layout. Also information
+ like size hints and stretch factors are stored in the LayoutItems.
+ 
+ 
+ @see Layout
+ */
 class LayoutItem
 {
 public:
@@ -59,6 +67,7 @@ public:
     
     Component* getComponent ()  const { return componentPtr.getComponent(); }
     bool isComponentItem ()     const { return itemType == ComponentItem; }
+    bool isSubLayout ()         const { return itemType == SubLayout; }
     
     void setPreferredSize (const int w, const int h)
     {
@@ -81,6 +90,10 @@ public:
         h = stretchY;
     }
 
+    /**
+     Used to set stretch factors for the wrapped component. The space is distributed
+     according the sum of stretch factors.
+     */
     virtual void setStretch (float w, float h)
     {
         stretchX = w;
@@ -88,8 +101,6 @@ public:
     }
 
     ItemType getItemType() const { return itemType; }
-    
-    virtual Layout* getLayout() { return nullptr; }
     
 private:
     ItemType   itemType;
@@ -104,6 +115,14 @@ private:
     
 };
 
+//==============================================================================
+/**
+ Layout aligns a bunch of Components in a row. It can be nested to get any kind of layout.
+ 
+ @see Component
+ @see LayoutItem
+ */
+
 class Layout
 {
 public:
@@ -116,38 +135,63 @@ public:
         GridLayout
     };
     
-    Layout (Orientation o=Unknown);
+    Layout (Orientation o=Unknown, Component* owner=nullptr);
     virtual ~Layout();
     
     void setOrientation (const Orientation);
     
-    virtual LayoutItem* addComponent (Component*);
+    /**
+     addComponent creates a LayoutItem to wrap the given Component. To add 
+     properties like stretch factor, minimum sizes etc.  pointer to the created
+     LayoutItem is returned. You don't need and should not keep this pointer longer 
+     than current scope.
+     */
+    virtual LayoutItem* addComponent (Component*, int idx=-1);
     
+    // TODO: grid layout
     //virtual LayoutItem& addComponent (Component*, const int x, const int y);
     
+    /**
+     Remove a component from the layout. The LayoutItem is destructed, but the
+     Component is left untouched.
+     */
     void removeComponent (Component*);
     
-    Layout* addSubLayout (Orientation);
+    /**
+     Creates a nested layout inside a layout.
+     */
+    Layout* addSubLayout (Orientation, int idx=-1);
     
+    /**
+     Retrieve the LayoutItem for a component. If the Component is not found in the
+     Layout, a nullptr is returned.
+     */
     LayoutItem* getLayoutItem (Component*);
     
+    /**
+     If the layout has an owning component, this calls updateGeometry with the
+     bounds of the owning component.
+     */
+    virtual void updateGeometry ();
+    
+    /**
+     Recompute the geometry of all components. Recoursively recomputes all sub layouts.
+     */
     virtual void updateGeometry (Rectangle<int> bounds);
     
     void getCummulatedStretch (float& w, float& h) const;
     
 
-protected:
-    Orientation orientation;
-    
-    OwnedArray<LayoutItem> itemsList;
-
 private:
+    Orientation orientation;
+    OwnedArray<LayoutItem> itemsList;
     bool isUpdating;
     mutable bool isCummulatingStretch;
+    Component::SafePointer<Component> owningComponent;
 
 };
 
-class SubLayout : public LayoutItem, public Layout
+class SubLayout : public Layout, public LayoutItem
 {
 public:
     SubLayout (Orientation o=Unknown);

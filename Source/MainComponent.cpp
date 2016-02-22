@@ -10,14 +10,23 @@
 
 
 //==============================================================================
-MainContentComponent::MainContentComponent()
+MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this)
 {
     resizeConstraints = new ComponentBoundsConstrainer();
     resizeConstraints->setMinimumSize(400, 250);
     
     resizer = new ResizableCornerComponent (this, resizeConstraints);
+
+    Layout* sub2 = layout.addSubLayout (Layout::TopDown);
     
-    layout.setOrientation (Layout::LeftToRight);
+    for (int i=0; i<5; ++i) {
+        Slider* slider = new Slider();
+        components.add (slider);
+        slider->setSliderStyle (Slider::LinearHorizontal);
+        slider->setTextBoxStyle (Slider::TextBoxBelow, true, 50, 18);
+        addAndMakeVisible (slider);
+        sub2->addComponent (slider);
+    }
     
     for (int i=0; i<3; ++i)
     {

@@ -11,10 +11,11 @@
 #include "Layout.h"
 
 
-Layout::Layout(Orientation o)
+Layout::Layout(Orientation o, Component* owner)
   : orientation (o),
     isUpdating (false),
-    isCummulatingStretch (false)
+    isCummulatingStretch (false),
+    owningComponent (owner)
 {
 }
 
@@ -28,10 +29,10 @@ void Layout::setOrientation (const Orientation o)
 }
 
 
-LayoutItem* Layout::addComponent (Component* c)
+LayoutItem* Layout::addComponent (Component* c, int idx)
 {
-    LayoutItem* item = itemsList.add (new LayoutItem (c));
-
+    LayoutItem* item = itemsList.insert (idx, new LayoutItem (c));
+    updateGeometry();
     return item;
 }
 
@@ -43,12 +44,14 @@ void Layout::removeComponent (Component* c)
             itemsList.remove (i);
         }
     }
+    updateGeometry();
 }
 
-Layout* Layout::addSubLayout (Orientation o)
+Layout* Layout::addSubLayout (Orientation o, int idx)
 {
     SubLayout* sub = new SubLayout (o);
-    itemsList.add (sub);
+    itemsList.insert (idx, sub);
+    updateGeometry();
     return sub;
 }
 
@@ -62,6 +65,13 @@ LayoutItem* Layout::getLayoutItem (Component* c)
         }
     }
     return nullptr;
+}
+
+void Layout::updateGeometry ()
+{
+    if (owningComponent) {
+        updateGeometry (owningComponent->getBounds());
+    }
 }
 
 void Layout::updateGeometry (Rectangle<int> bounds)
@@ -96,10 +106,11 @@ void Layout::updateGeometry (Rectangle<int> bounds)
                 item->getComponent()->setBounds (childBounds);
                 y += h;
             }
-            else {
+            else if (item->isSubLayout()) {
                 SubLayout* sub = dynamic_cast<SubLayout*>(item);
                 if (sub) {
                     sub->updateGeometry (childBounds);
+                    y += h;
                 }
             }
             ++item;
@@ -117,10 +128,11 @@ void Layout::updateGeometry (Rectangle<int> bounds)
                 item->getComponent()->setBounds (childBounds);
                 x += w;
             }
-            else {
+            else if (item->isSubLayout()) {
                 SubLayout* sub = dynamic_cast<SubLayout*>(item);
                 if (sub) {
                     sub->updateGeometry (childBounds);
+                    x += w;
                 }
             }
             
@@ -166,7 +178,7 @@ void Layout::getCummulatedStretch (float& w, float& h) const
 
 
 // =============================================================================
-SubLayout::SubLayout (Orientation o) : Layout (o)
+SubLayout::SubLayout (Orientation o) : Layout (o), LayoutItem (LayoutItem::SubLayout)
 {
     
 }
