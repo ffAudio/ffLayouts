@@ -17,29 +17,25 @@ MainContentComponent::MainContentComponent()
     
     resizer = new ResizableCornerComponent (this, resizeConstraints);
     
+    layout.setOrientation (Layout::LeftToRight);
     
-    layout.setOrientation (Layout::TopDown);
-    
-    for (int i=0; i<10; ++i)
+    for (int i=0; i<3; ++i)
     {
         Component* button = components.add (new TextButton ("Button " + String (i+1)));
         addAndMakeVisible (button);
         LayoutItem* item = layout.addComponent (button);
-        if (i==4) {
+        if (i==1) {
             item->setStretch (3.0, 3.0);
         }
     }
     
-    Layout* subLayout = layout.addSubLayout (Layout::LeftToRight);
+    Layout* subLayout = layout.addSubLayout (Layout::TopDown);
     for (int i=0; i<5; ++i)
     {
-        Component* button = components.add (new TextButton ("Button " + String (i+1)));
+        Component* button = components.add (new TextButton ("Button " + String (i+6)));
         addAndMakeVisible (button);
         subLayout->addComponent (button);
     }
-
-    
-    layout.getLayoutItem(components.getUnchecked(8))->setStretch (2.0, 2.0);
     
     setSize (600, 400);
     

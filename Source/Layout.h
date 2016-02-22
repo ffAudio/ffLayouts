@@ -121,7 +121,7 @@ public:
     
     void setOrientation (const Orientation);
     
-    virtual LayoutItem* addComponent (Component*, const int idx=-1);
+    virtual LayoutItem* addComponent (Component*);
     
     //virtual LayoutItem& addComponent (Component*, const int x, const int y);
     
@@ -139,7 +139,7 @@ public:
 protected:
     Orientation orientation;
     
-    std::deque<LayoutItem> itemsList;
+    OwnedArray<LayoutItem> itemsList;
 
 private:
     bool isUpdating;
@@ -155,7 +155,6 @@ public:
     
     void getStretch (float& w, float& h) const override;
     
-    Layout* getLayout() override { return this; }
 };
 
 
