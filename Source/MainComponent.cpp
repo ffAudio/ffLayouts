@@ -46,6 +46,22 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
         subLayout->addComponent (button);
     }
     
+    
+    Component* extractButton = components.getUnchecked (6);
+    
+    layout.removeComponent (extractButton);
+    Layout* subsub = layout.addSubLayout(Layout::TopDown, 2);
+    subsub->addComponent (extractButton);
+    
+    Layout* subsubsub = subsub->addSubLayout (Layout::LeftToRight);
+    
+    for (int i=0; i<3; ++i)
+    {
+        Component* button = components.add (new TextButton ("Button " + String (i+11)));
+        addAndMakeVisible (button);
+        subsubsub->addComponent (button);
+    }
+    
     setSize (600, 400);
     
     addAndMakeVisible (resizer);
