@@ -12,11 +12,12 @@
 //==============================================================================
 MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this)
 {
+    // Juce resizer to demo updates
     resizeConstraints = new ComponentBoundsConstrainer();
     resizeConstraints->setMinimumSize(400, 250);
-    
     resizer = new ResizableCornerComponent (this, resizeConstraints);
 
+    // some more or less arbitrary components wrapped into layouts
     Layout* sub2 = layout.addSubLayout (Layout::TopDown);
     
     for (int i=0; i<5; ++i) {
@@ -66,8 +67,8 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
     
     subsub->addSSpacer()->setStretch (1.0, 3.0);
     
+    // juce again
     setSize (600, 400);
-    
     addAndMakeVisible (resizer);
 }
 

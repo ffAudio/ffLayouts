@@ -143,7 +143,7 @@ public:
     virtual LayoutItem* addComponent (Component*, int idx=-1);
     
     // TODO: grid layout
-    //virtual LayoutItem& addComponent (Component*, const int x, const int y);
+    //virtual LayoutItem* addComponent (Component*, const int x, const int y);
     
     /**
      Remove a component from the layout. The LayoutItem is destructed, but the
@@ -157,7 +157,8 @@ public:
     Layout* addSubLayout (Orientation, int idx=-1);
 
     /**
-     Creates a spacer to put space between items.
+     Creates a spacer to put space between items. Use stretch factors to increase
+     the space it occupies
      */
     LayoutItem* addSSpacer (int idx=-1, float sx=1.0, float sy=1.0);
     
