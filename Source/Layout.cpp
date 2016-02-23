@@ -55,6 +55,12 @@ Layout* Layout::addSubLayout (Orientation o, int idx)
     return sub;
 }
 
+LayoutItem* Layout::addSSpacer (int idx, float sx, float sy)
+{
+    LayoutItem* item = itemsList.insert (idx, new LayoutItem (LayoutItem::SpacerItem));
+    updateGeometry();
+    return item;
+}
 
 LayoutItem* Layout::getLayoutItem (Component* c)
 {
@@ -104,14 +110,15 @@ void Layout::updateGeometry (Rectangle<int> bounds)
             Rectangle<int> childBounds (bounds.getX(), bounds.getY() + y, bounds.getWidth(), h);
             if (item->isComponentItem()) {
                 item->getComponent()->setBounds (childBounds);
-                y += h;
             }
             else if (item->isSubLayout()) {
                 SubLayout* sub = dynamic_cast<SubLayout*>(item);
                 if (sub) {
                     sub->updateGeometry (childBounds);
-                    y += h;
                 }
+            }
+            if (item->isValid()) {
+                y += h;
             }
             ++item;
         }
@@ -126,14 +133,15 @@ void Layout::updateGeometry (Rectangle<int> bounds)
             Rectangle<int> childBounds (bounds.getX() + x, bounds.getY(), w, bounds.getHeight());
             if (item->isComponentItem()) {
                 item->getComponent()->setBounds (childBounds);
-                x += w;
             }
             else if (item->isSubLayout()) {
                 SubLayout* sub = dynamic_cast<SubLayout*>(item);
                 if (sub) {
                     sub->updateGeometry (childBounds);
-                    x += w;
                 }
+            }
+            if (item->isValid()) {
+                x += w;
             }
             
             ++item;

@@ -39,12 +39,11 @@ public:
     LayoutItem (Component* c)
       : itemType (ComponentItem),
         componentPtr (c),
-        preferredSize (c->getWidth(), c->getHeight()),
         stretchX (1.0),
         stretchY (1.0)
     {}
     
-    LayoutItem (ItemType i=Invalid, Component* ptr=nullptr)
+    LayoutItem (ItemType i=Invalid)
       : itemType (i),
         stretchX (1.0),
         stretchY (1.0)
@@ -66,11 +65,6 @@ public:
     Component* getComponent ()  const { return componentPtr.getComponent(); }
     bool isComponentItem ()     const { return itemType == ComponentItem; }
     bool isSubLayout ()         const { return itemType == SubLayout; }
-    
-    void setPreferredSize (const int w, const int h)
-    {
-        preferredSize.setXY (w, h);
-    }
     
     void setMinimumSize (const int w, const int h)
     {
@@ -106,7 +100,6 @@ private:
     Component::SafePointer<Component> componentPtr;
     
     Point<int> minimumSize;
-    Point<int> preferredSize;
     Point<int> maximumSize;
     float stretchX;
     float stretchY;
@@ -162,6 +155,11 @@ public:
      Creates a nested layout inside a layout.
      */
     Layout* addSubLayout (Orientation, int idx=-1);
+
+    /**
+     Creates a spacer to put space between items.
+     */
+    LayoutItem* addSSpacer (int idx=-1, float sx=1.0, float sy=1.0);
     
     /**
      Retrieve the LayoutItem for a component. If the Component is not found in the

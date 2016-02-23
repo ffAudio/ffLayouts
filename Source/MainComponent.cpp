@@ -46,6 +46,8 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
         subLayout->addComponent (button);
     }
     
+    subLayout->addSSpacer (3);
+    
     
     Component* extractButton = components.getUnchecked (6);
     
@@ -61,6 +63,8 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
         addAndMakeVisible (button);
         subsubsub->addComponent (button);
     }
+    
+    subsub->addSSpacer()->setStretch (1.0, 3.0);
     
     setSize (600, 400);
     
