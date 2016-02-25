@@ -29,11 +29,11 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
     addAndMakeVisible (gain);
     addAndMakeVisible (phase);
     addAndMakeVisible (pan);
-    minimal->addComponent (&gain);      // <- this is the only line necessary for each component
-    minimal->addComponent (&phase);
-    minimal->addComponent (&pan);
+    minimal->addLabeledComponent (&gain,  "Gain");      // <- this is the only line necessary for each component
+    minimal->addLabeledComponent (&phase, "Phase");
+    minimal->addLabeledComponent (&pan,   "Pan");
 
-    // other use cases
+    // other use cases - just tested as many edge cases I could think of...
     // add some sliders in a column
     Layout* column = layout.addSubLayout (Layout::TopDown);
     for (int i=0; i<5; ++i) {
