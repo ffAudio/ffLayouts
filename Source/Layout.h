@@ -68,21 +68,16 @@ public:
     
     virtual Label* getLabel () { return nullptr; }
     
-    void setMinimumSize (const int w, const int h)
-    {
-        minimumSize.setXY (w, h);
-    }
-    
-    void setMaximumSize (const int w, const int h)
-    {
-        maximumSize.setXY (w, h);
-    }
-    
     virtual void getStretch (float& w, float& h) const
     {
         w = stretchX;
         h = stretchY;
     }
+
+    /**
+     This is TODO: employ constraints into updateGeometry()
+     */
+    ComponentBoundsConstrainer* getConstrainer() { return &constrainer; }
 
     /**
      Used to set stretch factors for the wrapped component. The space is distributed
@@ -100,9 +95,9 @@ private:
     ItemType   itemType;
     
     Component::SafePointer<Component> componentPtr;
+
+    ComponentBoundsConstrainer        constrainer;
     
-    Point<int> minimumSize;
-    Point<int> maximumSize;
     float stretchX;
     float stretchY;
     

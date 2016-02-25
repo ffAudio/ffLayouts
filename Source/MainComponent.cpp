@@ -17,7 +17,7 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
     resizeConstraints->setMinimumSize(400, 250);
     resizer = new ResizableCornerComponent (this, resizeConstraints);
 
-    
+
     // minimal example
     Layout* minimal = layout.addSubLayout (Layout::TopDown);
     gain.setSliderStyle  (Slider::RotaryHorizontalVerticalDrag);
@@ -32,7 +32,7 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
     minimal->addComponent (&gain);      // <- this is the only line necessary for each component
     minimal->addComponent (&phase);
     minimal->addComponent (&pan);
-    
+
     // other use cases
     // add some sliders in a column
     Layout* column = layout.addSubLayout (Layout::TopDown);
@@ -42,12 +42,12 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
         column->addComponent (slider);
         addAndMakeVisible (slider);
     }
-    
+
     // you can also access the component from the item
     LayoutItem* item = layout.addComponent (new Label ("some text", "Some Text"));
     components.add (item->getComponent());
     addAndMakeVisible (item->getComponent());
-    
+
     // in another column we use a spacer
     Layout* column3 = layout.addSubLayout (Layout::BottomUp);
     for (int i=0; i<5; ++i) {
@@ -57,7 +57,7 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
         addAndMakeVisible (button);
     }
     column3->addSSpacer();
-    
+
     // my favourite example, three labeled knobs in a column
     Layout* column4 = layout.addSubLayout (Layout::TopDown);
     for (int i=0; i<3; ++i) {
@@ -66,7 +66,7 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
         column4->addLabeledComponent (slider, "Knob " + String(i+1), Layout::BottomUp);
         addAndMakeVisible (slider);
     }
-        
+
     // juce again
     setSize (600, 400);
     addAndMakeVisible (resizer);
