@@ -92,6 +92,12 @@ LayoutItem* Layout::getLayoutItem (Component* c)
         if (item->isComponentItem() && item->getComponent() == c) {
             return item;
         }
+        else if (item->isSubLayout()) {
+            // search also sub layouts recoursively
+            if (LayoutItem* subItem = getLayoutItem (c)) {
+                return subItem;
+            }
+        }
     }
     return nullptr;
 }
