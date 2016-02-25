@@ -57,7 +57,7 @@ LayoutItem* Layout::addLabeledComponent (Component* c, Orientation o, Label** la
     if (owningComponent) {
         owningComponent->addAndMakeVisible (label);
     }
-    Layout* sub = addSubLayout (o, idx);
+    Layout* sub = addSubLayout (o, idx, owningComponent);
     sub->addComponent (label)->setStretch (0.2, 0.2);
     LabeledLayoutItem* labeledItem = new LabeledLayoutItem (c, label);
     sub->addRawItem (labeledItem);
@@ -88,7 +88,7 @@ Layout* Layout::addSubLayout (Orientation o, int idx, Component* owner)
     return sub;
 }
 
-LayoutItem* Layout::addSSpacer (int idx, float sx, float sy)
+LayoutItem* Layout::addSSpacer (float sx, float sy, int idx)
 {
     LayoutItem* item = itemsList.insert (idx, new LayoutItem (LayoutItem::SpacerItem));
     updateGeometry();

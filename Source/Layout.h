@@ -232,7 +232,7 @@ public:
      Creates a spacer to put space between items. Use stretch factors to increase
      the space it occupies
      */
-    LayoutItem* addSSpacer (int idx=-1, float sx=1.0, float sy=1.0);
+    LayoutItem* addSSpacer (float sx=1.0, float sy=1.0, int idx=-1);
     
     /**
      Retrieve the LayoutItem for a component. If the Component is not found in the
