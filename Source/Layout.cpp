@@ -59,16 +59,26 @@ LayoutItem* Layout::addLabeledComponent (Component* c, Orientation o, Label** la
     }
     Layout* sub = addSubLayout (o, idx);
     sub->addComponent (label)->setStretch (0.2, 0.2);
-    LayoutItem* item = itemsList.insert (idx, new LabeledLayoutItem (c, label));
+    LabeledLayoutItem* labeledItem = new LabeledLayoutItem (c, label);
+    sub->addRawItem (labeledItem);
     
     if (labelPtr) {
         *labelPtr = label;
     }
 
     updateGeometry();
-    return item;
+    return labeledItem;
 }
 
+LayoutItem* Layout::addLabeledComponent (Component* component, StringRef text, Orientation o, int idx)
+{
+    LayoutItem* item = addLabeledComponent(component, o, nullptr, idx);
+    if (Label* label = item->getLabel()) {
+        label->setText (text, dontSendNotification);
+        label->setJustificationType (Justification::centred);
+    }
+    return item;
+}
 
 Layout* Layout::addSubLayout (Orientation o, int idx, Component* owner)
 {
@@ -101,6 +111,12 @@ LayoutItem* Layout::getLayoutItem (Component* c)
     }
     return nullptr;
 }
+
+void Layout::addRawItem (LayoutItem* item, int idx)
+{
+    itemsList.insert (idx, item);
+}
+
 
 void Layout::updateGeometry ()
 {

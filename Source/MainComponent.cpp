@@ -58,14 +58,12 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
     }
     column3->addSSpacer();
     
+    // my favourite example, three labeled knobs in a column
     Layout* column4 = layout.addSubLayout (Layout::TopDown);
     for (int i=0; i<3; ++i) {
-        Label* label;
         Slider* slider = new Slider (Slider::RotaryHorizontalVerticalDrag, Slider::NoTextBox);
         components.add (slider);
-        column4->addLabeledComponent (slider, Layout::TopDown, &label);
-        label->setText ("Knob " + String(i+1), dontSendNotification);
-        label->setJustificationType (Justification::centred);
+        column4->addLabeledComponent (slider, "Knob " + String(i+1), Layout::BottomUp);
         addAndMakeVisible (slider);
     }
         

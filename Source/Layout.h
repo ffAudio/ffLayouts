@@ -217,6 +217,12 @@ public:
      */
     LayoutItem* addLabeledComponent (Component*, Orientation, Label** labelPtr=nullptr, int idx=-1);
     
+
+    /**
+     Convenience method to ad a labeled component with a given text
+     */
+    LayoutItem* addLabeledComponent (Component*, StringRef, Orientation o=Layout::TopDown, int idx=-1);
+    
     /**
      Creates a nested layout inside a layout.
      */
@@ -250,6 +256,11 @@ public:
      */
     void getCummulatedStretch (float& w, float& h) const;
     
+protected:
+    /**
+     This is for internal use only. You should not need to call this method
+     */
+    void addRawItem (LayoutItem* item, int idx=-1);
 
 private:
     Orientation orientation;
