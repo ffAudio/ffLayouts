@@ -20,7 +20,6 @@ class Layout;
  LayoutItems are used to store links to components to layout. Also information
  like size hints and stretch factors are stored in the LayoutItems.
  
- 
  @see Layout
  */
 class LayoutItem
@@ -136,6 +135,40 @@ private:
 /**
  Layout aligns a bunch of Components in a row. It can be nested to get any kind of layout.
  
+ A minimal example to layout three buttons from left to right would look like this:
+ 
+ \code{.cpp}
+ class MainContentComponent   : public Component
+ {
+ public:
+     MainContentComponent () : 
+         myLayout (Layout::LeftToRight, this),
+         button1 ("Button 1"),
+         button2 ("Button 2"),
+         button3 ("Button 3")
+     {
+         addAndMakeVisible (button1);
+         addAndMakeVisible (button2);
+         addAndMakeVisible (button3);
+         myLayout.addComponent (&button1);
+         myLayout.addComponent (&button2);
+         myLayout.addComponent (&button3);
+     }
+ 
+     void resized() override {
+         myLayout.updateGeometry ();
+     }
+ 
+ private:
+     Layout myLayout;
+ 
+     TextButton button1;
+     TextButton button2;
+     TextButton button3;
+ };
+ \endcode
+
+ 
  @see Component
  @see LayoutItem
  */
@@ -162,9 +195,9 @@ public:
     
     /**
      addComponent creates a LayoutItem to wrap the given Component. To add 
-     properties like stretch factor, minimum sizes etc.  pointer to the created
+     properties like stretch factor, minimum sizes etc. a pointer to the created
      LayoutItem is returned. You don't need and should not keep this pointer longer 
-     than current scope.
+     than current scope. If you need to alter the item you can access it via @see Layout::getLayoutItem
      */
     virtual LayoutItem* addComponent (Component*, int idx=-1);
     
@@ -245,7 +278,7 @@ public:
      dimension the maximum of the stretch factors is returned.
      */
     void getStretch (float& w, float& h) const override;
-    
+
 };
 
 
