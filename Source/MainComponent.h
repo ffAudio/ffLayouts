@@ -33,6 +33,11 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
     
     Layout layout;
+    
+    Slider gain;
+    Slider phase;
+    Slider pan;
+    
     OwnedArray<Component> components;
     
     ScopedPointer<ResizableCornerComponent>     resizer;

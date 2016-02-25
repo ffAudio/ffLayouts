@@ -17,56 +17,58 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
     resizeConstraints->setMinimumSize(400, 250);
     resizer = new ResizableCornerComponent (this, resizeConstraints);
 
-    // some more or less arbitrary components wrapped into layouts
-    Layout* sub2 = layout.addSubLayout (Layout::TopDown);
     
+    // minimal example
+    Layout* minimal = layout.addSubLayout (Layout::TopDown);
+    gain.setSliderStyle  (Slider::RotaryHorizontalVerticalDrag);
+    phase.setSliderStyle (Slider::RotaryHorizontalVerticalDrag);
+    pan.setSliderStyle   (Slider::RotaryHorizontalVerticalDrag);
+    gain.setTextBoxStyle  (Slider::TextBoxBelow, true, 40, 18);
+    phase.setTextBoxStyle (Slider::TextBoxBelow, true, 40, 18);
+    pan.setTextBoxStyle   (Slider::TextBoxBelow, true, 40, 18);
+    addAndMakeVisible (gain);
+    addAndMakeVisible (phase);
+    addAndMakeVisible (pan);
+    minimal->addComponent (&gain);      // <- this is the only line necessary for each component
+    minimal->addComponent (&phase);
+    minimal->addComponent (&pan);
+    
+    // other use cases
+    // add some sliders in a column
+    Layout* column = layout.addSubLayout (Layout::TopDown);
     for (int i=0; i<5; ++i) {
-        Slider* slider = new Slider();
+        Slider* slider = new Slider (Slider::LinearHorizontal, Slider::TextBoxBelow);
         components.add (slider);
-        slider->setSliderStyle (Slider::LinearHorizontal);
-        slider->setTextBoxStyle (Slider::TextBoxBelow, true, 50, 18);
+        column->addComponent (slider);
         addAndMakeVisible (slider);
-        sub2->addComponent (slider);
     }
     
-    for (int i=0; i<3; ++i)
-    {
-        Component* button = components.add (new TextButton ("Button " + String (i+1)));
+    // you can also access the component from the item
+    LayoutItem* item = layout.addComponent (new Label ("some text", "Some Text"));
+    components.add (item->getComponent());
+    addAndMakeVisible (item->getComponent());
+    
+    // in another column we use a spacer
+    Layout* column3 = layout.addSubLayout (Layout::BottomUp);
+    for (int i=0; i<5; ++i) {
+        TextButton* button = new TextButton ("Button " + String (i+1));
+        components.add (button);
+        column3->addComponent (button);
         addAndMakeVisible (button);
-        LayoutItem* item = layout.addComponent (button);
-        if (i==1) {
-            item->setStretch (3.0, 3.0);
-        }
     }
+    column3->addSSpacer();
     
-    Layout* subLayout = layout.addSubLayout (Layout::TopDown);
-    for (int i=0; i<5; ++i)
-    {
-        Component* button = components.add (new TextButton ("Button " + String (i+6)));
-        addAndMakeVisible (button);
-        subLayout->addComponent (button);
+    Layout* column4 = layout.addSubLayout (Layout::TopDown);
+    for (int i=0; i<3; ++i) {
+        Label* label;
+        Slider* slider = new Slider (Slider::RotaryHorizontalVerticalDrag, Slider::NoTextBox);
+        components.add (slider);
+        column4->addLabeledComponent (slider, Layout::TopDown, &label);
+        label->setText ("Knob " + String(i+1), dontSendNotification);
+        label->setJustificationType (Justification::centred);
+        addAndMakeVisible (slider);
     }
-    
-    subLayout->addSSpacer (3);
-    
-    
-    Component* extractButton = components.getUnchecked (6);
-    
-    layout.removeComponent (extractButton);
-    Layout* subsub = layout.addSubLayout(Layout::TopDown, 2);
-    subsub->addComponent (extractButton);
-    
-    Layout* subsubsub = subsub->addSubLayout (Layout::LeftToRight);
-    
-    for (int i=0; i<3; ++i)
-    {
-        Component* button = components.add (new TextButton ("Button " + String (i+11)));
-        addAndMakeVisible (button);
-        subsubsub->addComponent (button);
-    }
-    
-    subsub->addSSpacer()->setStretch (1.0, 3.0);
-    
+        
     // juce again
     setSize (600, 400);
     addAndMakeVisible (resizer);

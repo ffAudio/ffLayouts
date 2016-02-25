@@ -29,6 +29,7 @@ public:
     enum ItemType {
         Invalid = 0,
         ComponentItem,
+        LabeledComponentItem,
         SplitterItem,
         MovableSplitterItem,
         SpacerItem,
@@ -65,6 +66,8 @@ public:
     Component* getComponent ()  const { return componentPtr.getComponent(); }
     bool isComponentItem ()     const { return itemType == ComponentItem; }
     bool isSubLayout ()         const { return itemType == SubLayout; }
+    
+    virtual Label* getLabel () { return nullptr; }
     
     void setMinimumSize (const int w, const int h)
     {
@@ -104,6 +107,29 @@ private:
     float stretchX;
     float stretchY;
     
+};
+
+//==============================================================================
+/**
+ The LabeledLayoutItem takes ownership of the label component
+ */
+class LabeledLayoutItem : public LayoutItem
+{
+public:
+    LabeledLayoutItem (Component* c, Label* l)
+      : LayoutItem (c),
+        label (l) {}
+    
+    virtual ~LabeledLayoutItem() {};
+    
+    /**
+     Return the created label, if there is any.
+     */
+    Label* getLabel() override { return label; }
+    
+    
+private:
+    ScopedPointer<Label> label;
 };
 
 //==============================================================================
@@ -152,9 +178,16 @@ public:
     void removeComponent (Component*);
     
     /**
+     Add a component with a label in a sub layout. By chosing the orientation the 
+     placement of the label can be set. Either a pointer to a Label pointer can be 
+     set to return the created label, or you can call getLabel on the returned LayoutItem.
+     */
+    LayoutItem* addLabeledComponent (Component*, Orientation, Label** labelPtr=nullptr, int idx=-1);
+    
+    /**
      Creates a nested layout inside a layout.
      */
-    Layout* addSubLayout (Orientation, int idx=-1);
+    Layout* addSubLayout (Orientation, int idx=-1, Component* owner=nullptr);
 
     /**
      Creates a spacer to put space between items. Use stretch factors to increase
@@ -202,7 +235,7 @@ private:
 class SubLayout : public Layout, public LayoutItem
 {
 public:
-    SubLayout (Orientation o=Unknown);
+    SubLayout (Orientation o=Unknown, Component* owner=nullptr);
     virtual ~SubLayout() {};
     
     /**

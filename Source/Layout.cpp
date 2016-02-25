@@ -47,9 +47,32 @@ void Layout::removeComponent (Component* c)
     updateGeometry();
 }
 
-Layout* Layout::addSubLayout (Orientation o, int idx)
+LayoutItem* Layout::addLabeledComponent (Component* c, Orientation o, Label** labelPtr, int idx)
 {
-    SubLayout* sub = new SubLayout (o);
+    // if the layout is not owned by a component, the label will not show up,
+    // because addAndMakeVisible can not be called.
+    jassert (owningComponent);
+    
+    Label* label = new Label();
+    if (owningComponent) {
+        owningComponent->addAndMakeVisible (label);
+    }
+    Layout* sub = addSubLayout (o, idx);
+    sub->addComponent (label)->setStretch (0.2, 0.2);
+    LayoutItem* item = itemsList.insert (idx, new LabeledLayoutItem (c, label));
+    
+    if (labelPtr) {
+        *labelPtr = label;
+    }
+
+    updateGeometry();
+    return item;
+}
+
+
+Layout* Layout::addSubLayout (Orientation o, int idx, Component* owner)
+{
+    SubLayout* sub = new SubLayout (o, owningComponent);
     itemsList.insert (idx, sub);
     updateGeometry();
     return sub;
@@ -76,7 +99,7 @@ LayoutItem* Layout::getLayoutItem (Component* c)
 void Layout::updateGeometry ()
 {
     if (owningComponent) {
-        updateGeometry (owningComponent->getBounds());
+        updateGeometry (owningComponent->getLocalBounds());
     }
 }
 
@@ -99,14 +122,20 @@ void Layout::updateGeometry (Rectangle<int> bounds)
     float cummulatedX, cummulatedY;
     getCummulatedStretch (cummulatedX, cummulatedY);
     
-    if (orientation == TopDown) {
+    if (orientation == TopDown || orientation == BottomUp) {
         float y = 0;
+        if (orientation == BottomUp) {
+            y = bounds.getHeight();
+        }
         for (int i=0; i<itemsList.size(); ++i) {
             LayoutItem* item = itemsList.getUnchecked (i);
             float sx = 0.0;
             float sy = 0.0;
             item->getStretch (sx, sy);
             float h = bounds.getHeight() * sy / cummulatedY;
+            if (item->isValid() && orientation == BottomUp) {
+                y -= h;
+            }
             Rectangle<int> childBounds (bounds.getX(), bounds.getY() + y, bounds.getWidth(), h);
             if (item->isComponentItem()) {
                 item->getComponent()->setBounds (childBounds);
@@ -117,19 +146,24 @@ void Layout::updateGeometry (Rectangle<int> bounds)
                     sub->updateGeometry (childBounds);
                 }
             }
-            if (item->isValid()) {
+            if (item->isValid() && orientation == TopDown) {
                 y += h;
             }
-            ++item;
         }
     }
-    else if (orientation == LeftToRight) {
+    else if (orientation == LeftToRight || orientation == RightToLeft) {
         float x = 0;
+        if (orientation == RightToLeft) {
+            x = bounds.getWidth();
+        }
         for (int i=0; i<itemsList.size(); ++i) {
             LayoutItem* item = itemsList.getUnchecked (i);
             float sx, sy;
             item->getStretch (sx, sy);
             float w = bounds.getWidth() * sx / cummulatedX;
+            if (item->isValid() && orientation == RightToLeft) {
+                x -= w;
+            }
             Rectangle<int> childBounds (bounds.getX() + x, bounds.getY(), w, bounds.getHeight());
             if (item->isComponentItem()) {
                 item->getComponent()->setBounds (childBounds);
@@ -140,11 +174,9 @@ void Layout::updateGeometry (Rectangle<int> bounds)
                     sub->updateGeometry (childBounds);
                 }
             }
-            if (item->isValid()) {
+            if (item->isValid() && orientation == LeftToRight) {
                 x += w;
             }
-            
-            ++item;
         }
     }
 
@@ -186,7 +218,7 @@ void Layout::getCummulatedStretch (float& w, float& h) const
 
 
 // =============================================================================
-SubLayout::SubLayout (Orientation o) : Layout (o), LayoutItem (LayoutItem::SubLayout)
+SubLayout::SubLayout (Orientation o, Component* owner) : Layout (o, owner), LayoutItem (LayoutItem::SubLayout)
 {
     
 }
