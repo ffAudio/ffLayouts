@@ -17,8 +17,7 @@ Add sublayouts nested horizontally and vertically in each directions
 Add a labeled component in one line of code
 Add spacers between components
 
-Size constraints are yet to be done...
-And so are movablesplitters
+Movablesplitters are next to be implemented
 
 Have fun using it...
 Daniel
