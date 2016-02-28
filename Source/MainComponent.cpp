@@ -14,7 +14,7 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
 {
     // Juce resizer to demo updates
     resizeConstraints = new ComponentBoundsConstrainer();
-    resizeConstraints->setMinimumSize(400, 250);
+    resizeConstraints->setMinimumSize(200, 150);
     resizer = new ResizableCornerComponent (this, resizeConstraints);
 
 
@@ -42,6 +42,22 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
         column->addComponent (slider);
         addAndMakeVisible (slider);
     }
+    
+    Layout* row = column->addSubLayout(Layout::LeftToRight);
+    TextButton* b1 = new TextButton ("B1");
+    components.add (b1);
+    row->addComponent (b1);
+    addAndMakeVisible (b1);
+    TextButton* b2 = new TextButton ("B2");
+    components.add (b2);
+    row->addComponent (b2);
+    addAndMakeVisible (b2);
+    TextButton* b3 = new TextButton ("B3");
+    components.add (b3);
+    addAndMakeVisible (b3);
+    LayoutItem* rowItem = row->addComponent (b3);
+    rowItem->setMinimumWidth (80);
+    rowItem->setMaximumWidth (120);
 
     // you can also access the component from the item
     LayoutItem* item = layout.addComponent (new Label ("some text", "Some Text"));
@@ -56,6 +72,13 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
         column3->addComponent (button);
         addAndMakeVisible (button);
     }
+    TextButton* button = new TextButton ("Constrained");
+    components.add (button);
+    LayoutItem* constrained = column3->addComponent (button);
+    constrained->setMinimumHeight (100);
+    constrained->setMaximumHeight (110);
+    addAndMakeVisible (button);
+
     column3->addSSpacer();
 
     // my favourite example, three labeled knobs in a column

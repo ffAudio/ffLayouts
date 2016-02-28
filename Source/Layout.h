@@ -40,13 +40,22 @@ public:
       : itemType (ComponentItem),
         componentPtr (c),
         stretchX (1.0),
-        stretchY (1.0)
+        stretchY (1.0),
+        minWidth (-1.0),
+        maxWidth (-1.0),
+        minHeight (-1.0),
+        maxHeight (-1.0)
+
     {}
     
     LayoutItem (ItemType i=Invalid)
       : itemType (i),
         stretchX (1.0),
-        stretchY (1.0)
+        stretchY (1.0),
+        minWidth (-1.0),
+        maxWidth (-1.0),
+        minHeight (-1.0),
+        maxHeight (-1.0)
     {}
         
     virtual ~LayoutItem() {}
@@ -75,11 +84,6 @@ public:
     }
 
     /**
-     This is TODO: employ constraints into updateGeometry()
-     */
-    ComponentBoundsConstrainer* getConstrainer() { return &constrainer; }
-
-    /**
      Used to set stretch factors for the wrapped component. The space is distributed
      according the sum of stretch factors.
      */
@@ -89,18 +93,57 @@ public:
         stretchY = h;
     }
 
+    /**
+     Set constraints to the items size. In doubt the minimum size is used.
+     Constraints work only in that direction the layout operates (horizontally/vertically).
+     For a fixed size set the same value to minimum and maximum.
+     */
+    void setMinimumWidth  (const int w) { minWidth = w; }
+    void setMaximumWidth  (const int w) { maxWidth = w; }
+    void setMinimumHeight (const int h) { minHeight = h; }
+    void setMaximumHeight (const int h) { maxHeight = h; }
+
+
     ItemType getItemType() const { return itemType; }
+
+    /**
+     applies the size constraints to the items
+     */
+    void constrainBounds (Rectangle<int>& bounds, bool& changedWidth, bool& changedHeight)
+    {
+        changedWidth  = false;
+        changedHeight = false;
+        if (maxWidth > 0.0 && maxWidth < bounds.getWidth()) {
+            bounds.setWidth (maxWidth);
+            changedWidth = true;
+        }
+        if (minWidth > 0.0 && minWidth > bounds.getWidth()) {
+            bounds.setWidth (minWidth);
+            changedWidth = true;
+        }
+        if (maxHeight > 0.0 && maxHeight < bounds.getHeight()) {
+            bounds.setHeight (maxHeight);
+            changedHeight = true;
+        }
+        if (minHeight > 0.0 && minHeight > bounds.getHeight()) {
+            bounds.setHeight (minHeight);
+            changedHeight = true;
+        }
+    }
     
 private:
     ItemType   itemType;
     
     Component::SafePointer<Component> componentPtr;
-
-    ComponentBoundsConstrainer        constrainer;
     
     float stretchX;
     float stretchY;
     
+    float minWidth;
+    float maxWidth;
+    float minHeight;
+    float maxHeight;
+
 };
 
 //==============================================================================
@@ -260,6 +303,9 @@ protected:
 private:
     Orientation orientation;
     OwnedArray<LayoutItem> itemsList;
+    Array<Rectangle<int> > itemsBounds;
+    Array<bool>            itemBoundsFinal;
+
     bool isUpdating;
     mutable bool isCummulatingStretch;
     Component::SafePointer<Component> owningComponent;

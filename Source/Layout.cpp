@@ -58,10 +58,15 @@ LayoutItem* Layout::addLabeledComponent (Component* c, Orientation o, Label** la
         owningComponent->addAndMakeVisible (label);
     }
     Layout* sub = addSubLayout (o, idx, owningComponent);
-    sub->addComponent (label)->setStretch (0.2, 0.2);
+    LayoutItem* labelItem = sub->addComponent (label);
     LabeledLayoutItem* labeledItem = new LabeledLayoutItem (c, label);
     sub->addRawItem (labeledItem);
     
+    // set fixed height to font size
+    float h = label->getFont().getHeight();
+    labelItem->setMinimumHeight (h);
+    labelItem->setMaximumHeight (h);
+
     if (labelPtr) {
         *labelPtr = label;
     }
@@ -140,64 +145,152 @@ void Layout::updateGeometry (Rectangle<int> bounds)
             itemsList.remove (i);
         }
     }
-    
+
+    itemsBounds.resize (itemsList.size ());
+
     float cummulatedX, cummulatedY;
     getCummulatedStretch (cummulatedX, cummulatedY);
+    float availableWidth  = bounds.getWidth();
+    float availableHeight = bounds.getHeight();
     
     if (orientation == TopDown || orientation == BottomUp) {
-        float y = 0;
+        for (int i=0; i<itemsList.size(); ++i) {
+            LayoutItem* item = itemsList.getUnchecked (i);
+            float sx, sy;
+            item->getStretch (sx, sy);
+            float h = bounds.getHeight() * sy / cummulatedY;
+            Rectangle<int> childBounds (bounds.getX(), bounds.getY(), bounds.getWidth(), h);
+            bool changedWidth, changedHeight;
+            item->constrainBounds (childBounds, changedWidth, changedHeight);
+            itemsBounds.set (i, childBounds);
+            if (changedHeight) {
+                itemBoundsFinal.set (i, true);
+                availableHeight -= childBounds.getHeight();
+                cummulatedY -= sy;
+            }
+            else {
+                itemBoundsFinal.set (i, false);
+            }
+            if (changedWidth) {
+                availableWidth = std::max (bounds.getWidth(), childBounds.getWidth());
+            }
+        }
+
+        float y = bounds.getY();
         if (orientation == BottomUp) {
-            y = bounds.getHeight();
+            y = bounds.getY() + bounds.getHeight();
         }
         for (int i=0; i<itemsList.size(); ++i) {
             LayoutItem* item = itemsList.getUnchecked (i);
-            float sx = 0.0;
-            float sy = 0.0;
-            item->getStretch (sx, sy);
-            float h = bounds.getHeight() * sy / cummulatedY;
-            if (item->isValid() && orientation == BottomUp) {
-                y -= h;
-            }
-            Rectangle<int> childBounds (bounds.getX(), bounds.getY() + y, bounds.getWidth(), h);
-            if (item->isComponentItem()) {
-                item->getComponent()->setBounds (childBounds);
-            }
-            else if (item->isSubLayout()) {
-                SubLayout* sub = dynamic_cast<SubLayout*>(item);
-                if (sub) {
-                    sub->updateGeometry (childBounds);
+
+            if (itemBoundsFinal.getUnchecked (i)) {
+                float h = itemsBounds.getReference (i).getHeight();
+                if (orientation == BottomUp) {
+                    y -= h;
+                }
+                Rectangle<int> childBounds (bounds.getX(), y, availableWidth, h);
+                if (item->isSubLayout()) {
+                    if (Layout* sub = dynamic_cast<Layout*>(item)) {
+                        sub->updateGeometry (childBounds);
+                    }
+                }
+                if (Component* c = item->getComponent()) {
+                    c->setBounds (childBounds);
+                }
+
+                if (orientation == TopDown) {
+                    y += h;
                 }
             }
-            if (item->isValid() && orientation == TopDown) {
-                y += h;
+            else {
+                float sx, sy;
+                item->getStretch (sx, sy);
+                float h = availableHeight * sy /cummulatedY;
+                if (orientation == BottomUp) {
+                    y -= h;
+                }
+                Rectangle<int> childBounds (bounds.getX(), y, availableWidth, h );
+                if (item->isSubLayout()) {
+                    if (Layout* sub = dynamic_cast<Layout*>(item)) {
+                        sub->updateGeometry (childBounds);
+                    }
+                }
+                if (Component* c = item->getComponent()) {
+                    c->setBounds (childBounds);
+                }
+                if (orientation == TopDown) {
+                    y += h;
+                }
             }
         }
-    }
-    else if (orientation == LeftToRight || orientation == RightToLeft) {
-        float x = 0;
-        if (orientation == RightToLeft) {
-            x = bounds.getWidth();
-        }
+    } else if (orientation == LeftToRight || orientation == RightToLeft) {
         for (int i=0; i<itemsList.size(); ++i) {
             LayoutItem* item = itemsList.getUnchecked (i);
             float sx, sy;
             item->getStretch (sx, sy);
             float w = bounds.getWidth() * sx / cummulatedX;
-            if (item->isValid() && orientation == RightToLeft) {
-                x -= w;
+            Rectangle<int> childBounds (bounds.getX(), bounds.getY(), w, bounds.getHeight());
+            bool changedWidth, changedHeight;
+            item->constrainBounds (childBounds, changedWidth, changedHeight);
+            itemsBounds.set (i, childBounds);
+            if (changedWidth) {
+                itemBoundsFinal.set (i, true);
+                availableWidth -= childBounds.getWidth();
+                cummulatedX -= sx;
             }
-            Rectangle<int> childBounds (bounds.getX() + x, bounds.getY(), w, bounds.getHeight());
-            if (item->isComponentItem()) {
-                item->getComponent()->setBounds (childBounds);
+            else {
+                itemBoundsFinal.set (i, false);
             }
-            else if (item->isSubLayout()) {
-                SubLayout* sub = dynamic_cast<SubLayout*>(item);
-                if (sub) {
-                    sub->updateGeometry (childBounds);
+            if (changedHeight) {
+                availableHeight = std::max (bounds.getHeight(), childBounds.getHeight());
+            }
+        }
+
+        float x = bounds.getX();
+        if (orientation == RightToLeft) {
+            x = bounds.getX() + bounds.getWidth();
+        }
+        for (int i=0; i<itemsList.size(); ++i) {
+            LayoutItem* item = itemsList.getUnchecked (i);
+
+            if (itemBoundsFinal.getUnchecked (i)) {
+                float w = itemsBounds.getReference (i).getWidth();
+                if (orientation == BottomUp) {
+                    x -= w;
+                }
+                Rectangle<int> childBounds (x, bounds.getY(), w, availableHeight);
+                if (item->isSubLayout()) {
+                    if (Layout* sub = dynamic_cast<Layout*>(item)) {
+                        sub->updateGeometry (childBounds);
+                    }
+                }
+                if (Component* c = item->getComponent()) {
+                    c->setBounds (childBounds);
+                }
+
+                if (orientation == TopDown) {
+                    x += w;
                 }
             }
-            if (item->isValid() && orientation == LeftToRight) {
-                x += w;
+            else {
+                float sx, sy;
+                item->getStretch (sx, sy);
+                float w = availableWidth * sx /cummulatedX;
+                if (orientation == RightToLeft) {
+                    x -= w;
+                }
+                Rectangle<int> childBounds (x, bounds.getY(), w, availableHeight);
+                if (item->isSubLayout()) {
+                    if (Layout* sub = dynamic_cast<Layout*>(item)) {
+                        sub->updateGeometry (childBounds);
+                    }
+                }
+                if (Component* c = item->getComponent()) {
+                    c->setBounds (childBounds);
+                }
+                if (orientation == LeftToRight) {
+                    x += w;
+                }
             }
         }
     }
