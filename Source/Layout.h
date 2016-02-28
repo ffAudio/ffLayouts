@@ -44,8 +44,8 @@ public:
         minWidth (-1.0),
         maxWidth (-1.0),
         minHeight (-1.0),
-        maxHeight (-1.0)
-
+        maxHeight (-1.0),
+        padding (0.0)
     {}
     
     LayoutItem (ItemType i=Invalid)
@@ -55,7 +55,8 @@ public:
         minWidth (-1.0),
         maxWidth (-1.0),
         minHeight (-1.0),
-        maxHeight (-1.0)
+        maxHeight (-1.0),
+        padding (0.0)
     {}
         
     virtual ~LayoutItem() {}
@@ -103,6 +104,8 @@ public:
     void setMinimumHeight (const int h) { minHeight = h; }
     void setMaximumHeight (const int h) { maxHeight = h; }
 
+    void setPadding (const float p) { padding = p; }
+    float getPadding () const { return padding; }
 
     ItemType getItemType() const { return itemType; }
 
@@ -144,6 +147,7 @@ private:
     float minHeight;
     float maxHeight;
 
+    float padding;
 };
 
 //==============================================================================

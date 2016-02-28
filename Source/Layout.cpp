@@ -191,11 +191,11 @@ void Layout::updateGeometry (Rectangle<int> bounds)
                 Rectangle<int> childBounds (bounds.getX(), y, availableWidth, h);
                 if (item->isSubLayout()) {
                     if (Layout* sub = dynamic_cast<Layout*>(item)) {
-                        sub->updateGeometry (childBounds);
+                        sub->updateGeometry (childBounds.reduced (item->getPadding()));
                     }
                 }
                 if (Component* c = item->getComponent()) {
-                    c->setBounds (childBounds);
+                    c->setBounds (childBounds.reduced (item->getPadding()));
                 }
 
                 if (orientation == TopDown) {
@@ -212,11 +212,11 @@ void Layout::updateGeometry (Rectangle<int> bounds)
                 Rectangle<int> childBounds (bounds.getX(), y, availableWidth, h );
                 if (item->isSubLayout()) {
                     if (Layout* sub = dynamic_cast<Layout*>(item)) {
-                        sub->updateGeometry (childBounds);
+                        sub->updateGeometry (childBounds.reduced (item->getPadding()));
                     }
                 }
                 if (Component* c = item->getComponent()) {
-                    c->setBounds (childBounds);
+                    c->setBounds (childBounds.reduced (item->getPadding()));
                 }
                 if (orientation == TopDown) {
                     y += h;
@@ -261,11 +261,11 @@ void Layout::updateGeometry (Rectangle<int> bounds)
                 Rectangle<int> childBounds (x, bounds.getY(), w, availableHeight);
                 if (item->isSubLayout()) {
                     if (Layout* sub = dynamic_cast<Layout*>(item)) {
-                        sub->updateGeometry (childBounds);
+                        sub->updateGeometry (childBounds.reduced (item->getPadding()));
                     }
                 }
                 if (Component* c = item->getComponent()) {
-                    c->setBounds (childBounds);
+                    c->setBounds (childBounds.reduced (item->getPadding()));
                 }
 
                 if (orientation == TopDown) {
@@ -282,11 +282,11 @@ void Layout::updateGeometry (Rectangle<int> bounds)
                 Rectangle<int> childBounds (x, bounds.getY(), w, availableHeight);
                 if (item->isSubLayout()) {
                     if (Layout* sub = dynamic_cast<Layout*>(item)) {
-                        sub->updateGeometry (childBounds);
+                        sub->updateGeometry (childBounds.reduced (item->getPadding()));
                     }
                 }
                 if (Component* c = item->getComponent()) {
-                    c->setBounds (childBounds);
+                    c->setBounds (childBounds.reduced (item->getPadding()));
                 }
                 if (orientation == LeftToRight) {
                     x += w;

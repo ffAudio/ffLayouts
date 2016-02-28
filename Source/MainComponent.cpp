@@ -83,10 +83,16 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
 
     // my favourite example, three labeled knobs in a column
     Layout* column4 = layout.addSubLayout (Layout::TopDown);
+    if (LayoutItem* c4 = dynamic_cast<LayoutItem*>(column4)) {
+        c4->setPadding (10);
+    }
     for (int i=0; i<3; ++i) {
         Slider* slider = new Slider (Slider::RotaryHorizontalVerticalDrag, Slider::NoTextBox);
         components.add (slider);
         column4->addLabeledComponent (slider, "Knob " + String(i+1), Layout::BottomUp);
+        if (i<2) {
+            column4->addSSpacer (1.0, 0.2);
+        }
         addAndMakeVisible (slider);
     }
 
