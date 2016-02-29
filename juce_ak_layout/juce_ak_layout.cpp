@@ -284,7 +284,7 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
 
             if (itemBoundsFinal.getUnchecked (i)) {
                 float w = itemsBounds.getReference (i).getWidth();
-                if (orientation == BottomUp) {
+                if (orientation == RightToLeft) {
                     x -= w;
                 }
                 juce::Rectangle<int> childBounds (x, bounds.getY(), w, availableHeight);
@@ -297,7 +297,7 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
                     c->setBounds (item->getPaddedBounds (childBounds));
                 }
 
-                if (orientation == TopDown) {
+                if (orientation == LeftToRight) {
                     x += w;
                 }
             }
