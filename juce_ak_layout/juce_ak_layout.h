@@ -154,6 +154,24 @@ public:
     float getPaddingRight () const  { return paddingRight; }
     float getPaddingBottom () const { return paddingBottom; }
     
+    void setFixedWidth (const int w)
+    {
+        minWidth = w;
+        maxWidth = w;
+    }
+
+    void setFixedHeight (const int h)
+    {
+        minHeight = h;
+        maxHeight = h;
+    }
+
+    void setFixedSize (const int w, const int h)
+    {
+        setFixedWidth (w);
+        setFixedHeight (h);
+    }
+
     /**
      Convenience method to set all parameters in one line
      */

@@ -86,16 +86,12 @@ LayoutItem* Layout::addLabeledComponent (juce::Component* c, Orientation o, juce
     if (owningComponent) {
         owningComponent->addAndMakeVisible (label);
     }
+    float h = label->getFont().getHeight();
     Layout* sub = addSubLayout (o, idx, owningComponent);
-    LayoutItem* labelItem = sub->addComponent (label);
+    sub->addComponent (label)->setFixedHeight (h);
     LabeledLayoutItem* labeledItem = new LabeledLayoutItem (c, label);
     sub->addRawItem (labeledItem);
     
-    // set fixed height to font size
-    float h = label->getFont().getHeight();
-    labelItem->setMinimumHeight (h);
-    labelItem->setMaximumHeight (h);
-
     if (labelPtr) {
         *labelPtr = label;
     }
