@@ -24,36 +24,20 @@
                        cppLibType="libc++"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_core" path="../JUCE-OSX/modules"/>
-        <MODULEPATH id="juce_events" path="../JUCE-OSX/modules"/>
-        <MODULEPATH id="juce_graphics" path="../JUCE-OSX/modules"/>
-        <MODULEPATH id="juce_data_structures" path="../JUCE-OSX/modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../JUCE-OSX/modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../JUCE-OSX/modules"/>
-        <MODULEPATH id="juce_cryptography" path="../JUCE-OSX/modules"/>
-        <MODULEPATH id="juce_video" path="../JUCE-OSX/modules"/>
-        <MODULEPATH id="juce_opengl" path="../JUCE-OSX/modules"/>
-        <MODULEPATH id="juce_audio_basics" path="../JUCE-OSX/modules"/>
-        <MODULEPATH id="juce_audio_devices" path="../JUCE-OSX/modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../JUCE-OSX/modules"/>
-        <MODULEPATH id="juce_audio_processors" path="../JUCE-OSX/modules"/>
+        <MODULEPATH id="juce_core" path="../juceOsx/modules"/>
+        <MODULEPATH id="juce_events" path="../juceOsx/modules"/>
+        <MODULEPATH id="juce_graphics" path="../juceOsx/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../juceOsx/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../juceOsx/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
   </EXPORTFORMATS>
   <MODULES>
-    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0"/>
-    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0"/>
-    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0"/>
-    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_core" showAllCode="1" useLocalCopy="0"/>
-    <MODULE id="juce_cryptography" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_events" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0"/>
-    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0"/>
-    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0"/>
-    <MODULE id="juce_video" showAllCode="1" useLocalCopy="0"/>
   </MODULES>
   <JUCEOPTIONS/>
 </JUCERPROJECT>
