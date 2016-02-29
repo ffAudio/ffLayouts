@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    Layout.cpp
+    juce_ak_layout.cpp
     Created: 21 Feb 2016 9:14:52pm
     Author:  Daniel Walz
 
@@ -191,11 +191,11 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
                 juce::Rectangle<int> childBounds (bounds.getX(), y, availableWidth, h);
                 if (item->isSubLayout()) {
                     if (Layout* sub = dynamic_cast<Layout*>(item)) {
-                        sub->updateGeometry (childBounds.reduced (item->getPadding()));
+                        sub->updateGeometry (item->getPaddedBounds (childBounds));
                     }
                 }
                 if (juce::Component* c = item->getComponent()) {
-                    c->setBounds (childBounds.reduced (item->getPadding()));
+                    c->setBounds (item->getPaddedBounds (childBounds));
                 }
 
                 if (orientation == TopDown) {
@@ -212,11 +212,11 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
                 juce::Rectangle<int> childBounds (bounds.getX(), y, availableWidth, h );
                 if (item->isSubLayout()) {
                     if (Layout* sub = dynamic_cast<Layout*>(item)) {
-                        sub->updateGeometry (childBounds.reduced (item->getPadding()));
+                        sub->updateGeometry (item->getPaddedBounds (childBounds));
                     }
                 }
                 if (juce::Component* c = item->getComponent()) {
-                    c->setBounds (childBounds.reduced (item->getPadding()));
+                    c->setBounds (item->getPaddedBounds (childBounds));
                 }
                 if (orientation == TopDown) {
                     y += h;
@@ -261,11 +261,11 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
                 juce::Rectangle<int> childBounds (x, bounds.getY(), w, availableHeight);
                 if (item->isSubLayout()) {
                     if (Layout* sub = dynamic_cast<Layout*>(item)) {
-                        sub->updateGeometry (childBounds.reduced (item->getPadding()));
+                        sub->updateGeometry (item->getPaddedBounds (childBounds));
                     }
                 }
                 if (juce::Component* c = item->getComponent()) {
-                    c->setBounds (childBounds.reduced (item->getPadding()));
+                    c->setBounds (item->getPaddedBounds (childBounds));
                 }
 
                 if (orientation == TopDown) {
@@ -282,11 +282,11 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
                 juce::Rectangle<int> childBounds (x, bounds.getY(), w, availableHeight);
                 if (item->isSubLayout()) {
                     if (Layout* sub = dynamic_cast<Layout*>(item)) {
-                        sub->updateGeometry (childBounds.reduced (item->getPadding()));
+                        sub->updateGeometry (item->getPaddedBounds (childBounds));
                     }
                 }
                 if (juce::Component* c = item->getComponent()) {
-                    c->setBounds (childBounds.reduced (item->getPadding()));
+                    c->setBounds (item->getPaddedBounds (childBounds));
                 }
                 if (orientation == LeftToRight) {
                     x += w;

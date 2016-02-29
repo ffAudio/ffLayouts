@@ -1,15 +1,15 @@
 /*
   ==============================================================================
 
-    Layout.h
+    juce_ak_layout.h
     Created: 21 Feb 2016 9:14:52pm
     Author:  Daniel Walz
 
   ==============================================================================
 */
 
-#ifndef LAYOUT_H_INCLUDED
-#define LAYOUT_H_INCLUDED
+#ifndef JUCE_AK_LAYOUT_H_INCLUDED
+#define JUCE_AK_LAYOUT_H_INCLUDED
 
 #include "juce_gui_basics/juce_gui_basics.h"
 
@@ -45,7 +45,10 @@ public:
         maxWidth (-1.0),
         minHeight (-1.0),
         maxHeight (-1.0),
-        padding (0.0)
+        paddingTop (0.0),
+        paddingLeft (0.0),
+        paddingRight (0.0),
+        paddingBottom (0.0)
     {}
     
     LayoutItem (ItemType i=Invalid)
@@ -56,9 +59,12 @@ public:
         maxWidth (-1.0),
         minHeight (-1.0),
         maxHeight (-1.0),
-        padding (0.0)
+        paddingTop (0.0),
+        paddingLeft (0.0),
+        paddingRight (0.0),
+        paddingBottom (0.0)
     {}
-        
+    
     virtual ~LayoutItem() {}
     
     bool isValid()
@@ -104,8 +110,28 @@ public:
     void setMinimumHeight (const int h) { minHeight = h; }
     void setMaximumHeight (const int h) { maxHeight = h; }
 
-    void setPadding (const float p) { padding = p; }
-    float getPadding () const { return padding; }
+    void setPaddingTop    (const float p) { paddingTop = p; }
+    void setPaddingLeft   (const float p) { paddingLeft = p; }
+    void setPaddingRight  (const float p) { paddingRight = p; }
+    void setPaddingBottom (const float p) { paddingBottom = p; }
+    void setPadding (const float p) {
+        setPaddingTop (p);
+        setPaddingLeft (p);
+        setPaddingRight (p);
+        setPaddingBottom (p);
+    }
+    float getPaddingTop () const    { return paddingTop; }
+    float getPaddingLeft () const   { return paddingLeft; }
+    float getPaddingRight () const  { return paddingRight; }
+    float getPaddingBottom () const { return paddingBottom; }
+    
+    juce::Rectangle<int> getPaddedBounds (juce::Rectangle<int> b)
+    {
+        return juce::Rectangle<int> (b.getX() + paddingLeft,
+                                     b.getY() + paddingTop,
+                                     b.getWidth() - (paddingLeft+paddingRight),
+                                     b.getHeight() - (paddingTop+paddingBottom));
+    }
 
     ItemType getItemType() const { return itemType; }
 
@@ -147,7 +173,10 @@ private:
     float minHeight;
     float maxHeight;
 
-    float padding;
+    float paddingTop;
+    float paddingLeft;
+    float paddingRight;
+    float paddingBottom;
 };
 
 //==============================================================================
@@ -339,4 +368,4 @@ public:
 
 
 
-#endif  // LAYOUT_H_INCLUDED
+#endif  // JUCE_AK_LAYOUT_H_INCLUDED
