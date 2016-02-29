@@ -11,7 +11,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include "Layout.h"
+#include "juce_ak_layout.h"
 
 //==============================================================================
 /*

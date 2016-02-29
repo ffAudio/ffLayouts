@@ -11,7 +11,7 @@
 #ifndef LAYOUT_H_INCLUDED
 #define LAYOUT_H_INCLUDED
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 
 class Layout;
 
@@ -36,7 +36,7 @@ public:
         
     };
     
-    LayoutItem (Component* c)
+    LayoutItem (juce::Component* c)
       : itemType (ComponentItem),
         componentPtr (c),
         stretchX (1.0),
@@ -72,11 +72,11 @@ public:
         return true;
     }
     
-    Component* getComponent ()  const { return componentPtr.getComponent(); }
+    juce::Component* getComponent ()  const { return componentPtr.getComponent(); }
     bool isComponentItem ()     const { return itemType == ComponentItem; }
     bool isSubLayout ()         const { return itemType == SubLayout; }
     
-    virtual Label* getLabel () { return nullptr; }
+    virtual juce::Label* getLabel () { return nullptr; }
     
     virtual void getStretch (float& w, float& h) const
     {
@@ -112,7 +112,7 @@ public:
     /**
      applies the size constraints to the items
      */
-    void constrainBounds (Rectangle<int>& bounds, bool& changedWidth, bool& changedHeight)
+    void constrainBounds (juce::Rectangle<int>& bounds, bool& changedWidth, bool& changedHeight)
     {
         changedWidth  = false;
         changedHeight = false;
@@ -137,7 +137,7 @@ public:
 private:
     ItemType   itemType;
     
-    Component::SafePointer<Component> componentPtr;
+    juce::Component::SafePointer<juce::Component> componentPtr;
     
     float stretchX;
     float stretchY;
@@ -157,7 +157,7 @@ private:
 class LabeledLayoutItem : public LayoutItem
 {
 public:
-    LabeledLayoutItem (Component* c, Label* l)
+    LabeledLayoutItem (juce::Component* c, juce::Label* l)
       : LayoutItem (c),
         label (l) {}
     
@@ -166,11 +166,11 @@ public:
     /**
      Return the created label, if there is any.
      */
-    Label* getLabel() override { return label; }
+    juce::Label* getLabel() override { return label; }
     
     
 private:
-    ScopedPointer<Label> label;
+    juce::ScopedPointer<juce::Label> label;
 };
 
 //==============================================================================
@@ -227,7 +227,7 @@ public:
         GridLayout
     };
     
-    Layout (Orientation o=Unknown, Component* owner=nullptr);
+    Layout (Orientation o=Unknown, juce::Component* owner=nullptr);
     virtual ~Layout();
     
     /**
@@ -241,7 +241,7 @@ public:
      LayoutItem is returned. You don't need and should not keep this pointer longer 
      than current scope. If you need to alter the item you can access it via @see Layout::getLayoutItem
      */
-    virtual LayoutItem* addComponent (Component*, int idx=-1);
+    virtual LayoutItem* addComponent (juce::Component*, int idx=-1);
     
     // TODO: grid layout
     //virtual LayoutItem* addComponent (Component*, const int x, const int y);
@@ -250,25 +250,25 @@ public:
      Remove a component from the layout. The LayoutItem is destructed, but the
      Component is left untouched.
      */
-    void removeComponent (Component*);
+    void removeComponent (juce::Component*);
     
     /**
      Add a component with a label in a sub layout. By chosing the orientation the 
      placement of the label can be set. Either a pointer to a Label pointer can be 
      set to return the created label, or you can call getLabel on the returned LayoutItem.
      */
-    LayoutItem* addLabeledComponent (Component*, Orientation, Label** labelPtr=nullptr, int idx=-1);
+    LayoutItem* addLabeledComponent (juce::Component*, Orientation, juce::Label** labelPtr=nullptr, int idx=-1);
     
 
     /**
      Convenience method to ad a labeled component with a given text
      */
-    LayoutItem* addLabeledComponent (Component*, StringRef, Orientation o=Layout::TopDown, int idx=-1);
+    LayoutItem* addLabeledComponent (juce::Component*, juce::StringRef, Orientation o=Layout::TopDown, int idx=-1);
     
     /**
      Creates a nested layout inside a layout.
      */
-    Layout* addSubLayout (Orientation, int idx=-1, Component* owner=nullptr);
+    Layout* addSubLayout (Orientation, int idx=-1, juce::Component* owner=nullptr);
 
     /**
      Creates a spacer to put space between items. Use stretch factors to increase
@@ -280,7 +280,7 @@ public:
      Retrieve the LayoutItem for a component. If the Component is not found in the
      Layout, a nullptr is returned.
      */
-    LayoutItem* getLayoutItem (Component*);
+    LayoutItem* getLayoutItem (juce::Component*);
     
     /**
      If the layout has an owning component, this calls updateGeometry with the
@@ -291,7 +291,7 @@ public:
     /**
      Recompute the geometry of all components. Recoursively recomputes all sub layouts.
      */
-    virtual void updateGeometry (Rectangle<int> bounds);
+    virtual void updateGeometry (juce::Rectangle<int> bounds);
     
     /**
      Cummulates all stretch factors inside the nested layout
@@ -306,13 +306,13 @@ protected:
 
 private:
     Orientation orientation;
-    OwnedArray<LayoutItem> itemsList;
-    Array<Rectangle<int> > itemsBounds;
-    Array<bool>            itemBoundsFinal;
+    juce::OwnedArray<LayoutItem>       itemsList;
+    juce::Array<juce::Rectangle<int> > itemsBounds;
+    juce::Array<bool>                  itemBoundsFinal;
 
     bool isUpdating;
     mutable bool isCummulatingStretch;
-    Component::SafePointer<Component> owningComponent;
+    juce::Component::SafePointer<juce::Component> owningComponent;
 
 };
 
@@ -324,7 +324,7 @@ private:
 class SubLayout : public Layout, public LayoutItem
 {
 public:
-    SubLayout (Orientation o=Unknown, Component* owner=nullptr);
+    SubLayout (Orientation o=Unknown, juce::Component* owner=nullptr);
     virtual ~SubLayout() {};
     
     /**

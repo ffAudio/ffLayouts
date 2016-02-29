@@ -5,12 +5,10 @@
               jucerVersion="4.1.0">
   <MAINGROUP id="do0b5f" name="JuceLayout">
     <GROUP id="{9490A8E3-0830-8C27-6621-D9C74F6A8304}" name="Source">
-      <FILE id="ZbYYSv" name="MainComponent.cpp" compile="1" resource="0"
-            file="Source/MainComponent.cpp"/>
-      <FILE id="NNmbwZ" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
-      <FILE id="ZAZPh7" name="Layout.cpp" compile="1" resource="0" file="Source/Layout.cpp"/>
-      <FILE id="VhwK8j" name="Layout.h" compile="0" resource="0" file="Source/Layout.h"/>
-      <FILE id="uIVbfW" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+      <FILE id="YHCLHp" name="Main.cpp" compile="1" resource="0" file="example/Main.cpp"/>
+      <FILE id="eUUNgy" name="MainComponent.cpp" compile="1" resource="0"
+            file="example/MainComponent.cpp"/>
+      <FILE id="ftywgO" name="MainComponent.h" compile="0" resource="0" file="example/MainComponent.h"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
@@ -29,10 +27,12 @@
         <MODULEPATH id="juce_graphics" path="../juceOsx/modules"/>
         <MODULEPATH id="juce_gui_basics" path="../juceOsx/modules"/>
         <MODULEPATH id="juce_data_structures" path="../juceOsx/modules"/>
+        <MODULEPATH id="juce_ak_layout" path="../juceLayouts"/>
       </MODULEPATHS>
     </XCODE_MAC>
   </EXPORTFORMATS>
   <MODULES>
+    <MODULE id="juce_ak_layout" showAllCode="1" useLocalCopy="1"/>
     <MODULE id="juce_core" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_events" showAllCode="1" useLocalCopy="0"/>

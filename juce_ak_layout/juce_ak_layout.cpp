@@ -8,10 +8,10 @@
   ==============================================================================
 */
 
-#include "Layout.h"
 
+#include "juce_ak_layout.h"
 
-Layout::Layout(Orientation o, Component* owner)
+Layout::Layout(Orientation o, juce::Component* owner)
   : orientation (o),
     isUpdating (false),
     isCummulatingStretch (false),
@@ -29,14 +29,14 @@ void Layout::setOrientation (const Orientation o)
 }
 
 
-LayoutItem* Layout::addComponent (Component* c, int idx)
+LayoutItem* Layout::addComponent (juce::Component* c, int idx)
 {
     LayoutItem* item = itemsList.insert (idx, new LayoutItem (c));
     updateGeometry();
     return item;
 }
 
-void Layout::removeComponent (Component* c)
+void Layout::removeComponent (juce::Component* c)
 {
     for (int i=0; i<itemsList.size(); ++i) {
         LayoutItem* item = itemsList.getUnchecked (i);
@@ -47,13 +47,13 @@ void Layout::removeComponent (Component* c)
     updateGeometry();
 }
 
-LayoutItem* Layout::addLabeledComponent (Component* c, Orientation o, Label** labelPtr, int idx)
+LayoutItem* Layout::addLabeledComponent (juce::Component* c, Orientation o, juce::Label** labelPtr, int idx)
 {
     // if the layout is not owned by a component, the label will not show up,
     // because addAndMakeVisible can not be called.
     jassert (owningComponent);
     
-    Label* label = new Label();
+    juce::Label* label = new juce::Label();
     if (owningComponent) {
         owningComponent->addAndMakeVisible (label);
     }
@@ -75,17 +75,17 @@ LayoutItem* Layout::addLabeledComponent (Component* c, Orientation o, Label** la
     return labeledItem;
 }
 
-LayoutItem* Layout::addLabeledComponent (Component* component, StringRef text, Orientation o, int idx)
+LayoutItem* Layout::addLabeledComponent (juce::Component* component, juce::StringRef text, Orientation o, int idx)
 {
     LayoutItem* item = addLabeledComponent(component, o, nullptr, idx);
-    if (Label* label = item->getLabel()) {
-        label->setText (text, dontSendNotification);
-        label->setJustificationType (Justification::centred);
+    if (juce::Label* label = item->getLabel()) {
+        label->setText (text, juce::dontSendNotification);
+        label->setJustificationType (juce::Justification::centred);
     }
     return item;
 }
 
-Layout* Layout::addSubLayout (Orientation o, int idx, Component* owner)
+Layout* Layout::addSubLayout (Orientation o, int idx, juce::Component* owner)
 {
     SubLayout* sub = new SubLayout (o, owningComponent);
     itemsList.insert (idx, sub);
@@ -100,7 +100,7 @@ LayoutItem* Layout::addSSpacer (float sx, float sy, int idx)
     return item;
 }
 
-LayoutItem* Layout::getLayoutItem (Component* c)
+LayoutItem* Layout::getLayoutItem (juce::Component* c)
 {
     for (int i=0; i<itemsList.size(); ++i) {
         LayoutItem* item = itemsList.getUnchecked (i);
@@ -130,7 +130,7 @@ void Layout::updateGeometry ()
     }
 }
 
-void Layout::updateGeometry (Rectangle<int> bounds)
+void Layout::updateGeometry (juce::Rectangle<int> bounds)
 {
     // recursion check
     if (isUpdating) {
@@ -159,7 +159,7 @@ void Layout::updateGeometry (Rectangle<int> bounds)
             float sx, sy;
             item->getStretch (sx, sy);
             float h = bounds.getHeight() * sy / cummulatedY;
-            Rectangle<int> childBounds (bounds.getX(), bounds.getY(), bounds.getWidth(), h);
+            juce::Rectangle<int> childBounds (bounds.getX(), bounds.getY(), bounds.getWidth(), h);
             bool changedWidth, changedHeight;
             item->constrainBounds (childBounds, changedWidth, changedHeight);
             itemsBounds.set (i, childBounds);
@@ -188,13 +188,13 @@ void Layout::updateGeometry (Rectangle<int> bounds)
                 if (orientation == BottomUp) {
                     y -= h;
                 }
-                Rectangle<int> childBounds (bounds.getX(), y, availableWidth, h);
+                juce::Rectangle<int> childBounds (bounds.getX(), y, availableWidth, h);
                 if (item->isSubLayout()) {
                     if (Layout* sub = dynamic_cast<Layout*>(item)) {
                         sub->updateGeometry (childBounds.reduced (item->getPadding()));
                     }
                 }
-                if (Component* c = item->getComponent()) {
+                if (juce::Component* c = item->getComponent()) {
                     c->setBounds (childBounds.reduced (item->getPadding()));
                 }
 
@@ -209,13 +209,13 @@ void Layout::updateGeometry (Rectangle<int> bounds)
                 if (orientation == BottomUp) {
                     y -= h;
                 }
-                Rectangle<int> childBounds (bounds.getX(), y, availableWidth, h );
+                juce::Rectangle<int> childBounds (bounds.getX(), y, availableWidth, h );
                 if (item->isSubLayout()) {
                     if (Layout* sub = dynamic_cast<Layout*>(item)) {
                         sub->updateGeometry (childBounds.reduced (item->getPadding()));
                     }
                 }
-                if (Component* c = item->getComponent()) {
+                if (juce::Component* c = item->getComponent()) {
                     c->setBounds (childBounds.reduced (item->getPadding()));
                 }
                 if (orientation == TopDown) {
@@ -229,7 +229,7 @@ void Layout::updateGeometry (Rectangle<int> bounds)
             float sx, sy;
             item->getStretch (sx, sy);
             float w = bounds.getWidth() * sx / cummulatedX;
-            Rectangle<int> childBounds (bounds.getX(), bounds.getY(), w, bounds.getHeight());
+            juce::Rectangle<int> childBounds (bounds.getX(), bounds.getY(), w, bounds.getHeight());
             bool changedWidth, changedHeight;
             item->constrainBounds (childBounds, changedWidth, changedHeight);
             itemsBounds.set (i, childBounds);
@@ -258,13 +258,13 @@ void Layout::updateGeometry (Rectangle<int> bounds)
                 if (orientation == BottomUp) {
                     x -= w;
                 }
-                Rectangle<int> childBounds (x, bounds.getY(), w, availableHeight);
+                juce::Rectangle<int> childBounds (x, bounds.getY(), w, availableHeight);
                 if (item->isSubLayout()) {
                     if (Layout* sub = dynamic_cast<Layout*>(item)) {
                         sub->updateGeometry (childBounds.reduced (item->getPadding()));
                     }
                 }
-                if (Component* c = item->getComponent()) {
+                if (juce::Component* c = item->getComponent()) {
                     c->setBounds (childBounds.reduced (item->getPadding()));
                 }
 
@@ -279,13 +279,13 @@ void Layout::updateGeometry (Rectangle<int> bounds)
                 if (orientation == RightToLeft) {
                     x -= w;
                 }
-                Rectangle<int> childBounds (x, bounds.getY(), w, availableHeight);
+                juce::Rectangle<int> childBounds (x, bounds.getY(), w, availableHeight);
                 if (item->isSubLayout()) {
                     if (Layout* sub = dynamic_cast<Layout*>(item)) {
                         sub->updateGeometry (childBounds.reduced (item->getPadding()));
                     }
                 }
-                if (Component* c = item->getComponent()) {
+                if (juce::Component* c = item->getComponent()) {
                     c->setBounds (childBounds.reduced (item->getPadding()));
                 }
                 if (orientation == LeftToRight) {
@@ -333,7 +333,7 @@ void Layout::getCummulatedStretch (float& w, float& h) const
 
 
 // =============================================================================
-SubLayout::SubLayout (Orientation o, Component* owner) : Layout (o, owner), LayoutItem (LayoutItem::SubLayout)
+SubLayout::SubLayout (Orientation o, juce::Component* owner) : Layout (o, owner), LayoutItem (LayoutItem::SubLayout)
 {
     
 }
