@@ -121,6 +121,7 @@ Layout* Layout::addSubLayout (Orientation o, int idx, juce::Component* owner)
 LayoutItem* Layout::addSSpacer (float sx, float sy, int idx)
 {
     LayoutItem* item = itemsList.insert (idx, new LayoutItem (LayoutItem::SpacerItem));
+    item->setStretch (sx, sy);
     updateGeometry();
     return item;
 }
