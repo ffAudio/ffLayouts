@@ -154,6 +154,32 @@ public:
     float getPaddingRight () const  { return paddingRight; }
     float getPaddingBottom () const { return paddingBottom; }
     
+    /**
+     Convenience method to set all parameters in one line
+     */
+    void setItemParameters (float inStretchX,
+                            float inStretchY,
+                            int inMinWidth,
+                            int inMinHeight,
+                            int inMaxWidth,
+                            int inMaxHeight,
+                            float inPaddingTop,
+                            float inPaddingLeft,
+                            float inPaddingRight,
+                            float inPaddingBottom)
+    {
+        stretchX = inStretchX;
+        stretchY = inStretchY;
+        minWidth  = inMinWidth;
+        minHeight = inMinHeight;
+        maxWidth  = inMaxWidth;
+        maxHeight = inMaxHeight;
+        paddingTop    = inPaddingTop;
+        paddingLeft   = inPaddingLeft;
+        paddingRight  = inPaddingRight;
+        paddingBottom = inPaddingBottom;
+    }
+
     juce::Rectangle<int> getPaddedBounds (juce::Rectangle<int> b)
     {
         return juce::Rectangle<int> (b.getX() + paddingLeft,
