@@ -84,14 +84,14 @@ public:
       : itemType (i),
         stretchX (1.0),
         stretchY (1.0),
-        minWidth (-1.0),
-        maxWidth (-1.0),
-        minHeight (-1.0),
-        maxHeight (-1.0),
-        paddingTop (0.0),
-        paddingLeft (0.0),
-        paddingRight (0.0),
-        paddingBottom (0.0)
+        minWidth (-1),
+        maxWidth (-1),
+        minHeight (-1),
+        maxHeight (-1),
+        paddingTop (0),
+        paddingLeft (0),
+        paddingRight (0),
+        paddingBottom (0)
     {}
     
     virtual ~LayoutItem() {}
@@ -139,20 +139,33 @@ public:
     void setMinimumHeight (const int h) { minHeight = h; }
     void setMaximumHeight (const int h) { maxHeight = h; }
 
-    void setPaddingTop    (const float p) { paddingTop = p; }
-    void setPaddingLeft   (const float p) { paddingLeft = p; }
-    void setPaddingRight  (const float p) { paddingRight = p; }
-    void setPaddingBottom (const float p) { paddingBottom = p; }
-    void setPadding (const float p) {
+    int getMinimumWidth  () const { return minWidth; }
+    int getMaximumWidth  () const { return maxWidth; }
+    int getMinimumHeight () const { return minHeight; }
+    int getMaximumHeight () const { return maxHeight; }
+
+    virtual void getSizeLimits (int& minW, int& maxW, int& minH, int& maxH)
+    {
+        if (minWidth >= 0) minW = (minW < 0) ? minWidth : juce::jmax (minW, minWidth);
+        if (maxWidth >= 0) maxW = (maxW < 0) ? maxWidth : juce::jmin (maxW, maxWidth);
+        if (minHeight >= 0) minH = (minH < 0) ? minHeight : juce::jmax (minH, minHeight);
+        if (maxHeight >= 0) maxH = (maxH < 0) ? maxHeight : juce::jmin (maxH, maxHeight);
+    }
+
+    void setPaddingTop    (const int p) { paddingTop = p; }
+    void setPaddingLeft   (const int p) { paddingLeft = p; }
+    void setPaddingRight  (const int p) { paddingRight = p; }
+    void setPaddingBottom (const int p) { paddingBottom = p; }
+    void setPadding (const int p) {
         setPaddingTop (p);
         setPaddingLeft (p);
         setPaddingRight (p);
         setPaddingBottom (p);
     }
-    float getPaddingTop () const    { return paddingTop; }
-    float getPaddingLeft () const   { return paddingLeft; }
-    float getPaddingRight () const  { return paddingRight; }
-    float getPaddingBottom () const { return paddingBottom; }
+    int getPaddingTop () const    { return paddingTop; }
+    int getPaddingLeft () const   { return paddingLeft; }
+    int getPaddingRight () const  { return paddingRight; }
+    int getPaddingBottom () const { return paddingBottom; }
     
     void setFixedWidth (const int w)
     {
@@ -241,10 +254,10 @@ private:
     float stretchX;
     float stretchY;
     
-    float minWidth;
-    float maxWidth;
-    float minHeight;
-    float maxHeight;
+    int minWidth;
+    int maxWidth;
+    int minHeight;
+    int maxHeight;
 
     float paddingTop;
     float paddingLeft;
@@ -336,7 +349,12 @@ public:
      Changes the orientation of the layout
      */
     void setOrientation (const Orientation);
+
+    Orientation getOrientation () const { return orientation; }
     
+    bool isHorizontal () const { return orientation == LeftToRight || orientation == RightToLeft; }
+    bool isVertical ()   const { return orientation == TopDown || orientation == BottomUp; }
+
     /**
      addComponent creates a LayoutItem to wrap the given Component. To add 
      properties like stretch factor, minimum sizes etc. a pointer to the created
@@ -406,6 +424,10 @@ protected:
      */
     void addRawItem (LayoutItem* item, int idx=-1);
 
+    int getNumItems() const { return itemsList.size(); }
+
+    LayoutItem* getItem (const int idx) { return itemsList.getUnchecked (idx); }
+
 private:
     Orientation orientation;
     juce::OwnedArray<LayoutItem>       itemsList;
@@ -436,6 +458,8 @@ public:
      dimension the maximum of the stretch factors is returned.
      */
     void getStretch (float& w, float& h) const override;
+
+    void getSizeLimits (int& minW, int& maxW, int& minH, int& maxH) override;
 
 };
 

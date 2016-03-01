@@ -86,9 +86,14 @@ LayoutItem* Layout::addLabeledComponent (juce::Component* c, Orientation o, juce
     if (owningComponent) {
         owningComponent->addAndMakeVisible (label);
     }
-    float h = label->getFont().getHeight();
     Layout* sub = addSubLayout (o, idx, owningComponent);
-    sub->addComponent (label)->setFixedHeight (h);
+    if (isVertical()) {
+        float h = label->getFont().getHeight();
+        sub->addComponent (label)->setFixedHeight (h);
+    }
+    else {
+        sub->addComponent (label);
+    }
     LabeledLayoutItem* labeledItem = new LabeledLayoutItem (c, label);
     sub->addRawItem (labeledItem);
     
@@ -179,7 +184,7 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
     float availableWidth  = bounds.getWidth();
     float availableHeight = bounds.getHeight();
     
-    if (orientation == TopDown || orientation == BottomUp) {
+    if (isVertical()) {
         for (int i=0; i<itemsList.size(); ++i) {
             LayoutItem* item = itemsList.getUnchecked (i);
             float sx, sy;
@@ -249,7 +254,7 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
                 }
             }
         }
-    } else if (orientation == LeftToRight || orientation == RightToLeft) {
+    } else if (isHorizontal()) {
         for (int i=0; i<itemsList.size(); ++i) {
             LayoutItem* item = itemsList.getUnchecked (i);
             float sx, sy;
@@ -338,11 +343,11 @@ void Layout::getCummulatedStretch (float& w, float& h) const
         LayoutItem* item = itemsList.getUnchecked (i);
         float x, y;
         item->getStretch (x, y);
-        if (orientation == LeftToRight || orientation == RightToLeft) {
+        if (isHorizontal()) {
             w += x;
             h = std::max (h, y);
         }
-        else if (orientation == TopDown || orientation == BottomUp) {
+        else if (isVertical()) {
             w = std::max (w, x);
             h += y;
         }
@@ -357,18 +362,37 @@ void Layout::getCummulatedStretch (float& w, float& h) const
 }
 
 
-
 // =============================================================================
 SubLayout::SubLayout (Orientation o, juce::Component* owner) : Layout (o, owner), LayoutItem (LayoutItem::SubLayout)
 {
-    
 }
-
 
 void SubLayout::getStretch (float& w, float& h) const
 {
     w = 0.0;
     h = 0.0;
     getCummulatedStretch (w, h);
+}
+
+void SubLayout::getSizeLimits (int& minW, int& maxW, int& minH, int& maxH)
+{
+    if (isVertical()) {
+        for (int i=0; i<getNumItems(); ++i) {
+            LayoutItem* item = getItem (i);
+            if (item->getMinimumWidth() >= 0) minW = (minW < 0) ? item->getMinimumWidth() : juce::jmax(minW, item->getMinimumWidth());
+            if (item->getMaximumWidth() >= 0) maxW = (maxW < 0) ? item->getMaximumWidth() : juce::jmin(maxW, item->getMaximumWidth());
+            if (item->getMinimumHeight() >= 0) minH = (minH < 0) ? item->getMinimumHeight() : minH + item->getMinimumHeight();
+            if (item->getMaximumHeight() >= 0) maxH = (maxH < 0) ? item->getMaximumHeight() : maxH + item->getMaximumHeight();
+        }
+    }
+    else if (isHorizontal()) {
+        for (int i=0; i<getNumItems(); ++i) {
+            LayoutItem* item = getItem (i);
+            if (item->getMinimumWidth() >= 0) minW = (minW < 0) ? item->getMinimumWidth() : minW + item->getMinimumWidth();
+            if (item->getMaximumWidth() >= 0) maxW = (maxW < 0) ? item->getMaximumWidth() : maxW + item->getMaximumWidth();
+            if (item->getMinimumHeight() >= 0) minH = (minH < 0) ? item->getMinimumHeight() : juce::jmax(minH, item->getMinimumHeight());
+            if (item->getMaximumHeight() >= 0) maxH = (maxH < 0) ? item->getMaximumHeight() : juce::jmin(maxH, item->getMaximumHeight());
+        }
+    }
 }
 
