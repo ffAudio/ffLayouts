@@ -376,23 +376,37 @@ void SubLayout::getStretch (float& w, float& h) const
 
 void SubLayout::getSizeLimits (int& minW, int& maxW, int& minH, int& maxH)
 {
+    bool canConsumeWidth = false;
+    bool canConsumeHeight = false;
     if (isVertical()) {
         for (int i=0; i<getNumItems(); ++i) {
             LayoutItem* item = getItem (i);
             if (item->getMinimumWidth() >= 0) minW = (minW < 0) ? item->getMinimumWidth() : juce::jmax(minW, item->getMinimumWidth());
             if (item->getMaximumWidth() >= 0) maxW = (maxW < 0) ? item->getMaximumWidth() : juce::jmin(maxW, item->getMaximumWidth());
             if (item->getMinimumHeight() >= 0) minH = (minH < 0) ? item->getMinimumHeight() : minH + item->getMinimumHeight();
-            if (item->getMaximumHeight() >= 0) maxH = (maxH < 0) ? item->getMaximumHeight() : maxH + item->getMaximumHeight();
+            if (item->getMaximumHeight() >= 0) {
+                maxH = (maxH < 0) ? item->getMaximumHeight() : maxH + item->getMaximumHeight();
+            }
+            else {
+                canConsumeHeight = true;
+            }
         }
     }
     else if (isHorizontal()) {
         for (int i=0; i<getNumItems(); ++i) {
             LayoutItem* item = getItem (i);
             if (item->getMinimumWidth() >= 0) minW = (minW < 0) ? item->getMinimumWidth() : minW + item->getMinimumWidth();
-            if (item->getMaximumWidth() >= 0) maxW = (maxW < 0) ? item->getMaximumWidth() : maxW + item->getMaximumWidth();
+            if (item->getMaximumWidth() >= 0) {
+                maxW = (maxW < 0) ? item->getMaximumWidth() : maxW + item->getMaximumWidth();
+            }
+            else {
+                canConsumeWidth = true;
+            }
             if (item->getMinimumHeight() >= 0) minH = (minH < 0) ? item->getMinimumHeight() : juce::jmax(minH, item->getMinimumHeight());
             if (item->getMaximumHeight() >= 0) maxH = (maxH < 0) ? item->getMaximumHeight() : juce::jmin(maxH, item->getMaximumHeight());
         }
     }
+    if (canConsumeWidth)  maxW = -1;
+    if (canConsumeHeight) maxH = -1;
 }
 

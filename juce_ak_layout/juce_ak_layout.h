@@ -226,22 +226,28 @@ public:
      */
     void constrainBounds (juce::Rectangle<int>& bounds, bool& changedWidth, bool& changedHeight)
     {
+        int cbMinWidth = -1;
+        int cbMaxWidth = -1;
+        int cbMinHeight = -1;
+        int cbMaxHeight = -1;
+        getSizeLimits (cbMinWidth, cbMaxWidth, cbMinHeight, cbMaxHeight);
         changedWidth  = false;
         changedHeight = false;
-        if (maxWidth > 0.0 && maxWidth < bounds.getWidth()) {
-            bounds.setWidth (maxWidth);
+
+        if (cbMaxWidth > 0 && cbMaxWidth < bounds.getWidth()) {
+            bounds.setWidth (cbMaxWidth);
             changedWidth = true;
         }
-        if (minWidth > 0.0 && minWidth > bounds.getWidth()) {
-            bounds.setWidth (minWidth);
+        if (cbMinWidth > 0 && cbMinWidth > bounds.getWidth()) {
+            bounds.setWidth (cbMinWidth);
             changedWidth = true;
         }
-        if (maxHeight > 0.0 && maxHeight < bounds.getHeight()) {
-            bounds.setHeight (maxHeight);
+        if (cbMaxHeight > 0 && cbMaxHeight < bounds.getHeight()) {
+            bounds.setHeight (cbMaxHeight);
             changedHeight = true;
         }
-        if (minHeight > 0.0 && minHeight > bounds.getHeight()) {
-            bounds.setHeight (minHeight);
+        if (cbMinHeight > 0 && cbMinHeight > bounds.getHeight()) {
+            bounds.setHeight (cbMinHeight);
             changedHeight = true;
         }
     }
