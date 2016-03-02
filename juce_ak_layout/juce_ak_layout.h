@@ -58,8 +58,8 @@ public:
         Invalid = 0,
         ComponentItem,
         LabeledComponentItem,
-        SplitterItem,
-        MovableSplitterItem,
+        //SplitterItem,
+        //MovableSplitterItem,
         SpacerItem,
         SubLayout
         
@@ -375,7 +375,7 @@ public:
         TopDown,
         RightToLeft,
         BottomUp,
-        GridLayout
+        //GridLayout
     };
     
     Layout (Orientation o=Unknown, juce::Component* owner=nullptr);
