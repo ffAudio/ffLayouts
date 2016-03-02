@@ -87,7 +87,7 @@ LayoutItem* Layout::addLabeledComponent (juce::Component* c, Orientation o, juce
         owningComponent->addAndMakeVisible (label);
     }
     Layout* sub = addSubLayout (o, idx, owningComponent);
-    if (isVertical()) {
+    if (sub->isVertical()) {
         float h = label->getFont().getHeight();
         sub->addComponent (label)->setFixedHeight (h);
     }
