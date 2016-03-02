@@ -211,14 +211,6 @@ public:
         paddingBottom = inPaddingBottom;
     }
 
-    juce::Rectangle<int> getPaddedBounds (juce::Rectangle<int> b)
-    {
-        return juce::Rectangle<int> (b.getX() + paddingLeft,
-                                     b.getY() + paddingTop,
-                                     b.getWidth() - (paddingLeft+paddingRight),
-                                     b.getHeight() - (paddingTop+paddingBottom));
-    }
-
     ItemType getItemType() const { return itemType; }
 
     /**
@@ -252,6 +244,40 @@ public:
         }
     }
     
+protected:
+    friend Layout;
+    void setLayoutBounds (juce::Rectangle<int> b)
+    {
+        layoutBounds = b;
+    }
+    void setLayoutBounds (int x, int y, int w, int h)
+    {
+        layoutBounds.setBounds (x, y, w, h);
+    }
+    juce::Rectangle<int> getLayoutBounds() const
+    {
+        return layoutBounds;
+    }
+    juce::Rectangle<int> getPaddedLayoutBounds () const
+    {
+        return juce::Rectangle<int> (layoutBounds.getX() + paddingLeft,
+                                     layoutBounds.getY() + paddingTop,
+                                     layoutBounds.getWidth() - (paddingLeft+paddingRight),
+                                     layoutBounds.getHeight() - (paddingTop+paddingBottom));
+    }
+
+    /**
+     set the flag that the bounds are adapted with size limits and shall not change
+     */
+    void setBoundsAreFinal (bool final)
+    {
+        boundsAreFinal = final;
+    }
+    bool getBoundsAreFinal() const
+    {
+        return boundsAreFinal;
+    }
+    
 private:
     ItemType   itemType;
     
@@ -269,6 +295,10 @@ private:
     float paddingLeft;
     float paddingRight;
     float paddingBottom;
+    
+    // computed values, not for setting
+    juce::Rectangle<int> layoutBounds;
+    bool                 boundsAreFinal;
 };
 
 //==============================================================================
@@ -409,6 +439,7 @@ public:
     LayoutItem* getLayoutItem (juce::Component*);
     
     /**
+     Call this method in your Component::resized() callback.
      If the layout has an owning component, this calls updateGeometry with the
      bounds of the owning component.
      */
@@ -418,6 +449,8 @@ public:
      Recompute the geometry of all components. Recoursively recomputes all sub layouts.
      */
     virtual void updateGeometry (juce::Rectangle<int> bounds);
+    
+    virtual void paintBounds (juce::Graphics& g) const;
     
     /**
      Cummulates all stretch factors inside the nested layout
@@ -433,12 +466,11 @@ protected:
     int getNumItems() const { return itemsList.size(); }
 
     LayoutItem* getItem (const int idx) { return itemsList.getUnchecked (idx); }
+    const LayoutItem* getItem (const int idx) const { return itemsList.getUnchecked (idx); }
 
 private:
     Orientation orientation;
     juce::OwnedArray<LayoutItem>       itemsList;
-    juce::Array<juce::Rectangle<int> > itemsBounds;
-    juce::Array<bool>                  itemBoundsFinal;
 
     bool isUpdating;
     mutable bool isCummulatingStretch;

@@ -55,8 +55,13 @@ public:
     MainContentComponent();
     ~MainContentComponent();
 
-    void paint (Graphics&);
-    void resized();
+    void paint (Graphics&) override;
+    // enable to debug
+    void paintOverChildren (Graphics& g) override
+    {
+        layout.paintBounds (g);
+    }
+    void resized() override;
 
 private:
     //==============================================================================
