@@ -476,6 +476,11 @@ public:
     virtual void paintBounds (juce::Graphics& g) const;
     
     /**
+     Stretch has only an effect on sublayouts.
+     */
+    virtual void setLayoutStretch (float w, float h) {};
+    
+    /**
      Cummulates all stretch factors inside the nested layout
      */
     void getCummulatedStretch (float& w, float& h) const;
@@ -519,6 +524,11 @@ public:
      dimension the maximum of the stretch factors is returned.
      */
     void getStretch (float& w, float& h) const override;
+    
+    /**
+     Stretch has only an effect on sublayouts.
+     */
+    virtual void setLayoutStretch (float w, float h) override;
 
     /**
      Cummulates size limits of all child items. Along the orientation it sums up 

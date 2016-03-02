@@ -387,13 +387,24 @@ void Layout::getCummulatedStretch (float& w, float& h) const
 // =============================================================================
 SubLayout::SubLayout (Orientation o, juce::Component* owner) : Layout (o, owner), LayoutItem (LayoutItem::SubLayout)
 {
+    setLayoutStretch (-1.0, -1.0);
 }
 
 void SubLayout::getStretch (float& w, float& h) const
 {
     w = 0.0;
     h = 0.0;
-    getCummulatedStretch (w, h);
+    LayoutItem::getStretch(w, h);
+    if (w < 0 && h < 0) {
+        w = 0.0;
+        h = 0.0;
+        getCummulatedStretch (w, h);
+    }
+}
+
+void SubLayout::setLayoutStretch (float w, float h)
+{
+    LayoutItem::setStretch (w, h);
 }
 
 void SubLayout::getSizeLimits (int& minW, int& maxW, int& minH, int& maxH)
