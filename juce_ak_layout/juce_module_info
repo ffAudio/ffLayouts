@@ -1,16 +1,16 @@
 {
   "id":             "juce_ak_layout",
   "name":           "JUCE GUI alternative layout mechanism",
-  "version":        "4.1.0",
+  "version":        "1.0.0",
   "description":    "",
   "website":        "https://github.com/audiokinematics/juceLayouts",
-  "license":        "GPL",
+  "license":        "BSD - 3 clause",
 
-  "dependencies":   [ { "id": "juce_core",              "version": "matching" },
-                      { "id": "juce_data_structures",   "version": "matching" },
-                      { "id": "juce_events",            "version": "matching" },
-                      { "id": "juce_graphics",          "version": "matching" },
-                      { "id": "juce_gui_basics",        "version": "matching" } ],
+  "dependencies":   [ { "id": "juce_core",              "version": ">3.2.0" },
+                      { "id": "juce_data_structures",   "version": ">3.2.0" },
+                      { "id": "juce_events",            "version": ">3.2.0" },
+                      { "id": "juce_graphics",          "version": ">3.2.0" },
+                      { "id": "juce_gui_basics",        "version": ">3.2.0" } ],
 
   "include":        "juce_ak_layout.h",
 
