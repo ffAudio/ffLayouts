@@ -450,6 +450,15 @@ public:
      */
     virtual void updateGeometry (juce::Rectangle<int> bounds);
     
+    /**
+     To show the layout bounds e.g. for debugging yout layout structure simply add the following line to yout Component:
+     \code{.cpp}
+     void Component::paintOverChildren (Graphics& g) override
+     {
+         myLayout.paintBounds (g);
+     }
+     \endcode
+     */
     virtual void paintBounds (juce::Graphics& g) const;
     
     /**

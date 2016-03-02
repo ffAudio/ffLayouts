@@ -57,10 +57,10 @@ public:
 
     void paint (Graphics&) override;
     // enable to debug
-    void paintOverChildren (Graphics& g) override
-    {
-        layout.paintBounds (g);
-    }
+    //void paintOverChildren (Graphics& g) override
+    //{
+    //    layout.paintBounds (g);
+    //}
     void resized() override;
 
 private:
