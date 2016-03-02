@@ -167,12 +167,18 @@ public:
     int getPaddingRight () const  { return paddingRight; }
     int getPaddingBottom () const { return paddingBottom; }
     
+    /**
+     Sets fixed width as minimum width = maximum width
+     */
     void setFixedWidth (const int w)
     {
         minWidth = w;
         maxWidth = w;
     }
 
+    /**
+     Sets fixed height as minimum height = maximum height
+     */
     void setFixedHeight (const int h)
     {
         minHeight = h;
@@ -268,11 +274,15 @@ protected:
 
     /**
      set the flag that the bounds are adapted with size limits and shall not change
+     This is computed on each updateGeometry and should not be set
      */
     void setBoundsAreFinal (bool final)
     {
         boundsAreFinal = final;
     }
+    /**
+     This is computed on each updateGeometry and should not be set
+     */
     bool getBoundsAreFinal() const
     {
         return boundsAreFinal;
@@ -386,6 +396,10 @@ public:
      */
     void setOrientation (const Orientation);
 
+    /**
+     Returns the orientation including direction. If you are only intersted if horizontal or vertical
+     @see isHorizontal and @see isVertival
+     */
     Orientation getOrientation () const { return orientation; }
     
     bool isHorizontal () const { return orientation == LeftToRight || orientation == RightToLeft; }
@@ -506,6 +520,10 @@ public:
      */
     void getStretch (float& w, float& h) const override;
 
+    /**
+     Cummulates size limits of all child items. Along the orientation it sums up 
+     the minimum sizes and maximum sizes.
+     */
     void getSizeLimits (int& minW, int& maxW, int& minH, int& maxH) override;
 
 };
