@@ -96,6 +96,10 @@ public:
     
     virtual ~LayoutItem() {}
     
+    /**
+     Return if the layout item has a valid type. A component item not pointing to a 
+     valid component is also considered invalid
+     */
     bool isValid()
     {
         if (itemType == Invalid) {
@@ -107,12 +111,22 @@ public:
         return true;
     }
     
+    /**
+     Return the wrapped component as pointer.
+     */
     juce::Component* getComponent ()  const { return componentPtr.getComponent(); }
     bool isComponentItem ()     const { return itemType == ComponentItem; }
     bool isSubLayout ()         const { return itemType == SubLayout; }
     
+    /**
+     If the item is a label item (sublayout group), you can access the created item.
+     The default item returns a nullptr.
+     */
     virtual juce::Label* getLabel () { return nullptr; }
-    
+
+    /**
+     Return the stretch value of an item.
+     */
     virtual void getStretch (float& w, float& h) const
     {
         w = stretchX;
@@ -122,6 +136,8 @@ public:
     /**
      Used to set stretch factors for the wrapped component. The space is distributed
      according the sum of stretch factors.
+     For sub layouts, if you want to use the cummulated stretch of the child items,
+     set this to a negative value. This is the default for new created sub layouts.
      */
     virtual void setStretch (float w, float h)
     {
@@ -144,6 +160,11 @@ public:
     int getMinimumHeight () const { return minHeight; }
     int getMaximumHeight () const { return maxHeight; }
 
+    /**
+     Return the size limits of the item. You can use this method to cummulate
+     the limits. if you don't want that, it is your responsibility to set the
+     parameters to no limit, i.e. a negative value
+     */
     virtual void getSizeLimits (int& minW, int& maxW, int& minH, int& maxH)
     {
         if (minWidth >= 0) minW = (minW < 0) ? minWidth : juce::jmax (minW, minWidth);
@@ -495,12 +516,7 @@ public:
      \endcode
      */
     virtual void paintBounds (juce::Graphics& g) const;
-    
-    /**
-     Stretch has only an effect on sublayouts.
-     */
-    virtual void setLayoutStretch (float w, float h) {};
-    
+
     /**
      Cummulates all stretch factors inside the nested layout
      

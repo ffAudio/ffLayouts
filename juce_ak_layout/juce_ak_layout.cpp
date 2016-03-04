@@ -47,6 +47,7 @@ Layout::Layout(Orientation o, juce::Component* owner)
     isCummulatingStretch (false),
     owningComponent (owner)
 {
+    setStretch (-1.0, -1.0);
 }
 
 Layout::~Layout()
