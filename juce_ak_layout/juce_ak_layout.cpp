@@ -41,7 +41,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "juce_ak_layout.h"
 
 Layout::Layout(Orientation o, juce::Component* owner)
-  : orientation (o),
+  : LayoutItem (SubLayout),
+    orientation (o),
     isUpdating (false),
     isCummulatingStretch (false),
     owningComponent (owner)
@@ -117,13 +118,13 @@ LayoutItem* Layout::addLabeledComponent (juce::Component* component, juce::Strin
 
 Layout* Layout::addSubLayout (Orientation o, int idx, juce::Component* owner)
 {
-    SubLayout* sub = new SubLayout (o, owningComponent);
+    Layout* sub = new Layout (o, owningComponent);
     itemsList.insert (idx, sub);
     updateGeometry();
     return sub;
 }
 
-LayoutItem* Layout::addSSpacer (float sx, float sy, int idx)
+LayoutItem* Layout::addSpacer (float sx, float sy, int idx)
 {
     LayoutItem* item = itemsList.insert (idx, new LayoutItem (LayoutItem::SpacerItem));
     item->setStretch (sx, sy);
@@ -156,6 +157,11 @@ void Layout::addRawItem (LayoutItem* item, int idx)
 
 void Layout::updateGeometry ()
 {
+    /*
+    if (!itemBounds.isEmpty()) {
+        updateGeometry (itemBounds());
+    }
+    else */
     if (owningComponent) {
         updateGeometry (owningComponent->getLocalBounds());
     }
@@ -191,7 +197,7 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
             juce::Rectangle<int> childBounds (bounds.getX(), bounds.getY(), bounds.getWidth(), h);
             bool changedWidth, changedHeight;
             item->constrainBounds (childBounds, changedWidth, changedHeight);
-            item->setLayoutBounds (childBounds);
+            item->setItemBounds (childBounds);
             if (changedHeight) {
                 item->setBoundsAreFinal (true);
                 availableHeight -= childBounds.getHeight();
@@ -213,18 +219,18 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
             LayoutItem* item = itemsList.getUnchecked (i);
 
             if (item->getBoundsAreFinal()) {
-                float h = item->getLayoutBounds().getHeight();
+                float h = item->getItemBounds().getHeight();
                 if (orientation == BottomUp) {
                     y -= h;
                 }
-                item->setLayoutBounds (bounds.getX(), y, availableWidth, h);
+                item->setItemBounds (bounds.getX(), y, availableWidth, h);
                 if (item->isSubLayout()) {
                     if (Layout* sub = dynamic_cast<Layout*>(item)) {
-                        sub->updateGeometry (item->getPaddedLayoutBounds());
+                        sub->updateGeometry (item->getPaddedItemBounds());
                     }
                 }
                 if (juce::Component* c = item->getComponent()) {
-                    c->setBounds (item->getPaddedLayoutBounds());
+                    c->setBounds (item->getPaddedItemBounds());
                 }
 
                 if (orientation == TopDown) {
@@ -238,14 +244,14 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
                 if (orientation == BottomUp) {
                     y -= h;
                 }
-                item->setLayoutBounds (bounds.getX(), y, availableWidth, h );
+                item->setItemBounds (bounds.getX(), y, availableWidth, h );
                 if (item->isSubLayout()) {
                     if (Layout* sub = dynamic_cast<Layout*>(item)) {
-                        sub->updateGeometry (item->getPaddedLayoutBounds());
+                        sub->updateGeometry (item->getPaddedItemBounds());
                     }
                 }
                 if (juce::Component* c = item->getComponent()) {
-                    c->setBounds (item->getPaddedLayoutBounds());
+                    c->setBounds (item->getPaddedItemBounds());
                 }
                 if (orientation == TopDown) {
                     y += h;
@@ -261,7 +267,7 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
             juce::Rectangle<int> childBounds (bounds.getX(), bounds.getY(), w, bounds.getHeight());
             bool changedWidth, changedHeight;
             item->constrainBounds (childBounds, changedWidth, changedHeight);
-            item->setLayoutBounds (childBounds);
+            item->setItemBounds (childBounds);
             if (changedWidth) {
                 item->setBoundsAreFinal (true);
                 availableWidth -= childBounds.getWidth();
@@ -283,19 +289,19 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
             LayoutItem* item = itemsList.getUnchecked (i);
 
             if (item->getBoundsAreFinal()) {
-                float w = item->getLayoutBounds().getWidth();
+                float w = item->getItemBounds().getWidth();
                 if (orientation == RightToLeft) {
                     x -= w;
                 }
-                item->setLayoutBounds (x, bounds.getY(), w, availableHeight);
+                item->setItemBounds (x, bounds.getY(), w, availableHeight);
                 juce::Rectangle<int> childBounds (x, bounds.getY(), w, availableHeight);
                 if (item->isSubLayout()) {
                     if (Layout* sub = dynamic_cast<Layout*>(item)) {
-                        sub->updateGeometry (item->getPaddedLayoutBounds());
+                        sub->updateGeometry (item->getPaddedItemBounds());
                     }
                 }
                 if (juce::Component* c = item->getComponent()) {
-                    c->setBounds (item->getPaddedLayoutBounds());
+                    c->setBounds (item->getPaddedItemBounds());
                 }
 
                 if (orientation == LeftToRight) {
@@ -309,14 +315,14 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
                 if (orientation == RightToLeft) {
                     x -= w;
                 }
-                item->setLayoutBounds (x, bounds.getY(), w, availableHeight);
+                item->setItemBounds (x, bounds.getY(), w, availableHeight);
                 if (item->isSubLayout()) {
                     if (Layout* sub = dynamic_cast<Layout*>(item)) {
-                        sub->updateGeometry (item->getPaddedLayoutBounds());
+                        sub->updateGeometry (item->getPaddedItemBounds());
                     }
                 }
                 if (juce::Component* c = item->getComponent()) {
-                    c->setBounds (item->getPaddedLayoutBounds());
+                    c->setBounds (item->getPaddedItemBounds());
                 }
                 if (orientation == LeftToRight) {
                     x += w;
@@ -343,11 +349,23 @@ void Layout::paintBounds (juce::Graphics& g) const
         const LayoutItem* item = getItem (i);
         if (item->isSubLayout()) {
             dynamic_cast<const Layout*>(item)->paintBounds (g);
-            g.drawRect(item->getLayoutBounds());
+            g.drawRect(item->getItemBounds());
         }
         else {
-            g.drawRect(item->getLayoutBounds().reduced(1));
+            g.drawRect(item->getItemBounds().reduced(1));
         }
+    }
+}
+
+void Layout::getStretch (float& w, float& h) const
+{
+    w = 0.0;
+    h = 0.0;
+    LayoutItem::getStretch(w, h);
+    if (w < 0 && h < 0) {
+        w = 0.0;
+        h = 0.0;
+        getCummulatedStretch (w, h);
     }
 }
 
@@ -383,31 +401,7 @@ void Layout::getCummulatedStretch (float& w, float& h) const
     isCummulatingStretch = false;
 }
 
-
-// =============================================================================
-SubLayout::SubLayout (Orientation o, juce::Component* owner) : Layout (o, owner), LayoutItem (LayoutItem::SubLayout)
-{
-    setLayoutStretch (-1.0, -1.0);
-}
-
-void SubLayout::getStretch (float& w, float& h) const
-{
-    w = 0.0;
-    h = 0.0;
-    LayoutItem::getStretch(w, h);
-    if (w < 0 && h < 0) {
-        w = 0.0;
-        h = 0.0;
-        getCummulatedStretch (w, h);
-    }
-}
-
-void SubLayout::setLayoutStretch (float w, float h)
-{
-    LayoutItem::setStretch (w, h);
-}
-
-void SubLayout::getSizeLimits (int& minW, int& maxW, int& minH, int& maxH)
+void Layout::getSizeLimits (int& minW, int& maxW, int& minH, int& maxH)
 {
     bool canConsumeWidth = false;
     bool canConsumeHeight = false;

@@ -252,24 +252,24 @@ public:
     
 protected:
     friend Layout;
-    void setLayoutBounds (juce::Rectangle<int> b)
+    void setItemBounds (juce::Rectangle<int> b)
     {
-        layoutBounds = b;
+        itemBounds = b;
     }
-    void setLayoutBounds (int x, int y, int w, int h)
+    void setItemBounds (int x, int y, int w, int h)
     {
-        layoutBounds.setBounds (x, y, w, h);
+        itemBounds.setBounds (x, y, w, h);
     }
-    juce::Rectangle<int> getLayoutBounds() const
+    juce::Rectangle<int> getItemBounds() const
     {
-        return layoutBounds;
+        return itemBounds;
     }
-    juce::Rectangle<int> getPaddedLayoutBounds () const
+    juce::Rectangle<int> getPaddedItemBounds () const
     {
-        return juce::Rectangle<int> (layoutBounds.getX() + paddingLeft,
-                                     layoutBounds.getY() + paddingTop,
-                                     layoutBounds.getWidth() - (paddingLeft+paddingRight),
-                                     layoutBounds.getHeight() - (paddingTop+paddingBottom));
+        return juce::Rectangle<int> (itemBounds.getX() + paddingLeft,
+                                     itemBounds.getY() + paddingTop,
+                                     itemBounds.getWidth() - (paddingLeft+paddingRight),
+                                     itemBounds.getHeight() - (paddingTop+paddingBottom));
     }
 
     /**
@@ -307,7 +307,7 @@ private:
     float paddingBottom;
     
     // computed values, not for setting
-    juce::Rectangle<int> layoutBounds;
+    juce::Rectangle<int> itemBounds;
     bool                 boundsAreFinal;
 };
 
@@ -376,7 +376,7 @@ private:
  @see LayoutItem
  */
 
-class Layout
+class Layout : public LayoutItem
 {
 public:
     enum Orientation {
@@ -444,7 +444,7 @@ public:
      Creates a spacer to put space between items. Use stretch factors to increase
      the space it occupies
      */
-    LayoutItem* addSSpacer (float sx=1.0, float sy=1.0, int idx=-1);
+    LayoutItem* addSpacer (float sx=1.0, float sy=1.0, int idx=-1);
     
     /**
      Retrieve the LayoutItem for a component. If the Component is not found in the
@@ -482,8 +482,23 @@ public:
     
     /**
      Cummulates all stretch factors inside the nested layout
+     
+     Along the orientation the factors are summed up. In the other
+     dimension the maximum of the stretch factors is returned.
+     */
+    void getStretch (float& w, float& h) const override;
+
+    
+    /**
+     Cummulates all stretch factors inside the nested layout
      */
     void getCummulatedStretch (float& w, float& h) const;
+    
+    /**
+     Cummulates size limits of all child items. Along the orientation it sums up
+     the minimum sizes and maximum sizes.
+     */
+    void getSizeLimits (int& minW, int& maxW, int& minH, int& maxH) override;
     
 protected:
     /**
@@ -505,39 +520,6 @@ private:
     juce::Component::SafePointer<juce::Component> owningComponent;
 
 };
-
-/**
- A SubLayout can be used to add a nested layout inside a layout.
- 
- @see Layout
- */
-class SubLayout : public Layout, public LayoutItem
-{
-public:
-    SubLayout (Orientation o=Unknown, juce::Component* owner=nullptr);
-    virtual ~SubLayout() {};
-    
-    /**
-     Cummulates all stretch factors inside the nested layout
-     
-     Along the orientation the factors are summed up. In the other
-     dimension the maximum of the stretch factors is returned.
-     */
-    void getStretch (float& w, float& h) const override;
-    
-    /**
-     Stretch has only an effect on sublayouts.
-     */
-    virtual void setLayoutStretch (float w, float h) override;
-
-    /**
-     Cummulates size limits of all child items. Along the orientation it sums up 
-     the minimum sizes and maximum sizes.
-     */
-    void getSizeLimits (int& minW, int& maxW, int& minH, int& maxH) override;
-
-};
-
 
 
 #endif  // JUCE_AK_LAYOUT_H_INCLUDED

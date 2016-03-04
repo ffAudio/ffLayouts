@@ -109,7 +109,7 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
     constrained->setMaximumHeight (110);
     addAndMakeVisible (button);
 
-    column3->addSSpacer();
+    column3->addSpacer();
 
     // my favourite example, three labeled knobs in a column
     Layout* column4 = layout.addSubLayout (Layout::TopDown);
@@ -121,7 +121,7 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
         components.add (slider);
         column4->addLabeledComponent (slider, "Knob " + String(i+1), Layout::BottomUp);
         if (i<2) {
-            column4->addSSpacer (1.0, 0.2);
+            column4->addSpacer (1.0, 0.2);
         }
         addAndMakeVisible (slider);
     }
