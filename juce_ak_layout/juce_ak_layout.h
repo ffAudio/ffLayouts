@@ -249,21 +249,41 @@ public:
             changedHeight = true;
         }
     }
-    
-protected:
-    friend Layout;
+
+    /**
+     This property is dynamically calculated each time updateGeometry is called.
+     Setting this property on the root node lets you place the layout on a fixed
+     position in the owningComponent. If it is set empty (i.e. size equals 0, 0)
+     which is the default, the local bounds of the owningComponent are used as
+     available space.
+     */
     void setItemBounds (juce::Rectangle<int> b)
     {
         itemBounds = b;
     }
+
+    /**
+     Convenience method to save creation of a rectangle struct.
+     @see setItemBounds
+     */
     void setItemBounds (int x, int y, int w, int h)
     {
         itemBounds.setBounds (x, y, w, h);
     }
+
+    /**
+     returns the calculated bounds of the item or layout.
+     Calling this on the root node returns only a valid rectangle, if it was set
+     as fixed bounds.
+     */
     juce::Rectangle<int> getItemBounds() const
     {
         return itemBounds;
     }
+
+    /**
+     Returns the computed bounds reduced by the specified padding of the item
+     */
     juce::Rectangle<int> getPaddedItemBounds () const
     {
         return juce::Rectangle<int> (itemBounds.getX() + paddingLeft,
@@ -280,6 +300,7 @@ protected:
     {
         boundsAreFinal = final;
     }
+
     /**
      This is computed on each updateGeometry and should not be set
      */
@@ -287,15 +308,15 @@ protected:
     {
         return boundsAreFinal;
     }
-    
+
 private:
     ItemType   itemType;
-    
+
     juce::Component::SafePointer<juce::Component> componentPtr;
-    
+
     float stretchX;
     float stretchY;
-    
+
     int minWidth;
     int maxWidth;
     int minHeight;
@@ -305,7 +326,7 @@ private:
     float paddingLeft;
     float paddingRight;
     float paddingBottom;
-    
+
     // computed values, not for setting
     juce::Rectangle<int> itemBounds;
     bool                 boundsAreFinal;

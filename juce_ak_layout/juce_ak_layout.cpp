@@ -157,12 +157,10 @@ void Layout::addRawItem (LayoutItem* item, int idx)
 
 void Layout::updateGeometry ()
 {
-    /*
-    if (!itemBounds.isEmpty()) {
-        updateGeometry (itemBounds());
+    if (!getItemBounds().isEmpty()) {
+        updateGeometry (getItemBounds());
     }
-    else */
-    if (owningComponent) {
+    else if (owningComponent) {
         updateGeometry (owningComponent->getLocalBounds());
     }
 }
