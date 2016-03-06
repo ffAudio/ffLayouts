@@ -74,10 +74,11 @@ public:
         maxWidth (-1.0),
         minHeight (-1.0),
         maxHeight (-1.0),
-        paddingTop (0.0),
-        paddingLeft (0.0),
-        paddingRight (0.0),
-        paddingBottom (0.0)
+        aspectRatio (0.0),
+        paddingTop (0),
+        paddingLeft (0),
+        paddingRight (0),
+        paddingBottom (0)
     {}
     
     LayoutItem (ItemType i=Invalid)
@@ -88,6 +89,7 @@ public:
         maxWidth (-1),
         minHeight (-1),
         maxHeight (-1),
+        aspectRatio (0.0),
         paddingTop (0),
         paddingLeft (0),
         paddingRight (0),
@@ -213,6 +215,14 @@ public:
     }
 
     /**
+     Set an aspect ratio to constrain the bounds
+     */
+    void setAspectRatio (const float ratio)
+    {
+        aspectRatio = ratio;
+    }
+
+    /**
      Convenience method to set all parameters in one line
      */
     void setItemParameters (float inStretchX,
@@ -221,10 +231,11 @@ public:
                             int inMinHeight,
                             int inMaxWidth,
                             int inMaxHeight,
-                            float inPaddingTop,
-                            float inPaddingLeft,
-                            float inPaddingRight,
-                            float inPaddingBottom)
+                            int inPaddingTop,
+                            int inPaddingLeft,
+                            int inPaddingRight,
+                            int inPaddingBottom,
+                            float inAspectRatio)
     {
         stretchX = inStretchX;
         stretchY = inStretchY;
@@ -236,14 +247,16 @@ public:
         paddingLeft   = inPaddingLeft;
         paddingRight  = inPaddingRight;
         paddingBottom = inPaddingBottom;
+        aspectRatio = inAspectRatio;
     }
 
     ItemType getItemType() const { return itemType; }
 
     /**
-     applies the size constraints to the items
+     Applies the size constraints to the items.
+     set preferVertical to true to adapt height of the item or false to adapt the width.
      */
-    void constrainBounds (juce::Rectangle<int>& bounds, bool& changedWidth, bool& changedHeight)
+    void constrainBounds (juce::Rectangle<int>& bounds, bool& changedWidth, bool& changedHeight, bool preferVertical)
     {
         int cbMinWidth = -1;
         int cbMaxWidth = -1;
@@ -257,12 +270,20 @@ public:
             bounds.setWidth (cbMaxWidth);
             changedWidth = true;
         }
+        if (aspectRatio > 0.0 && !preferVertical) {
+            bounds.setWidth (bounds.getHeight() * aspectRatio);
+            changedWidth = true;
+        }
         if (cbMinWidth > 0 && cbMinWidth > bounds.getWidth()) {
             bounds.setWidth (cbMinWidth);
             changedWidth = true;
         }
         if (cbMaxHeight > 0 && cbMaxHeight < bounds.getHeight()) {
             bounds.setHeight (cbMaxHeight);
+            changedHeight = true;
+        }
+        if (aspectRatio > 0.0 && preferVertical) {
+            bounds.setHeight (bounds.getWidth() / aspectRatio);
             changedHeight = true;
         }
         if (cbMinHeight > 0 && cbMinHeight > bounds.getHeight()) {
@@ -343,10 +364,12 @@ private:
     int minHeight;
     int maxHeight;
 
-    float paddingTop;
-    float paddingLeft;
-    float paddingRight;
-    float paddingBottom;
+    float aspectRatio;
+
+    int paddingTop;
+    int paddingLeft;
+    int paddingRight;
+    int paddingBottom;
 
     // computed values, not for setting
     juce::Rectangle<int> itemBounds;

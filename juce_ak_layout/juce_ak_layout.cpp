@@ -195,7 +195,7 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
             float h = bounds.getHeight() * sy / cummulatedY;
             juce::Rectangle<int> childBounds (bounds.getX(), bounds.getY(), bounds.getWidth(), h);
             bool changedWidth, changedHeight;
-            item->constrainBounds (childBounds, changedWidth, changedHeight);
+            item->constrainBounds (childBounds, changedWidth, changedHeight, true);
             item->setItemBounds (childBounds);
             if (changedHeight) {
                 item->setBoundsAreFinal (true);
@@ -265,7 +265,7 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
             float w = bounds.getWidth() * sx / cummulatedX;
             juce::Rectangle<int> childBounds (bounds.getX(), bounds.getY(), w, bounds.getHeight());
             bool changedWidth, changedHeight;
-            item->constrainBounds (childBounds, changedWidth, changedHeight);
+            item->constrainBounds (childBounds, changedWidth, changedHeight, false);
             item->setItemBounds (childBounds);
             if (changedWidth) {
                 item->setBoundsAreFinal (true);
