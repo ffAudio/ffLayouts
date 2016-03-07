@@ -252,6 +252,7 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
                 if (juce::Component* c = item->getComponent()) {
                     c->setBounds (item->getPaddedItemBounds());
                 }
+                item->callListenersCallback (item->getPaddedItemBounds());
                 if (orientation == TopDown) {
                     y += h;
                 }
@@ -323,6 +324,7 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
                 if (juce::Component* c = item->getComponent()) {
                     c->setBounds (item->getPaddedItemBounds());
                 }
+                item->callListenersCallback (item->getPaddedItemBounds());
                 if (orientation == LeftToRight) {
                     x += w;
                 }
@@ -434,5 +436,22 @@ void Layout::getSizeLimits (int& minW, int& maxW, int& minH, int& maxH)
     }
     if (canConsumeWidth)  maxW = -1;
     if (canConsumeHeight) maxH = -1;
+}
+
+
+//==============================================================================
+void LayoutItem::addListener (LayoutItemListener* const newListener)
+{
+    layoutItemListeners.add (newListener);
+}
+
+void LayoutItem::removeListener (LayoutItemListener* const listener)
+{
+    layoutItemListeners.remove (listener);
+}
+
+void LayoutItem::callListenersCallback (juce::Rectangle<int> newBounds)
+{
+    layoutItemListeners.call(&LayoutItemListener::layoutBoundsChanged, newBounds);
 }
 

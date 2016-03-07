@@ -351,6 +351,32 @@ public:
         return boundsAreFinal;
     }
 
+    // =============================================================================
+    class Listener {
+    public:
+        /** Destructor. */
+        virtual ~Listener()  {}
+        
+        /** Callback when the layout items bounds are changed */
+        virtual void layoutBoundsChanged (juce::Rectangle<int> newBounds) = 0;
+        
+    };
+    
+    /** Registers a listener to receive events when this button's state changes.
+     If the listener is already registered, this will not register it again.
+     @see removeListener
+     */
+    void addListener (Listener* newListener);
+    
+    /** Removes a previously-registered button listener
+     @see addListener
+     */
+    void removeListener (Listener* listener);
+    
+    /** Call the callbacks of LayoutItem::Listeners
+     */
+    void callListenersCallback (juce::Rectangle<int> newBounds);
+    
 private:
     ItemType   itemType;
 
@@ -374,7 +400,14 @@ private:
     // computed values, not for setting
     juce::Rectangle<int> itemBounds;
     bool                 boundsAreFinal;
+    
+    juce::ListenerList<Listener> layoutItemListeners;
 };
+
+#ifndef DOXYGEN
+/** This typedef is just for compatibility with old code and VC6 - newer code should use LayoutItem::Listener instead. */
+typedef LayoutItem::Listener LayoutItemListener;
+#endif
 
 //==============================================================================
 /**
