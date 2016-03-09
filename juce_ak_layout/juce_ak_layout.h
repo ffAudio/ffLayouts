@@ -40,6 +40,32 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef JUCE_AK_LAYOUT_H_INCLUDED
 #define JUCE_AK_LAYOUT_H_INCLUDED
 
+/**
+ \mainpage
+ <h1>Juce Layout</h1>
+ 
+ This JUCE module provides a simple to use layout mechanism. The items to be laid out are LayoutItems.
+ Each LayoutItem can be either a sub layout, a spacer to leave space or a component item which refers to a
+ juce::Component. When Layout::updateGeometry is called, the calculated bounds of the item is then
+ transfered to the component via setBounds.
+ @see LayoutItem
+ 
+ <p>
+ The basic usage is to add a Layout instance to your parent component where you want to lay the children in.
+ This component doesn't need to be the top most component, it also works for sub components.
+ Use the Constructor providing a this pointer to the component, so the overall bounds can be used.
+ Also if you want to use the helper LabeledComponent it is needed that the created Label can be displayed
+ on the owned component.
+ @see Layout
+ 
+ <p>
+ Add a call to updateGeometry() in your component's resized() method.
+ @see Layout::updateGeometry()
+ 
+ */
+
+
+
 #include "juce_gui_basics/juce_gui_basics.h"
 
 class Layout;
@@ -352,6 +378,10 @@ public:
     }
 
     // =============================================================================
+    
+    /**
+     The LayoutItem::Listener will be called, whenever the bounds of a LayoutItem are changed
+     */
     class Listener {
     public:
         /** Destructor. */
