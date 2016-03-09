@@ -441,7 +441,8 @@ typedef LayoutItem::Listener LayoutItemListener;
 
 //==============================================================================
 /**
- The LabeledLayoutItem takes ownership of the label component
+ The LabeledLayoutItem is a sub layout containing a LayoutItem and a Label.
+ The LabeledLayoutItem takes ownership of the label component, so it is destroyed when the layout is destructed.
  */
 class LabeledLayoutItem : public LayoutItem
 {
