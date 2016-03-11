@@ -130,8 +130,15 @@ public:
      valid component is also considered invalid
      */
     bool isValid();
-    
+
+    /**
+     Return the containing layout
+     */
     Layout* getParentLayout();
+
+    /**
+     Return the topmost layout
+     */
     Layout* getRootLayout();
     
     /**
@@ -178,16 +185,24 @@ public:
     /**
      Set constraints to the items size. In doubt the minimum size is used.
      Constraints work only in that direction the layout operates (horizontally/vertically).
-     For a fixed size set the same value to minimum and maximum.
+     For a fixed size set the same value to minimum and maximum. To remove a constraint 
+     set it to -1.
      */
     void setMinimumWidth  (const int w) { minWidth = w; }
+    /** Set the maximum width @see setMinimumWidth */
     void setMaximumWidth  (const int w) { maxWidth = w; }
+    /** Set the minimum height @see setMinimumWidth */
     void setMinimumHeight (const int h) { minHeight = h; }
+    /** Set the maximum height @see setMinimumWidth */
     void setMaximumHeight (const int h) { maxHeight = h; }
 
+    /** Returns the minimum width */
     int getMinimumWidth  () const { return minWidth; }
+    /** Returns the maximum width */
     int getMaximumWidth  () const { return maxWidth; }
+    /** Returns the minimum height */
     int getMinimumHeight () const { return minHeight; }
+    /** Returns the maximum height */
     int getMaximumHeight () const { return maxHeight; }
 
     /**
@@ -203,39 +218,49 @@ public:
         if (maxHeight >= 0) maxH = (maxH < 0) ? maxHeight : juce::jmin (maxH, maxHeight);
     }
 
+    /** Set a padding value for the wrapped component or item to it's calculated top bounds */
     void setPaddingTop    (const int p) { paddingTop = p; }
+    /** Set a padding value for the wrapped component or item to it's calculated left bounds */
     void setPaddingLeft   (const int p) { paddingLeft = p; }
+    /** Set a padding value for the wrapped component or item to it's calculated right bounds */
     void setPaddingRight  (const int p) { paddingRight = p; }
+    /** Set a padding value for the wrapped component or item to it's calculated bottom bounds */
     void setPaddingBottom (const int p) { paddingBottom = p; }
+    
+    /**
+     Set one value to all bounaries
+     */
     void setPadding (const int p) {
         setPaddingTop (p);
         setPaddingLeft (p);
         setPaddingRight (p);
         setPaddingBottom (p);
     }
+
+    /** Returns the padding value for the wrapped component or item to it's calculated top bounds */
     int getPaddingTop () const    { return paddingTop; }
+    /** Returns the padding value for the wrapped component or item to it's calculated left bounds */
     int getPaddingLeft () const   { return paddingLeft; }
+    /** Returns the padding value for the wrapped component or item to it's calculated right bounds */
     int getPaddingRight () const  { return paddingRight; }
+    /** Returns the padding value for the wrapped component or item to it's calculated bottom bounds */
     int getPaddingBottom () const { return paddingBottom; }
     
-    /**
-     Sets fixed width as minimum width = maximum width
-     */
+    /** Sets fixed width as minimum width = maximum width */
     void setFixedWidth (const int w)
     {
         minWidth = w;
         maxWidth = w;
     }
 
-    /**
-     Sets fixed height as minimum height = maximum height
-     */
+    /** Sets fixed height as minimum height = maximum height */
     void setFixedHeight (const int h)
     {
         minHeight = h;
         maxHeight = h;
     }
 
+    /** Convenience method to set fixed width and height in one call */
     void setFixedSize (const int w, const int h)
     {
         setFixedWidth (w);
@@ -691,14 +716,15 @@ public:
     void getSizeLimits (int& minW, int& maxW, int& minH, int& maxH) override;
     
 protected:
-    /**
-     This is for internal use only. You should not need to call this method
-     */
+    /** This is for internal use only. You should not need to call this method */
     void addRawItem (LayoutItem* item, int idx=-1);
 
+    /** Return the number of items in the list of items */
     int getNumItems() const { return itemsList.size(); }
 
+    /** Return a LayoutItem at a certain index in the list */
     LayoutItem* getItem (const int idx) { return itemsList.getUnchecked (idx); }
+    /** Return a LayoutItem at a certain index in the list */
     const LayoutItem* getItem (const int idx) const { return itemsList.getUnchecked (idx); }
 
 private:
