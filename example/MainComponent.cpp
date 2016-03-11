@@ -94,6 +94,8 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
     components.add (item->getComponent());
     addAndMakeVisible (item->getComponent());
 
+    layout.addSplitterItem (0.5)->setMinimumRelativePosition (0.2);
+    
     // in another column we use a spacer
     Layout* column3 = layout.addSubLayout (Layout::BottomUp);
     for (int i=0; i<5; ++i) {

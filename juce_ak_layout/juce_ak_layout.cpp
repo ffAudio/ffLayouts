@@ -40,8 +40,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "juce_ak_layout.h"
 
-Layout::Layout(Orientation o, juce::Component* owner)
-  : LayoutItem (SubLayout),
+Layout::Layout(Orientation o, juce::Component* owner, Layout* parent)
+  : LayoutItem (SubLayout, parent),
     orientation (o),
     isUpdating (false),
     isCummulatingStretch (false),
@@ -88,7 +88,7 @@ LayoutItem* Layout::addLabeledComponent (juce::Component* c, Orientation o, juce
     if (owningComponent) {
         owningComponent->addAndMakeVisible (label);
     }
-    Layout* sub = addSubLayout (o, idx, owningComponent);
+    Layout* sub = addSubLayout (o, idx);
     if (sub->isVertical()) {
         float h = label->getFont().getHeight();
         sub->addComponent (label)->setFixedHeight (h);
@@ -96,7 +96,7 @@ LayoutItem* Layout::addLabeledComponent (juce::Component* c, Orientation o, juce
     else {
         sub->addComponent (label);
     }
-    LabeledLayoutItem* labeledItem = new LabeledLayoutItem (c, label);
+    LabeledLayoutItem* labeledItem = new LabeledLayoutItem (c, label, this);
     sub->addRawItem (labeledItem);
     
     if (labelPtr) {
@@ -117,12 +117,26 @@ LayoutItem* Layout::addLabeledComponent (juce::Component* component, juce::Strin
     return item;
 }
 
-Layout* Layout::addSubLayout (Orientation o, int idx, juce::Component* owner)
+Layout* Layout::addSubLayout (Orientation o, int idx)
 {
-    Layout* sub = new Layout (o, owningComponent);
+    Layout* sub = new Layout (o, owningComponent, this);
     itemsList.insert (idx, sub);
     updateGeometry();
     return sub;
+}
+
+LayoutSplitter* Layout::addSplitterItem (float position, int idx)
+{
+    // a splitter is a component. If you hit this assert your splitter will not be displayed
+    jassert(owningComponent);
+    
+    LayoutSplitter* splitter = new LayoutSplitter (owningComponent, position, isHorizontal(), this);
+    if (isHorizontal()) splitter->setFixedWidth (3);
+    else                splitter->setFixedHeight (3);
+    owningComponent->addAndMakeVisible (splitter);
+    itemsList.insert (idx, splitter);
+    updateGeometry();
+    return splitter;
 }
 
 LayoutItem* Layout::addSpacer (float sx, float sy, int idx)
@@ -168,12 +182,6 @@ void Layout::updateGeometry ()
 
 void Layout::updateGeometry (juce::Rectangle<int> bounds)
 {
-    // recursion check
-    if (isUpdating) {
-        return;
-    }
-    isUpdating = true;
-    
     // remove items of deleted or invalid components
     for (int i=0; i<itemsList.size(); ++i) {
         LayoutItem* item = itemsList.getUnchecked (i);
@@ -181,14 +189,58 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
             itemsList.remove (i);
         }
     }
+    
+    // find splitter items
+    int last = 0;
+    juce::Rectangle<int> childBounds (bounds);
+    for (int i=0; i<itemsList.size(); ++i) {
+        LayoutItem* item = itemsList.getUnchecked (i);
+        if (item->isSplitterItem()) {
+            if (LayoutSplitter* splitter = dynamic_cast<LayoutSplitter*>(item)) {
+                if (orientation == Layout::LeftToRight) {
+                    int right = childBounds.getX() + splitter->getRelativePosition() * bounds.getWidth();
+                    updateGeometry (childBounds.withRight (right), last, i);
+                    childBounds.setLeft (right);
+                }
+                else if (orientation == Layout::TopDown) {
+                    int bottom = childBounds.getY() + splitter->getRelativePosition() * bounds.getHeight();
+                    updateGeometry (childBounds.withBottom (bottom), last, i);
+                    childBounds.setTop (bottom);
+                }
+                else if (orientation == Layout::RightToLeft) {
+                    int left = childBounds.getX() + splitter->getRelativePosition() * bounds.getWidth();
+                    updateGeometry (childBounds.withLeft (left), last, i);
+                    childBounds.setRight (left);
+                }
+                else if (orientation == Layout::BottomUp) {
+                    int top = childBounds.getY() + splitter->getRelativePosition() * bounds.getHeight();
+                    updateGeometry (childBounds.withTop (top), last, i);
+                    childBounds.setBottom (top);
+                }
+            }
+            last = i;
+        }
+    }
+    
+    // layout rest right of splitter, if any
+    updateGeometry (childBounds, last, itemsList.size());
+}
+
+void Layout::updateGeometry (juce::Rectangle<int> bounds, int start, int end)
+{
+    // recursion check
+    if (isUpdating) {
+        return;
+    }
+    isUpdating = true;
 
     float cummulatedX, cummulatedY;
-    getCummulatedStretch (cummulatedX, cummulatedY);
+    getCummulatedStretch (cummulatedX, cummulatedY, start, end);
     float availableWidth  = bounds.getWidth();
     float availableHeight = bounds.getHeight();
     
     if (isVertical()) {
-        for (int i=0; i<itemsList.size(); ++i) {
+        for (int i=start; i<juce::jmin (itemsList.size(), end); ++i) {
             LayoutItem* item = itemsList.getUnchecked (i);
             float sx, sy;
             item->getStretch (sx, sy);
@@ -214,7 +266,7 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
         if (orientation == BottomUp) {
             y = bounds.getY() + bounds.getHeight();
         }
-        for (int i=0; i<itemsList.size(); ++i) {
+        for (int i=start; i<juce::jmin (itemsList.size(), end); ++i) {
             LayoutItem* item = itemsList.getUnchecked (i);
 
             if (item->getBoundsAreFinal()) {
@@ -259,7 +311,7 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
             }
         }
     } else if (isHorizontal()) {
-        for (int i=0; i<itemsList.size(); ++i) {
+        for (int i=start; i<juce::jmin (itemsList.size(), end); ++i) {
             LayoutItem* item = itemsList.getUnchecked (i);
             float sx, sy;
             item->getStretch (sx, sy);
@@ -285,7 +337,7 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
         if (orientation == RightToLeft) {
             x = bounds.getX() + bounds.getWidth();
         }
-        for (int i=0; i<itemsList.size(); ++i) {
+        for (int i=start; i<juce::jmin (itemsList.size(), end); ++i) {
             LayoutItem* item = itemsList.getUnchecked (i);
 
             if (item->getBoundsAreFinal()) {
@@ -370,7 +422,7 @@ void Layout::getStretch (float& w, float& h) const
     }
 }
 
-void Layout::getCummulatedStretch (float& w, float& h) const
+void Layout::getCummulatedStretch (float& w, float& h, int start, int end) const
 {
     w = 0.0;
     h = 0.0;
@@ -380,7 +432,11 @@ void Layout::getCummulatedStretch (float& w, float& h) const
     }
     isCummulatingStretch = true;
     
-    for (int i=0; i<itemsList.size(); ++i) {
+    if (end<0) {
+        end = itemsList.size();
+    }
+    
+    for (int i=start; i<end; ++i) {
         LayoutItem* item = itemsList.getUnchecked (i);
         float x, y;
         item->getStretch (x, y);
@@ -440,6 +496,34 @@ void Layout::getSizeLimits (int& minW, int& maxW, int& minH, int& maxH)
 
 
 //==============================================================================
+
+
+bool LayoutItem::isValid()
+{
+    if (itemType == Invalid) {
+        return false;
+    }
+    if (itemType == ComponentItem && componentPtr == nullptr) {
+        return false;
+    }
+    return true;
+}
+
+Layout* LayoutItem::getParentLayout()
+{
+    return parentLayout;
+}
+
+Layout* LayoutItem::getRootLayout()
+{
+    Layout* p = parentLayout;
+    while (p && p->getParentLayout()) {
+        p = p->getParentLayout();
+    }
+    return p;
+}
+
+
 void LayoutItem::addListener (LayoutItemListener* const newListener)
 {
     layoutItemListeners.add (newListener);
@@ -453,5 +537,68 @@ void LayoutItem::removeListener (LayoutItemListener* const listener)
 void LayoutItem::callListenersCallback (juce::Rectangle<int> newBounds)
 {
     layoutItemListeners.call(&LayoutItemListener::layoutBoundsChanged, newBounds);
+}
+
+//==============================================================================
+LayoutSplitter::LayoutSplitter (juce::Component* owningComponent, float position, bool horizontal, Layout* parent)
+ :  LayoutItem(Layout::SplitterItem, parent),
+    relativePosition(position),
+    relativeMinPosition (0.0),
+    relativeMaxPosition (1.0),
+    isHorizontal(horizontal)
+{
+    setComponent (this);
+    if (isHorizontal) {
+        setMouseCursor (juce::MouseCursor::LeftRightResizeCursor);
+    }
+    else {
+        setMouseCursor (juce::MouseCursor::UpDownResizeCursor);
+    }
+}
+
+LayoutSplitter::~LayoutSplitter()
+{
+}
+
+void LayoutSplitter::paint (juce::Graphics& g)
+{
+    g.fillAll (juce::Colours::grey);
+}
+
+void LayoutSplitter::mouseDrag (const juce::MouseEvent &event)
+{
+    if (Component* c = getParentComponent()) {
+        float pos;
+        if (isHorizontal) {
+            pos = event.getEventRelativeTo(c).position.getX() / c->getWidth();
+        }
+        else {
+            pos = event.getEventRelativeTo(c).position.getY() / c->getHeight();
+        }
+        setRelativePosition (juce::jmax (relativeMinPosition, juce::jmin (relativeMaxPosition, pos)));
+    }
+    if (Layout* rootLayout = getRootLayout()) {
+        rootLayout->updateGeometry();
+    }
+}
+
+void LayoutSplitter::setRelativePosition (float position)
+{
+    relativePosition = position;
+}
+
+float LayoutSplitter::getRelativePosition() const
+{
+    return relativePosition;
+}
+
+void LayoutSplitter::setMinimumRelativePosition (const float min)
+{
+    relativeMinPosition = min;
+}
+
+void LayoutSplitter::setMaximumRelativePosition (const float max)
+{
+    relativeMaxPosition = max;
 }
 

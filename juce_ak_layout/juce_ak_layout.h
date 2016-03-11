@@ -84,15 +84,15 @@ public:
         Invalid = 0,
         ComponentItem,
         LabeledComponentItem,
-        //SplitterItem,
-        //MovableSplitterItem,
+        SplitterItem,
         SpacerItem,
         SubLayout
         
     };
     
-    LayoutItem (juce::Component* c)
+    LayoutItem (juce::Component* c, Layout* parent=nullptr)
       : itemType (ComponentItem),
+        parentLayout (parent),
         componentPtr (c),
         stretchX (1.0),
         stretchY (1.0),
@@ -107,8 +107,9 @@ public:
         paddingBottom (0)
     {}
     
-    LayoutItem (ItemType i=Invalid)
+    LayoutItem (ItemType i=Invalid, Layout* parent=nullptr)
       : itemType (i),
+        parentLayout (parent),
         stretchX (1.0),
         stretchY (1.0),
         minWidth (-1),
@@ -128,22 +129,23 @@ public:
      Return if the layout item has a valid type. A component item not pointing to a 
      valid component is also considered invalid
      */
-    bool isValid()
-    {
-        if (itemType == Invalid) {
-            return false;
-        }
-        if (itemType == ComponentItem && componentPtr == nullptr) {
-            return false;
-        }
-        return true;
-    }
+    bool isValid();
+    
+    Layout* getParentLayout();
+    Layout* getRootLayout();
     
     /**
      Return the wrapped component as pointer.
      */
-    juce::Component* getComponent ()  const { return componentPtr.getComponent(); }
+    juce::Component* getComponent ()  const  { return componentPtr.getComponent(); }
+    
+    /**
+     Replace the component pointer
+     */
+    void setComponent (juce::Component* ptr) { componentPtr = ptr; }
+    
     bool isComponentItem ()     const { return itemType == ComponentItem; }
+    bool isSplitterItem ()      const { return itemType == SplitterItem; }
     bool isSubLayout ()         const { return itemType == SubLayout; }
     
     /**
@@ -409,6 +411,8 @@ public:
     
 private:
     ItemType   itemType;
+    
+    Layout* parentLayout;
 
     juce::Component::SafePointer<juce::Component> componentPtr;
 
@@ -441,14 +445,66 @@ typedef LayoutItem::Listener LayoutItemListener;
 
 //==============================================================================
 /**
+ A splitter is a handle to drag boundaries inside the layout
+ */
+class LayoutSplitter : public LayoutItem, public juce::Component
+{
+public:
+    LayoutSplitter (juce::Component* owningComponent, float position, bool horizontal, Layout* parent);
+
+    virtual ~LayoutSplitter();
+
+    /** 
+     Paint the splitter handle. You can override this to customize the drawing
+     */
+    void paint (juce::Graphics& g) override;
+
+    /**
+     mouse callback to drag the splitter
+     */
+    void mouseDrag (const juce::MouseEvent &event) override;
+
+    /**
+     Set the position in normalized form
+     */
+    void setRelativePosition (float position);
+
+    /**
+     Return the position in normalized form
+     */
+    float getRelativePosition() const;
+    
+    /**
+     Set the minimum relative position in normalized coordinates
+     */
+    void setMinimumRelativePosition (const float min);
+
+    /**
+     Set the maximum relative position in normalized coordinates
+     */
+    void setMaximumRelativePosition (const float max);
+
+private:
+    float relativePosition;
+    
+    float relativeMinPosition;
+    float relativeMaxPosition;
+    
+    bool  isHorizontal;
+    
+};
+
+
+//==============================================================================
+/**
  The LabeledLayoutItem is a sub layout containing a LayoutItem and a Label.
  The LabeledLayoutItem takes ownership of the label component, so it is destroyed when the layout is destructed.
  */
 class LabeledLayoutItem : public LayoutItem
 {
 public:
-    LabeledLayoutItem (juce::Component* c, juce::Label* l)
-      : LayoutItem (c),
+    LabeledLayoutItem (juce::Component* c, juce::Label* l, Layout* parent)
+      : LayoutItem (c, parent),
         label (l) {}
     
     virtual ~LabeledLayoutItem() {};
@@ -517,7 +573,7 @@ public:
         //GridLayout
     };
     
-    Layout (Orientation o=Unknown, juce::Component* owner=nullptr);
+    Layout (Orientation o=Unknown, juce::Component* owner=nullptr, Layout* parent=nullptr);
     virtual ~Layout();
     
     /**
@@ -567,7 +623,12 @@ public:
     /**
      Creates a nested layout inside a layout.
      */
-    Layout* addSubLayout (Orientation, int idx=-1, juce::Component* owner=nullptr);
+    Layout* addSubLayout (Orientation, int idx=-1);
+    
+    /**
+     Creates a splitter item to separate a layout manually
+     */
+    LayoutSplitter* addSplitterItem (float position, int idx=-1);
 
     /**
      Creates a spacer to put space between items. Use stretch factors to increase
@@ -592,6 +653,11 @@ public:
      Recompute the geometry of all components. Recoursively recomputes all sub layouts.
      */
     virtual void updateGeometry (juce::Rectangle<int> bounds);
+
+    /**
+     Recompute the geometry of all components. Recoursively recomputes all sub layouts.
+     */
+    virtual void updateGeometry (juce::Rectangle<int> bounds, int start, int end);
     
     /**
      To show the layout bounds e.g. for debugging yout layout structure simply add the following line to yout Component:
@@ -616,7 +682,7 @@ public:
     /**
      Cummulates all stretch factors inside the nested layout
      */
-    void getCummulatedStretch (float& w, float& h) const;
+    void getCummulatedStretch (float& w, float& h, int start=0, int end=-1) const;
     
     /**
      Cummulates size limits of all child items. Along the orientation it sums up
