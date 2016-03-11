@@ -111,6 +111,8 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
     constrained->setMaximumHeight (110);
     addAndMakeVisible (button);
 
+    column3->addSplitterItem (0.5, 3)->setMinimumRelativePosition (0.2);
+
     column3->addSpacer();
 
     // my favourite example, three labeled knobs in a column
