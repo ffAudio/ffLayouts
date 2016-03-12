@@ -405,6 +405,10 @@ public:
     {
         return boundsAreFinal;
     }
+    
+    virtual void saveLayoutToValueTree (juce::ValueTree& tree) const;
+    
+    void loadLayoutFromValueTree (const juce::ValueTree tree, juce::Component* owner);
 
     // =============================================================================
     
@@ -696,6 +700,9 @@ public:
      the minimum sizes and maximum sizes.
      */
     void getSizeLimits (int& minW, int& maxW, int& minH, int& maxH) override;
+
+    
+    void saveLayoutToValueTree (juce::ValueTree& tree) const override;
     
 protected:
     /** This is for internal use only. You should not need to call this method */
@@ -703,11 +710,12 @@ protected:
 
     /** Return the number of items in the list of items */
     int getNumItems() const { return itemsList.size(); }
+    
+    /** Return a LayoutItem at a certain index in the list */
+    LayoutItem* getLayoutItem (const int idx) { return itemsList.getUnchecked (idx); }
+    /** Return a LayoutItem at a certain index in the list */
+    const LayoutItem* getLayoutItem (const int idx) const { return itemsList.getUnchecked (idx); }
 
-    /** Return a LayoutItem at a certain index in the list */
-    LayoutItem* getItem (const int idx) { return itemsList.getUnchecked (idx); }
-    /** Return a LayoutItem at a certain index in the list */
-    const LayoutItem* getItem (const int idx) const { return itemsList.getUnchecked (idx); }
 
 private:
     Orientation orientation;

@@ -410,7 +410,7 @@ void Layout::paintBounds (juce::Graphics& g) const
         g.setColour (juce::Colours::grey);
     }
     for (int i=0; i<getNumItems(); ++i) {
-        const LayoutItem* item = getItem (i);
+        const LayoutItem* item = getLayoutItem (i);
         if (item->isSubLayout()) {
             dynamic_cast<const Layout*>(item)->paintBounds (g);
             g.drawRect(item->getItemBounds());
@@ -475,7 +475,7 @@ void Layout::getSizeLimits (int& minW, int& maxW, int& minH, int& maxH)
     bool canConsumeHeight = false;
     if (isVertical()) {
         for (int i=0; i<getNumItems(); ++i) {
-            LayoutItem* item = getItem (i);
+            LayoutItem* item = getLayoutItem (i);
             if (item->getMinimumWidth() >= 0) minW = (minW < 0) ? item->getMinimumWidth() : juce::jmax(minW, item->getMinimumWidth());
             if (item->getMaximumWidth() >= 0) maxW = (maxW < 0) ? item->getMaximumWidth() : juce::jmin(maxW, item->getMaximumWidth());
             if (item->getMinimumHeight() >= 0) minH = (minH < 0) ? item->getMinimumHeight() : minH + item->getMinimumHeight();
@@ -489,7 +489,7 @@ void Layout::getSizeLimits (int& minW, int& maxW, int& minH, int& maxH)
     }
     else if (isHorizontal()) {
         for (int i=0; i<getNumItems(); ++i) {
-            LayoutItem* item = getItem (i);
+            LayoutItem* item = getLayoutItem (i);
             if (item->getMinimumWidth() >= 0) minW = (minW < 0) ? item->getMinimumWidth() : minW + item->getMinimumWidth();
             if (item->getMaximumWidth() >= 0) {
                 maxW = (maxW < 0) ? item->getMaximumWidth() : maxW + item->getMaximumWidth();
@@ -505,6 +505,15 @@ void Layout::getSizeLimits (int& minW, int& maxW, int& minH, int& maxH)
     if (canConsumeHeight) maxH = -1;
 }
 
+void Layout::saveLayoutToValueTree (juce::ValueTree& tree) const
+{
+    tree = juce::ValueTree (*this);
+    for (int i=0; i < itemsList.size(); ++i) {
+        juce::ValueTree child;
+        itemsList.getUnchecked (i)->saveLayoutToValueTree (child);
+        tree.addChild (child, -1, nullptr);
+    }
+}
 
 //==============================================================================
 
@@ -534,6 +543,15 @@ Layout* LayoutItem::getRootLayout()
     return p;
 }
 
+void LayoutItem::saveLayoutToValueTree (juce::ValueTree& tree) const
+{
+    tree = juce::ValueTree (*this);
+}
+
+void loadLayoutFromValueTree (const juce::ValueTree tree, juce::Component* owner)
+{
+    
+}
 
 void LayoutItem::addListener (LayoutItemListener* const newListener)
 {

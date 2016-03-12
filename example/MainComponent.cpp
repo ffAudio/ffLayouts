@@ -129,6 +129,18 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
         }
         addAndMakeVisible (slider);
     }
+    
+    ValueTree myLayoutTree;
+    layout.saveLayoutToValueTree (myLayoutTree);
+    
+    String layoutXML = myLayoutTree.toXmlString();
+    
+    FileOutputStream out (File::getCurrentWorkingDirectory().getChildFile ("LayoutTest.jui"));
+    if (out.openedOk()) {
+        out.setPosition (0);
+        out.truncate();
+        out.write (layoutXML.toRawUTF8(), layoutXML.getNumBytesAsUTF8());
+    }
 
     // juce again
     setSize (600, 400);
