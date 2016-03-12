@@ -95,7 +95,12 @@ public:
         itemType (ComponentItem),
         parentLayout (parent),
         componentPtr (c)
-    {}
+    {
+        jassert (c);
+        if (!c->getComponentID().isEmpty()) {
+            setProperty ("componentID", c->getComponentID(), nullptr);
+        }
+    }
     
     LayoutItem (ItemType i=Invalid, Layout* parent=nullptr)
       : juce::ValueTree ((i==ComponentItem) ? "Component" :
@@ -133,8 +138,17 @@ public:
     /**
      Replace the component pointer
      */
-    void setComponent (juce::Component* ptr) { componentPtr = ptr; }
-    
+    void setComponent (juce::Component* ptr)
+    {
+        componentPtr = ptr;
+        if (ptr->getComponentID().isEmpty()) {
+            removeProperty ("componentID", nullptr);
+        }
+        else {
+            setProperty ("componentID", ptr->getComponentID(), nullptr);
+        }
+    }
+
     bool isComponentItem ()     const { return itemType == ComponentItem; }
     bool isSplitterItem ()      const { return itemType == SplitterItem; }
     bool isSubLayout ()         const { return itemType == SubLayout; }

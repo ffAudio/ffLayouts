@@ -56,6 +56,9 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
     gain.setTextBoxStyle  (Slider::TextBoxBelow, true, 40, 18);
     phase.setTextBoxStyle (Slider::TextBoxBelow, true, 40, 18);
     pan.setTextBoxStyle   (Slider::TextBoxBelow, true, 40, 18);
+    gain.setComponentID ("myGainSlider");
+    phase.setComponentID ("myPhaseSlider");
+    pan.setComponentID ("myPanSlider");
     addAndMakeVisible (gain);
     addAndMakeVisible (phase);
     addAndMakeVisible (pan);
