@@ -15,8 +15,8 @@
   "include":        "juce_ak_layout.h",
                     "juce_ak_layoutItem.h",
 
-  "compile":        [ { "file": "juce_ak_layout.cpp" },
-                      { "file": "juce_ak_layoutItem.cpp" } ],
+  "compile":        [ { "file": "juce_ak_layout.cpp", 	"target": "! xcode" },
+                      { "file": "juce_ak_layout.mm",	"target": "xcode" } ],
 
   "browse":         [ "juce_ak_layout/*", ],
 
