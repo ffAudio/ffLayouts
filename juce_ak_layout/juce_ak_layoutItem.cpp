@@ -84,7 +84,21 @@ Layout* LayoutItem::getParentLayout()
     return parentLayout;
 }
 
+const Layout* LayoutItem::getParentLayout() const
+{
+    return parentLayout;
+}
+
 Layout* LayoutItem::getRootLayout()
+{
+    Layout* p = parentLayout;
+    while (p && p->getParentLayout()) {
+        p = p->getParentLayout();
+    }
+    return p;
+}
+
+const Layout* LayoutItem::getRootLayout() const
 {
     Layout* p = parentLayout;
     while (p && p->getParentLayout()) {

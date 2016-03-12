@@ -570,6 +570,11 @@ void Layout::getSizeLimits (int& minW, int& maxW, int& minH, int& maxH)
 void Layout::saveLayoutToValueTree (juce::ValueTree& tree) const
 {
     tree = juce::ValueTree (*this);
+    // if it's the root layout save the bounds as well - need to const cast
+    if (this == getRootLayout() && !getItemBounds().isEmpty()) {
+        Layout* unconst = const_cast<Layout*>(this);
+        unconst->setProperty ("layoutBounds", getItemBounds().toString(), nullptr);
+    }
     for (int i=0; i < itemsList.size(); ++i) {
         juce::ValueTree child;
         itemsList.getUnchecked (i)->saveLayoutToValueTree (child);

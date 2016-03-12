@@ -106,11 +106,13 @@ public:
      Return the containing layout
      */
     Layout* getParentLayout();
+    const Layout* getParentLayout() const;
 
     /**
      Return the topmost layout
      */
     Layout* getRootLayout();
+    const Layout* getRootLayout() const;
     
     /**
      Return the wrapped component as pointer.
