@@ -77,7 +77,7 @@ class Layout;
  
  @see Layout
  */
-class LayoutItem : public juce::ValueTree
+class LayoutItem : protected juce::ValueTree
 {
 public:
     enum ItemType {
