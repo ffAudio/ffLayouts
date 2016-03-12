@@ -77,7 +77,7 @@ class Layout;
  
  @see Layout
  */
-class LayoutItem
+class LayoutItem : public juce::ValueTree
 {
 public:
     enum ItemType {
@@ -91,36 +91,20 @@ public:
     };
     
     LayoutItem (juce::Component* c, Layout* parent=nullptr)
-      : itemType (ComponentItem),
+      : juce::ValueTree ("Component"),
+        itemType (ComponentItem),
         parentLayout (parent),
-        componentPtr (c),
-        stretchX (1.0),
-        stretchY (1.0),
-        minWidth (-1.0),
-        maxWidth (-1.0),
-        minHeight (-1.0),
-        maxHeight (-1.0),
-        aspectRatio (0.0),
-        paddingTop (0),
-        paddingLeft (0),
-        paddingRight (0),
-        paddingBottom (0)
+        componentPtr (c)
     {}
     
     LayoutItem (ItemType i=Invalid, Layout* parent=nullptr)
-      : itemType (i),
-        parentLayout (parent),
-        stretchX (1.0),
-        stretchY (1.0),
-        minWidth (-1),
-        maxWidth (-1),
-        minHeight (-1),
-        maxHeight (-1),
-        aspectRatio (0.0),
-        paddingTop (0),
-        paddingLeft (0),
-        paddingRight (0),
-        paddingBottom (0)
+      : juce::ValueTree ((i==ComponentItem) ? "Component" :
+                         (i==LabeledComponentItem) ? "LabeledComponent" :
+                         (i==SplitterItem) ? "Splitter" :
+                         (i==SpacerItem) ? "Spacer" :
+                         (i==SubLayout) ? "Layout" : ""),
+        itemType (i),
+        parentLayout (parent)
     {}
     
     virtual ~LayoutItem() {}
@@ -166,8 +150,8 @@ public:
      */
     virtual void getStretch (float& w, float& h) const
     {
-        w = stretchX;
-        h = stretchY;
+        w = getProperty ("stretchX", 1.0);
+        h = getProperty ("stretchY", 1.0);
     }
 
     /**
@@ -176,10 +160,10 @@ public:
      For sub layouts, if you want to use the cummulated stretch of the child items,
      set this to a negative value. This is the default for new created sub layouts.
      */
-    virtual void setStretch (float w, float h)
+    virtual void setStretch (float w, float h, juce::UndoManager* undo=nullptr)
     {
-        stretchX = w;
-        stretchY = h;
+        setProperty ("stretchX", w, undo);
+        setProperty ("stretchY", h, undo);
     }
 
     /**
@@ -188,22 +172,22 @@ public:
      For a fixed size set the same value to minimum and maximum. To remove a constraint 
      set it to -1.
      */
-    void setMinimumWidth  (const int w) { minWidth = w; }
+    void setMinimumWidth  (const int w, juce::UndoManager* undo=nullptr) { setProperty ("minWidth", w, undo); }
     /** Set the maximum width @see setMinimumWidth */
-    void setMaximumWidth  (const int w) { maxWidth = w; }
+    void setMaximumWidth  (const int w, juce::UndoManager* undo=nullptr) { setProperty ("maxWidth", w, undo); }
     /** Set the minimum height @see setMinimumWidth */
-    void setMinimumHeight (const int h) { minHeight = h; }
+    void setMinimumHeight (const int h, juce::UndoManager* undo=nullptr) { setProperty ("minHeight", h, undo); }
     /** Set the maximum height @see setMinimumWidth */
-    void setMaximumHeight (const int h) { maxHeight = h; }
+    void setMaximumHeight (const int h, juce::UndoManager* undo=nullptr) { setProperty ("maxHeight", h, undo); }
 
     /** Returns the minimum width */
-    int getMinimumWidth  () const { return minWidth; }
+    int getMinimumWidth  () const { return getProperty ("minWidth", -1); }
     /** Returns the maximum width */
-    int getMaximumWidth  () const { return maxWidth; }
+    int getMaximumWidth  () const { return getProperty ("maxWidth", -1); }
     /** Returns the minimum height */
-    int getMinimumHeight () const { return minHeight; }
+    int getMinimumHeight () const { return getProperty ("minHeight", -1); }
     /** Returns the maximum height */
-    int getMaximumHeight () const { return maxHeight; }
+    int getMaximumHeight () const { return getProperty ("maxHeight", -1); }
 
     /**
      Return the size limits of the item. You can use this method to cummulate
@@ -212,6 +196,10 @@ public:
      */
     virtual void getSizeLimits (int& minW, int& maxW, int& minH, int& maxH)
     {
+        const int minWidth = getMinimumWidth();
+        const int maxWidth = getMinimumWidth();
+        const int minHeight = getMinimumWidth();
+        const int maxHeight = getMinimumWidth();
         if (minWidth >= 0) minW = (minW < 0) ? minWidth : juce::jmax (minW, minWidth);
         if (maxWidth >= 0) maxW = (maxW < 0) ? maxWidth : juce::jmin (maxW, maxWidth);
         if (minHeight >= 0) minH = (minH < 0) ? minHeight : juce::jmax (minH, minHeight);
@@ -219,60 +207,68 @@ public:
     }
 
     /** Set a padding value for the wrapped component or item to it's calculated top bounds */
-    void setPaddingTop    (const int p) { paddingTop = p; }
+    void setPaddingTop    (const int p, juce::UndoManager* undo=nullptr) { setProperty ("paddingTop", p, undo); }
     /** Set a padding value for the wrapped component or item to it's calculated left bounds */
-    void setPaddingLeft   (const int p) { paddingLeft = p; }
+    void setPaddingLeft   (const int p, juce::UndoManager* undo=nullptr) { setProperty ("paddingLeft", p, undo); }
     /** Set a padding value for the wrapped component or item to it's calculated right bounds */
-    void setPaddingRight  (const int p) { paddingRight = p; }
+    void setPaddingRight  (const int p, juce::UndoManager* undo=nullptr) { setProperty ("paddingRight", p, undo); }
     /** Set a padding value for the wrapped component or item to it's calculated bottom bounds */
-    void setPaddingBottom (const int p) { paddingBottom = p; }
+    void setPaddingBottom (const int p, juce::UndoManager* undo=nullptr) { setProperty ("paddingBottom", p, undo); }
     
     /**
      Set one value to all bounaries
      */
-    void setPadding (const int p) {
-        setPaddingTop (p);
-        setPaddingLeft (p);
-        setPaddingRight (p);
-        setPaddingBottom (p);
+    void setPadding (const int p, juce::UndoManager* undo=nullptr) {
+        setPaddingTop (p, undo);
+        setPaddingLeft (p, undo);
+        setPaddingRight (p, undo);
+        setPaddingBottom (p, undo);
     }
 
     /** Returns the padding value for the wrapped component or item to it's calculated top bounds */
-    int getPaddingTop () const    { return paddingTop; }
+    int getPaddingTop () const    { return getProperty ("paddingTop", 0); }
     /** Returns the padding value for the wrapped component or item to it's calculated left bounds */
-    int getPaddingLeft () const   { return paddingLeft; }
+    int getPaddingLeft () const   { return getProperty ("paddingLeft", 0); }
     /** Returns the padding value for the wrapped component or item to it's calculated right bounds */
-    int getPaddingRight () const  { return paddingRight; }
+    int getPaddingRight () const  { return getProperty ("paddingRight", 0); }
     /** Returns the padding value for the wrapped component or item to it's calculated bottom bounds */
-    int getPaddingBottom () const { return paddingBottom; }
+    int getPaddingBottom () const { return getProperty ("paddingBottom", 0); }
     
     /** Sets fixed width as minimum width = maximum width */
-    void setFixedWidth (const int w)
+    void setFixedWidth (const int w, juce::UndoManager* undo=nullptr)
     {
-        minWidth = w;
-        maxWidth = w;
+        setMinimumWidth (w, undo);
+        setMaximumWidth (w, undo);
     }
 
     /** Sets fixed height as minimum height = maximum height */
-    void setFixedHeight (const int h)
+    void setFixedHeight (const int h, juce::UndoManager* undo=nullptr)
     {
-        minHeight = h;
-        maxHeight = h;
+        setMinimumHeight (h, undo);
+        setMaximumHeight (h, undo);
     }
 
     /** Convenience method to set fixed width and height in one call */
-    void setFixedSize (const int w, const int h)
+    void setFixedSize (const int w, const int h, juce::UndoManager* undo=nullptr)
     {
-        setFixedWidth (w);
-        setFixedHeight (h);
+        setFixedWidth (w, undo);
+        setFixedHeight (h, undo);
     }
 
     /**
      Set an aspect ratio to constrain the bounds
      */
-    void setAspectRatio (const float ratio)
+    void setAspectRatio (const float ratio, juce::UndoManager* undo=nullptr)
     {
-        aspectRatio = ratio;
+        setProperty ("aspectRatio", ratio, undo);
+    }
+    
+    /**
+     Set an aspect ratio to constrain the bounds
+     */
+    float getAspectRatio () const
+    {
+        return getProperty ("aspectRatio", 0.0);
     }
 
     /**
@@ -288,19 +284,19 @@ public:
                             int inPaddingLeft,
                             int inPaddingRight,
                             int inPaddingBottom,
-                            float inAspectRatio)
+                            float inAspectRatio,
+                            juce::UndoManager* undo=nullptr)
     {
-        stretchX = inStretchX;
-        stretchY = inStretchY;
-        minWidth  = inMinWidth;
-        minHeight = inMinHeight;
-        maxWidth  = inMaxWidth;
-        maxHeight = inMaxHeight;
-        paddingTop    = inPaddingTop;
-        paddingLeft   = inPaddingLeft;
-        paddingRight  = inPaddingRight;
-        paddingBottom = inPaddingBottom;
-        aspectRatio = inAspectRatio;
+        setStretch (inStretchX, inStretchY, undo);
+        setMinimumWidth (inMinWidth, undo);
+        setMaximumWidth (inMaxWidth, undo);
+        setMinimumHeight (inMinHeight, undo);
+        setMaximumHeight (inMaxHeight, undo);
+        setPaddingTop (inPaddingTop, undo);
+        setPaddingLeft (inPaddingLeft, undo);
+        setPaddingRight (inPaddingRight, undo);
+        setPaddingBottom (inPaddingBottom, undo);
+        setAspectRatio (inAspectRatio, undo);
     }
 
     ItemType getItemType() const { return itemType; }
@@ -315,6 +311,8 @@ public:
         int cbMaxWidth = -1;
         int cbMinHeight = -1;
         int cbMaxHeight = -1;
+        float aspectRatio = getAspectRatio();
+        
         getSizeLimits (cbMinWidth, cbMaxWidth, cbMinHeight, cbMaxHeight);
         changedWidth  = false;
         changedHeight = false;
@@ -381,10 +379,12 @@ public:
      */
     juce::Rectangle<int> getPaddedItemBounds () const
     {
+        const int paddingLeft = getPaddingLeft();
+        const int paddingTop = getPaddingTop();
         return juce::Rectangle<int> (itemBounds.getX() + paddingLeft,
                                      itemBounds.getY() + paddingTop,
-                                     itemBounds.getWidth() - (paddingLeft+paddingRight),
-                                     itemBounds.getHeight() - (paddingTop+paddingBottom));
+                                     itemBounds.getWidth() - (paddingLeft+getPaddingRight()),
+                                     itemBounds.getHeight() - (paddingTop+getPaddingBottom()));
     }
 
     /**
@@ -441,21 +441,6 @@ private:
 
     juce::Component::SafePointer<juce::Component> componentPtr;
 
-    float stretchX;
-    float stretchY;
-
-    int minWidth;
-    int maxWidth;
-    int minHeight;
-    int maxHeight;
-
-    float aspectRatio;
-
-    int paddingTop;
-    int paddingLeft;
-    int paddingRight;
-    int paddingBottom;
-
     // computed values, not for setting
     juce::Rectangle<int> itemBounds;
     bool                 boundsAreFinal;
@@ -489,34 +474,29 @@ public:
      */
     void mouseDrag (const juce::MouseEvent &event) override;
 
-    /**
-     Set the position in normalized form
-     */
-    void setRelativePosition (float position);
+    /** Set the position in normalized form */
+    void setRelativePosition (float position, juce::UndoManager* undo=nullptr);
 
-    /**
-     Return the position in normalized form
-     */
+    /** Return the position in normalized form */
     float getRelativePosition() const;
     
-    /**
-     Set the minimum relative position in normalized coordinates
-     */
-    void setMinimumRelativePosition (const float min);
+    /** Set the minimum relative position in normalized coordinates */
+    void setMinimumRelativePosition (const float min, juce::UndoManager* undo=nullptr);
 
-    /**
-     Set the maximum relative position in normalized coordinates
-     */
-    void setMaximumRelativePosition (const float max);
+    /** Set the maximum relative position in normalized coordinates */
+    void setMaximumRelativePosition (const float max, juce::UndoManager* undo=nullptr);
+    
+    /** Return the minimum normalized position */
+    float getMinimumRelativePosition() const;
 
-private:
-    float relativePosition;
+    /** Return the maximum normalized position */
+    float getMaximumRelativePosition() const;
+
+    /** Set the horizontal flag */
+    void setIsHorizontal (bool isHorizontal, juce::UndoManager* undo=nullptr);
     
-    float relativeMinPosition;
-    float relativeMaxPosition;
-    
-    bool  isHorizontal;
-    
+    /** Return the horizontal flag */
+    bool getIsHorizontal() const;
 };
 
 

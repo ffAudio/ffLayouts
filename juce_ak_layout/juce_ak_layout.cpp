@@ -131,8 +131,6 @@ LayoutSplitter* Layout::addSplitterItem (float position, int idx)
     jassert(owningComponent);
     
     LayoutSplitter* splitter = new LayoutSplitter (owningComponent, position, isHorizontal(), this);
-    if (isHorizontal()) splitter->setFixedWidth (3);
-    else                splitter->setFixedHeight (3);
     owningComponent->addAndMakeVisible (splitter);
     itemsList.insert (idx, splitter);
     updateGeometry();
@@ -197,27 +195,40 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
         LayoutItem* item = itemsList.getUnchecked (i);
         if (item->isSplitterItem()) {
             if (LayoutSplitter* splitter = dynamic_cast<LayoutSplitter*>(item)) {
+                juce::Rectangle<int> splitterBounds (bounds);
                 if (orientation == Layout::LeftToRight) {
                     int right = childBounds.getX() + splitter->getRelativePosition() * bounds.getWidth();
-                    updateGeometry (childBounds.withRight (right), last, i);
-                    childBounds.setLeft (right);
+                    updateGeometry (childBounds.withRight (right-1), last, i);
+                    splitterBounds.setX (right-1);
+                    splitterBounds.setWidth (3);
+                    childBounds.setLeft (right+1);
                 }
                 else if (orientation == Layout::TopDown) {
                     int bottom = childBounds.getY() + splitter->getRelativePosition() * bounds.getHeight();
                     updateGeometry (childBounds.withBottom (bottom), last, i);
-                    childBounds.setTop (bottom);
+                    splitterBounds.setY (bottom-1);
+                    splitterBounds.setHeight (3);
+                    childBounds.setTop (bottom+1);
                 }
                 else if (orientation == Layout::RightToLeft) {
                     int left = childBounds.getX() + splitter->getRelativePosition() * bounds.getWidth();
                     updateGeometry (childBounds.withLeft (left), last, i);
-                    childBounds.setRight (left);
+                    splitterBounds.setX (left-1);
+                    splitterBounds.setWidth (3);
+                    childBounds.setRight (left-1);
                 }
                 else if (orientation == Layout::BottomUp) {
                     int top = childBounds.getY() + splitter->getRelativePosition() * bounds.getHeight();
                     updateGeometry (childBounds.withTop (top), last, i);
-                    childBounds.setBottom (top);
+                    splitterBounds.setY (top-1);
+                    splitterBounds.setHeight (3);
+                    childBounds.setBottom (top-1);
                 }
+                splitter->setItemBounds (splitterBounds);
+                splitter->setBounds (splitterBounds);
+                splitter->setBoundsAreFinal (true);
             }
+            i++;
             last = i;
         }
     }
@@ -541,18 +552,17 @@ void LayoutItem::callListenersCallback (juce::Rectangle<int> newBounds)
 
 //==============================================================================
 LayoutSplitter::LayoutSplitter (juce::Component* owningComponent, float position, bool horizontal, Layout* parent)
- :  LayoutItem(Layout::SplitterItem, parent),
-    relativePosition(position),
-    relativeMinPosition (0.0),
-    relativeMaxPosition (1.0),
-    isHorizontal(horizontal)
+ :  LayoutItem(Layout::SplitterItem, parent)
 {
     setComponent (this);
-    if (isHorizontal) {
+    setIsHorizontal (horizontal);
+    if (horizontal) {
         setMouseCursor (juce::MouseCursor::LeftRightResizeCursor);
+        setFixedWidth (3);
     }
     else {
         setMouseCursor (juce::MouseCursor::UpDownResizeCursor);
+        setFixedHeight (3);
     }
 }
 
@@ -575,36 +585,56 @@ void LayoutSplitter::mouseDrag (const juce::MouseEvent &event)
                 layoutBounds = p->getItemBounds();
             }
         }
-        if (isHorizontal) {
+        if (getIsHorizontal()) {
             pos = (event.getEventRelativeTo(c).position.getX() - layoutBounds.getX()) / layoutBounds.getWidth();
         }
         else {
             pos = (event.getEventRelativeTo(c).position.getY() - layoutBounds.getY()) / layoutBounds.getHeight();
         }
-        setRelativePosition (juce::jmax (relativeMinPosition, juce::jmin (relativeMaxPosition, pos)));
+        setRelativePosition (juce::jmax (getMinimumRelativePosition(), juce::jmin (getMaximumRelativePosition(), pos)));
     }
     if (Layout* rootLayout = getRootLayout()) {
         rootLayout->updateGeometry();
     }
 }
 
-void LayoutSplitter::setRelativePosition (float position)
+void LayoutSplitter::setRelativePosition (float position, juce::UndoManager* undo)
 {
-    relativePosition = position;
+    setProperty ("relativePosition", position, undo);
 }
 
 float LayoutSplitter::getRelativePosition() const
 {
-    return relativePosition;
+    return getProperty ("relativePosition", 0.5);
 }
 
-void LayoutSplitter::setMinimumRelativePosition (const float min)
+void LayoutSplitter::setMinimumRelativePosition (const float min, juce::UndoManager* undo)
 {
-    relativeMinPosition = min;
+    setProperty ("relativeMinPosition", min, undo);
 }
 
-void LayoutSplitter::setMaximumRelativePosition (const float max)
+void LayoutSplitter::setMaximumRelativePosition (const float max, juce::UndoManager* undo)
 {
-    relativeMaxPosition = max;
+    setProperty ("relativeMaxPosition", max, undo);
+}
+
+float LayoutSplitter::getMinimumRelativePosition() const
+{
+    return getProperty ("relativeMinPosition", 0.0);
+}
+
+float LayoutSplitter::getMaximumRelativePosition() const
+{
+    return getProperty ("relativeMaxPosition", 1.0);
+}
+
+void LayoutSplitter::setIsHorizontal (bool isHorizontal, juce::UndoManager* undo)
+{
+    setProperty ("isHorizontal", isHorizontal, undo);
+}
+
+bool LayoutSplitter::getIsHorizontal() const
+{
+    return getProperty("isHorizontal", false);
 }
 
