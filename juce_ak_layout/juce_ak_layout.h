@@ -397,7 +397,9 @@ public:
     }
 
     /**
-     This is computed on each updateGeometry and should not be set
+     This is computed on each updateGeometry and should not be set.
+     It means that the bounds are constrained and the update algorithm shall not change
+     the item's size.
      */
     bool getBoundsAreFinal() const
     {
