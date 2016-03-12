@@ -13,8 +13,10 @@
                       { "id": "juce_gui_basics",        "version": ">3.2.0" } ],
 
   "include":        "juce_ak_layout.h",
+                    "juce_ak_layoutItem.h",
 
-  "compile":        [ { "file": "juce_ak_layout.cpp" }, ],
+  "compile":        [ { "file": "juce_ak_layout.cpp" },
+                      { "file": "juce_ak_layoutItem.cpp" } ],
 
   "browse":         [ "juce_ak_layout/*", ],
 
