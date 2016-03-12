@@ -112,6 +112,16 @@ void LayoutItem::setComponent (juce::Component* ptr)
 void LayoutItem::saveLayoutToValueTree (juce::ValueTree& tree) const
 {
     tree = juce::ValueTree (*this);
+    if (componentPtr) {
+        // fix eventually changed componentID, which needs to operate non const
+        LayoutItem* unconst = const_cast<LayoutItem*> (this);
+        if (componentPtr->getComponentID().isEmpty()) {
+            unconst->removeProperty ("componentID", nullptr);
+        }
+        else {
+            unconst->setProperty ("componentID", componentPtr->getComponentID(), nullptr);
+        }
+    }
 }
 
 void loadLayoutFromValueTree (const juce::ValueTree tree, juce::Component* owner)

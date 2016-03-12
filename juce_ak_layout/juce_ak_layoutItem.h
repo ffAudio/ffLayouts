@@ -393,8 +393,16 @@ public:
         return boundsAreFinal;
     }
     
+    /**
+     Save the layout into a ValueTree. To get proper references to the components,
+     don't forget to set unique componentIDs.
+     */
     virtual void saveLayoutToValueTree (juce::ValueTree& tree) const;
     
+    /**
+     Load the layout from a ValueTree. The component references are restored to the owning
+     Component using findChildWithID()
+     */
     void loadLayoutFromValueTree (const juce::ValueTree tree, juce::Component* owner);
 
     // =============================================================================

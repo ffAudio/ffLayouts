@@ -78,6 +78,7 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
     
     Layout* row = column->addSubLayout(Layout::LeftToRight);
     TextButton* b1 = new TextButton ("B1");
+    b1->setComponentID ("B1");
     components.add (b1);
     row->addComponent (b1)->setItemParameters(0.5, 1.0, 50, 30, 100, 60, 3, 0, 3, 3, 1.5);
     addAndMakeVisible (b1);
@@ -132,6 +133,14 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
         }
         addAndMakeVisible (slider);
     }
+    
+    for (int i=0; i<components.size(); ++i) {
+        Component* c = components.getUnchecked (i);
+        if (c->getComponentID().isEmpty()) {
+            c->setComponentID("RandomName " + String (i));
+        }
+    }
+    
     
     ValueTree myLayoutTree;
     layout.saveLayoutToValueTree (myLayoutTree);
