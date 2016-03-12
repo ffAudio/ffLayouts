@@ -42,11 +42,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Layout::Layout(Orientation o, juce::Component* owner, Layout* parent)
   : LayoutItem (SubLayout, parent),
-    orientation (o),
     isUpdating (false),
     isCummulatingStretch (false),
     owningComponent (owner)
 {
+    setOrientation (o);
     setStretch (-1.0, -1.0);
 }
 
@@ -54,11 +54,70 @@ Layout::~Layout()
 {
 }
 
-void Layout::setOrientation (const Orientation o)
+void Layout::setOrientation (const Orientation o, juce::UndoManager* undo)
 {
-    orientation = o;
+    setProperty ("orientation", getNameFromOrientation (o).toString(), undo);
 }
 
+Layout::Orientation Layout::getOrientation() const
+{
+    return getOrientationFromName (juce::Identifier(getProperty ("orientation", Layout::orientationUnknown.toString())));
+}
+
+bool Layout::isHorizontal () const
+{
+    Layout::Orientation o = getOrientation();
+    return o == LeftToRight || o == RightToLeft;
+}
+
+bool Layout::isVertical () const
+{
+    Layout::Orientation o = getOrientation();
+    return o == TopDown || o == BottomUp;
+}
+
+juce::Identifier Layout::orientationUnknown ("unknown");
+juce::Identifier Layout::orientationLeftToRight ("leftToRight");
+juce::Identifier Layout::orientationTopDown ("topDown");
+juce::Identifier Layout::orientationRightToLeft ("rightToLeft");
+juce::Identifier Layout::orientationBottomUp ("bottomUp");
+
+
+Layout::Orientation Layout::getOrientationFromName (juce::Identifier name)
+{
+    if (name == orientationLeftToRight) {
+        return Layout::LeftToRight;
+    }
+    else if (name == orientationTopDown) {
+        return Layout::TopDown;
+    }
+    else if (name == orientationRightToLeft) {
+        return Layout::RightToLeft;
+    }
+    else if (name == orientationBottomUp) {
+        return Layout::BottomUp;
+    }
+    else
+        return Layout::Unknown;
+}
+
+juce::Identifier Layout::getNameFromOrientation (Layout::Orientation o)
+{
+    if (o == Layout::LeftToRight) {
+        return orientationLeftToRight;
+    }
+    else if (o == Layout::TopDown) {
+        return orientationTopDown;
+    }
+    else if (o == Layout::RightToLeft) {
+        return orientationRightToLeft;
+    }
+    else if (o == Layout::BottomUp) {
+        return orientationBottomUp;
+    }
+    else
+        return orientationUnknown;
+}
 
 LayoutItem* Layout::addComponent (juce::Component* c, int idx)
 {
@@ -188,6 +247,8 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
         }
     }
     
+    const Orientation orientation = getOrientation();
+    
     // find splitter items
     int last = 0;
     juce::Rectangle<int> childBounds (bounds);
@@ -249,6 +310,7 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds, int start, int end)
     getCummulatedStretch (cummulatedX, cummulatedY, start, end);
     float availableWidth  = bounds.getWidth();
     float availableHeight = bounds.getHeight();
+    const Orientation orientation = getOrientation();
     
     if (isVertical()) {
         for (int i=start; i<juce::jmin (itemsList.size(), end); ++i) {

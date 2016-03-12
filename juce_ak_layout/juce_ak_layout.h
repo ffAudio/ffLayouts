@@ -590,16 +590,21 @@ public:
     /**
      Changes the orientation of the layout
      */
-    void setOrientation (const Orientation);
+    void setOrientation (const Orientation, juce::UndoManager* undo=nullptr);
 
     /**
      Returns the orientation including direction. If you are only intersted if horizontal or vertical
      @see isHorizontal and @see isVertival
      */
-    Orientation getOrientation () const { return orientation; }
+    Orientation getOrientation () const;
     
-    bool isHorizontal () const { return orientation == LeftToRight || orientation == RightToLeft; }
-    bool isVertical ()   const { return orientation == TopDown || orientation == BottomUp; }
+    static Orientation getOrientationFromName (juce::Identifier name);
+    
+    static juce::Identifier getNameFromOrientation (Layout::Orientation o);
+    
+    bool isHorizontal () const;
+
+    bool isVertical ()   const;
 
     /**
      addComponent creates a LayoutItem to wrap the given Component. To add 
@@ -718,12 +723,17 @@ protected:
 
 
 private:
-    Orientation orientation;
     juce::OwnedArray<LayoutItem>       itemsList;
 
     bool isUpdating;
     mutable bool isCummulatingStretch;
     juce::Component::SafePointer<juce::Component> owningComponent;
+    
+    static juce::Identifier orientationUnknown;
+    static juce::Identifier orientationLeftToRight;
+    static juce::Identifier orientationTopDown;
+    static juce::Identifier orientationRightToLeft;
+    static juce::Identifier orientationBottomUp;
 
 };
 
