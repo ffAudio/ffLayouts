@@ -54,6 +54,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 Layout::Layout(Orientation o, juce::Component* owner, Layout* parent)
   : LayoutItem (SubLayout, parent),
     isUpdating (false),
+    isFixing (false),
     isCummulatingStretch (false),
     owningComponent (owner)
 {
@@ -166,7 +167,7 @@ LayoutItem* Layout::addLabeledComponent (juce::Component* c, Orientation o, juce
     else {
         sub->addComponent (label);
     }
-    LabeledLayoutItem* labeledItem = new LabeledLayoutItem (c, label, this);
+    LabeledLayoutItem* labeledItem = new LabeledLayoutItem (c, label, sub);
     sub->addRawItem (labeledItem);
     
     if (labelPtr) {
@@ -237,6 +238,12 @@ void Layout::addRawItem (LayoutItem* item, int idx)
     itemsList.insert (idx, item);
 }
 
+void Layout::clearLayout (juce::UndoManager* undo)
+{
+    itemsList.clear();
+    removeAllProperties (undo);
+    removeAllChildren (undo);
+}
 
 void Layout::updateGeometry ()
 {
@@ -578,20 +585,35 @@ void Layout::getSizeLimits (int& minW, int& maxW, int& minH, int& maxH)
     if (canConsumeHeight) maxH = -1;
 }
 
+void Layout::fixUpLayoutItems ()
+{
+    if (isFixing) {
+        return;
+    }
+    isFixing = true;
+    
+    // if it's the root layout save the bounds as well
+    if (this == getRootLayout() && !getItemBounds().isEmpty()) {
+        setProperty ("layoutBounds", getItemBounds().toString(), nullptr);
+    }
+    
+    for (int i=0; i<itemsList.size(); ++i) {
+        itemsList.getUnchecked (i)->fixUpLayoutItems();
+    }
+    isFixing = false;
+}
+
 void Layout::saveLayoutToValueTree (juce::ValueTree& tree) const
 {
-    tree = juce::ValueTree (*this);
-    // if it's the root layout save the bounds as well - need to const cast
-    if (this == getRootLayout() && !getItemBounds().isEmpty()) {
-        Layout* unconst = const_cast<Layout*>(this);
-        unconst->setProperty ("layoutBounds", getItemBounds().toString(), nullptr);
-    }
+    tree = juce::ValueTree (getType());
     for (int i=0; i < itemsList.size(); ++i) {
         juce::ValueTree child;
         itemsList.getUnchecked (i)->saveLayoutToValueTree (child);
         tree.addChild (child, -1, nullptr);
     }
+    tree.copyPropertiesFrom (*this, nullptr);
 }
+
 
 //==============================================================================
 

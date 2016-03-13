@@ -40,28 +40,45 @@
 
 #include "juce_ak_layout.h"
 
+juce::Identifier LayoutItem::itemTypeInvalid            ("Invalid");
+juce::Identifier LayoutItem::itemTypeComponent          ("Component");
+juce::Identifier LayoutItem::itemTypeLabeledComponent   ("LabeledComponent");
+juce::Identifier LayoutItem::itemTypeSplitter           ("Splitter");
+juce::Identifier LayoutItem::itemTypeSpacer             ("Spacer");
+juce::Identifier LayoutItem::itemTypeSubLayout          ("Layout");
+
+juce::Identifier LayoutItem::propComponentID            ("componentID");
 
 LayoutItem::LayoutItem (juce::Component* c, Layout* parent)
-  : juce::ValueTree ("Component"),
+  : juce::ValueTree (itemTypeComponent),
     itemType (ComponentItem),
     parentLayout (parent),
     componentPtr (c)
 {
     jassert (c);
     if (!c->getComponentID().isEmpty()) {
-        setProperty ("componentID", c->getComponentID(), nullptr);
+        setProperty (propComponentID, c->getComponentID(), nullptr);
     }
 }
 
 LayoutItem::LayoutItem (ItemType i, Layout* parent)
-  : juce::ValueTree ((i==ComponentItem) ? "Component" :
-                     (i==LabeledComponentItem) ? "LabeledComponent" :
-                     (i==SplitterItem) ? "Splitter" :
-                     (i==SpacerItem) ? "Spacer" :
-                     (i==SubLayout) ? "Layout" : ""),
+  : juce::ValueTree ((i==ComponentItem) ? itemTypeComponent :
+                     (i==LabeledComponentItem) ? itemTypeLabeledComponent :
+                     (i==SplitterItem) ? itemTypeSplitter :
+                     (i==SpacerItem) ? itemTypeSpacer :
+                     (i==SubLayout) ? itemTypeSubLayout : itemTypeInvalid),
     itemType (i),
     parentLayout (parent)
 {}
+
+LayoutItem::LayoutItem (ValueTree& tree, ItemType i, Layout* parent)
+  : ValueTree (tree),
+    itemType (i),
+    parentLayout (parent)
+{
+    
+}
+
 
 LayoutItem::~LayoutItem()
 {
@@ -116,31 +133,126 @@ void LayoutItem::setComponent (juce::Component* ptr)
 {
     componentPtr = ptr;
     if (ptr->getComponentID().isEmpty()) {
-        removeProperty ("componentID", nullptr);
+        removeProperty (propComponentID, nullptr);
     }
     else {
-        setProperty ("componentID", ptr->getComponentID(), nullptr);
+        setProperty (propComponentID, ptr->getComponentID(), nullptr);
+    }
+}
+
+void LayoutItem::getSizeLimits (int& minW, int& maxW, int& minH, int& maxH)
+{
+    const int minWidth = getMinimumWidth();
+    const int maxWidth = getMinimumWidth();
+    const int minHeight = getMinimumWidth();
+    const int maxHeight = getMinimumWidth();
+    if (minWidth >= 0) minW = (minW < 0) ? minWidth : juce::jmax (minW, minWidth);
+    if (maxWidth >= 0) maxW = (maxW < 0) ? maxWidth : juce::jmin (maxW, maxWidth);
+    if (minHeight >= 0) minH = (minH < 0) ? minHeight : juce::jmax (minH, minHeight);
+    if (maxHeight >= 0) maxH = (maxH < 0) ? maxHeight : juce::jmin (maxH, maxHeight);
+}
+
+void LayoutItem::constrainBounds (juce::Rectangle<int>& bounds, bool& changedWidth, bool& changedHeight, bool preferVertical)
+{
+    int cbMinWidth = -1;
+    int cbMaxWidth = -1;
+    int cbMinHeight = -1;
+    int cbMaxHeight = -1;
+    float aspectRatio = getAspectRatio();
+    
+    getSizeLimits (cbMinWidth, cbMaxWidth, cbMinHeight, cbMaxHeight);
+    changedWidth  = false;
+    changedHeight = false;
+    
+    if (cbMaxWidth > 0 && cbMaxWidth < bounds.getWidth()) {
+        bounds.setWidth (cbMaxWidth);
+        changedWidth = true;
+    }
+    if (aspectRatio > 0.0 && !preferVertical) {
+        bounds.setWidth (bounds.getHeight() * aspectRatio);
+        changedWidth = true;
+    }
+    if (cbMinWidth > 0 && cbMinWidth > bounds.getWidth()) {
+        bounds.setWidth (cbMinWidth);
+        changedWidth = true;
+    }
+    if (cbMaxHeight > 0 && cbMaxHeight < bounds.getHeight()) {
+        bounds.setHeight (cbMaxHeight);
+        changedHeight = true;
+    }
+    if (aspectRatio > 0.0 && preferVertical) {
+        bounds.setHeight (bounds.getWidth() / aspectRatio);
+        changedHeight = true;
+    }
+    if (cbMinHeight > 0 && cbMinHeight > bounds.getHeight()) {
+        bounds.setHeight (cbMinHeight);
+        changedHeight = true;
+    }
+}
+
+void LayoutItem::setComponentID (const juce::String& name, bool setComp)
+{
+    if (setComp && getComponent()) {
+        getComponent()->setComponentID (name);
+    }
+    if (name.isEmpty()) {
+        removeProperty(propComponentID, nullptr);
+    }
+    else {
+        setProperty (propComponentID, name, nullptr);
+    }
+}
+
+
+void LayoutItem::fixUpLayoutItems ()
+{
+    if (componentPtr) {
+        setComponentID (componentPtr->getComponentID(), false);
     }
 }
 
 void LayoutItem::saveLayoutToValueTree (juce::ValueTree& tree) const
 {
-    tree = juce::ValueTree (*this);
-    if (componentPtr) {
-        // fix eventually changed componentID, which needs to operate non const
-        LayoutItem* unconst = const_cast<LayoutItem*> (this);
-        if (componentPtr->getComponentID().isEmpty()) {
-            unconst->removeProperty ("componentID", nullptr);
-        }
-        else {
-            unconst->setProperty ("componentID", componentPtr->getComponentID(), nullptr);
-        }
-    }
+    tree = juce::ValueTree (getType());
+    tree.copyPropertiesFrom (*this, nullptr);
 }
 
-void loadLayoutFromValueTree (const juce::ValueTree tree, juce::Component* owner)
+LayoutItem* LayoutItem::loadLayoutFromValueTree (const juce::ValueTree& tree, juce::Component* owner)
 {
+    copyPropertiesFrom (tree, nullptr);
+
+    if (isSubLayout()) {
+        Layout* layout = dynamic_cast<Layout*>(this);
+        for (int i=0; i<tree.getNumChildren(); ++i) {
+            juce::ValueTree child = tree.getChild (i);
+            LayoutItem* item = nullptr;
+            if (child.getType() == itemTypeComponent) {
+                if (child.hasProperty (propComponentID)) {
+                    juce::String componentID = child.getProperty (propComponentID);
+                    if (juce::Component* component = owner->findChildWithID (componentID)) {
+                        item = layout->addComponent (component);
+                    }
+                }
+            }
+            else if (child.getType() == itemTypeSpacer) {
+                item = layout->addSpacer();
+            }
+            else if (child.getType() == itemTypeSplitter) {
+                // property will be replaced automatically
+                item = layout->addSplitterItem (0.5);
+            }
+            else if (child.getType() == itemTypeSubLayout) {
+                Layout* subLayout = layout->addSubLayout (Layout::LeftToRight);
+                item = subLayout->loadLayoutFromValueTree(child, owner);
+            }
+            
+            if (item) {
+                item->copyPropertiesFrom (child, nullptr);
+            }
+        }
+    }
     
+    return this;
 }
 
 
@@ -162,6 +274,13 @@ void LayoutItem::callListenersCallback (juce::Rectangle<int> newBounds)
 
 
 //==============================================================================
+
+juce::Identifier LayoutSplitter::propRelativePosition       ("relativePosition");
+juce::Identifier LayoutSplitter::propRelativeMinPosition    ("relativeMinPosition");
+juce::Identifier LayoutSplitter::propRelativeMaxPosition    ("relativeMaxPosition");
+juce::Identifier LayoutSplitter::propIsHorizontal           ("isHorizontal");
+
+
 LayoutSplitter::LayoutSplitter (juce::Component* owningComponent, float position, bool horizontal, Layout* parent)
 :  LayoutItem(Layout::SplitterItem, parent)
 {
@@ -211,41 +330,93 @@ void LayoutSplitter::mouseDrag (const juce::MouseEvent &event)
 
 void LayoutSplitter::setRelativePosition (float position, juce::UndoManager* undo)
 {
-    setProperty ("relativePosition", position, undo);
+    setProperty (propRelativePosition, position, undo);
 }
 
 float LayoutSplitter::getRelativePosition() const
 {
-    return getProperty ("relativePosition", 0.5);
+    return getProperty (propRelativePosition, 0.5);
 }
 
 void LayoutSplitter::setMinimumRelativePosition (const float min, juce::UndoManager* undo)
 {
-    setProperty ("relativeMinPosition", min, undo);
+    setProperty (propRelativeMinPosition, min, undo);
 }
 
 void LayoutSplitter::setMaximumRelativePosition (const float max, juce::UndoManager* undo)
 {
-    setProperty ("relativeMaxPosition", max, undo);
+    setProperty (propRelativeMaxPosition, max, undo);
 }
 
 float LayoutSplitter::getMinimumRelativePosition() const
 {
-    return getProperty ("relativeMinPosition", 0.0);
+    return getProperty (propRelativeMinPosition, 0.0);
 }
 
 float LayoutSplitter::getMaximumRelativePosition() const
 {
-    return getProperty ("relativeMaxPosition", 1.0);
+    return getProperty (propRelativeMaxPosition, 1.0);
 }
 
 void LayoutSplitter::setIsHorizontal (bool isHorizontal, juce::UndoManager* undo)
 {
-    setProperty ("isHorizontal", isHorizontal, undo);
+    setProperty (propIsHorizontal, isHorizontal, undo);
 }
 
 bool LayoutSplitter::getIsHorizontal() const
 {
-    return getProperty("isHorizontal", false);
+    return getProperty (propIsHorizontal, false);
+}
+
+//==============================================================================
+
+juce::Identifier LabeledLayoutItem::propLabelText ("labelText");
+
+void LabeledLayoutItem::fixUpLayoutItems ()
+{
+    // fix componentID as well
+    LayoutItem::fixUpLayoutItems();
+    
+    if (label) {
+        if (label->getText().isEmpty()) {
+            removeProperty (propLabelText, nullptr);
+        }
+        else {
+            setProperty (propLabelText, label->getText(), nullptr);
+            if (juce::Component* comp = getComponent()) {
+                if (Layout* parent = getParentLayout()) {
+                    if (LayoutItem* labelItem = parent->getLayoutItem (0)) {
+                        labelItem->setComponentID (comp->getComponentID() + "_label", true);
+                    }
+                }
+            }
+        }
+    }
+}
+
+LayoutItem* LabeledLayoutItem::loadLayoutFromValueTree (const juce::ValueTree& tree, juce::Component* owner)
+{
+    copyPropertiesFrom (tree, nullptr);
+    
+    if (hasProperty (propLabelText)) {
+        if (label) {
+            label->setText (getProperty (propLabelText).toString(), juce::dontSendNotification);
+        }
+        else {
+            label = new juce::Label (juce::String::empty, getProperty (propLabelText).toString());
+            if (Layout* parent = getParentLayout()) {
+                if (LayoutItem* first = parent->getLayoutItem (0)) {
+                    first->setComponent (label);
+                }
+            }
+        }
+    }
+    else {
+        if (label) {
+            label = nullptr;
+        }
+    }
+    
+    return this;
 }
 

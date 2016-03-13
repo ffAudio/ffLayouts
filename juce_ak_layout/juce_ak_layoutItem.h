@@ -64,8 +64,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
  
  */
 
-
-
 #include "juce_gui_basics/juce_gui_basics.h"
 
 class Layout;
@@ -87,12 +85,13 @@ public:
         SplitterItem,
         SpacerItem,
         SubLayout
-        
     };
-    
+
     LayoutItem (juce::Component* c, Layout* parent=nullptr);
     
     LayoutItem (ItemType i=Invalid, Layout* parent=nullptr);
+    
+    LayoutItem (ValueTree& tree, ItemType i, Layout* parent = nullptr);
     
     virtual ~LayoutItem();
     
@@ -183,17 +182,7 @@ public:
      the limits. if you don't want that, it is your responsibility to set the
      parameters to no limit, i.e. a negative value
      */
-    virtual void getSizeLimits (int& minW, int& maxW, int& minH, int& maxH)
-    {
-        const int minWidth = getMinimumWidth();
-        const int maxWidth = getMinimumWidth();
-        const int minHeight = getMinimumWidth();
-        const int maxHeight = getMinimumWidth();
-        if (minWidth >= 0) minW = (minW < 0) ? minWidth : juce::jmax (minW, minWidth);
-        if (maxWidth >= 0) maxW = (maxW < 0) ? maxWidth : juce::jmin (maxW, maxWidth);
-        if (minHeight >= 0) minH = (minH < 0) ? minHeight : juce::jmax (minH, minHeight);
-        if (maxHeight >= 0) maxH = (maxH < 0) ? maxHeight : juce::jmin (maxH, maxHeight);
-    }
+    virtual void getSizeLimits (int& minW, int& maxW, int& minH, int& maxH);
 
     /** Set a padding value for the wrapped component or item to it's calculated top bounds */
     void setPaddingTop    (const int p, juce::UndoManager* undo=nullptr) { setProperty ("paddingTop", p, undo); }
@@ -294,43 +283,7 @@ public:
      Applies the size constraints to the items.
      set preferVertical to true to adapt height of the item or false to adapt the width.
      */
-    void constrainBounds (juce::Rectangle<int>& bounds, bool& changedWidth, bool& changedHeight, bool preferVertical)
-    {
-        int cbMinWidth = -1;
-        int cbMaxWidth = -1;
-        int cbMinHeight = -1;
-        int cbMaxHeight = -1;
-        float aspectRatio = getAspectRatio();
-        
-        getSizeLimits (cbMinWidth, cbMaxWidth, cbMinHeight, cbMaxHeight);
-        changedWidth  = false;
-        changedHeight = false;
-
-        if (cbMaxWidth > 0 && cbMaxWidth < bounds.getWidth()) {
-            bounds.setWidth (cbMaxWidth);
-            changedWidth = true;
-        }
-        if (aspectRatio > 0.0 && !preferVertical) {
-            bounds.setWidth (bounds.getHeight() * aspectRatio);
-            changedWidth = true;
-        }
-        if (cbMinWidth > 0 && cbMinWidth > bounds.getWidth()) {
-            bounds.setWidth (cbMinWidth);
-            changedWidth = true;
-        }
-        if (cbMaxHeight > 0 && cbMaxHeight < bounds.getHeight()) {
-            bounds.setHeight (cbMaxHeight);
-            changedHeight = true;
-        }
-        if (aspectRatio > 0.0 && preferVertical) {
-            bounds.setHeight (bounds.getWidth() / aspectRatio);
-            changedHeight = true;
-        }
-        if (cbMinHeight > 0 && cbMinHeight > bounds.getHeight()) {
-            bounds.setHeight (cbMinHeight);
-            changedHeight = true;
-        }
-    }
+    void constrainBounds (juce::Rectangle<int>& bounds, bool& changedWidth, bool& changedHeight, bool preferVertical);
 
     /**
      This property is dynamically calculated each time updateGeometry is called.
@@ -395,6 +348,14 @@ public:
         return boundsAreFinal;
     }
     
+    /** Set the wrapped components componentID and the item's componentID property */
+    void setComponentID (const juce::String& name, bool setComp);
+
+    /**
+     Chance for LayoutItems to fix properties that might have changed for saving
+     */
+    virtual void fixUpLayoutItems ();
+    
     /**
      Save the layout into a ValueTree. To get proper references to the components,
      don't forget to set unique componentIDs.
@@ -405,7 +366,7 @@ public:
      Load the layout from a ValueTree. The component references are restored to the owning
      Component using findChildWithID()
      */
-    void loadLayoutFromValueTree (const juce::ValueTree tree, juce::Component* owner);
+    virtual LayoutItem* loadLayoutFromValueTree (const juce::ValueTree& tree, juce::Component* owner);
 
     // =============================================================================
     
@@ -436,7 +397,7 @@ public:
     /** Call the callbacks of LayoutItem::Listeners
      */
     void callListenersCallback (juce::Rectangle<int> newBounds);
-    
+
 private:
     ItemType   itemType;
     
@@ -449,6 +410,15 @@ private:
     bool                 boundsAreFinal;
     
     juce::ListenerList<Listener> layoutItemListeners;
+    
+    static juce::Identifier itemTypeInvalid;
+    static juce::Identifier itemTypeComponent;
+    static juce::Identifier itemTypeLabeledComponent;
+    static juce::Identifier itemTypeSplitter;
+    static juce::Identifier itemTypeSpacer;
+    static juce::Identifier itemTypeSubLayout;
+
+    static juce::Identifier propComponentID;
 };
 
 #ifndef DOXYGEN
@@ -500,6 +470,13 @@ public:
     
     /** Return the horizontal flag */
     bool getIsHorizontal() const;
+    
+private:
+    static juce::Identifier propRelativePosition;
+    static juce::Identifier propRelativeMinPosition;
+    static juce::Identifier propRelativeMaxPosition;
+    static juce::Identifier propIsHorizontal;
+
 };
 
 
@@ -522,9 +499,21 @@ public:
      */
     juce::Label* getLabel() override { return label; }
     
+    /**
+     Load the layout from a ValueTree. The component references are restored to the owning
+     Component using findChildWithID()
+     */
+    LayoutItem* loadLayoutFromValueTree (const juce::ValueTree& tree, juce::Component* owner) override;
+    
+    /**
+     Chance for LayoutItems to fix properties that might have changed for saving
+     */
+    void fixUpLayoutItems () override;
     
 private:
     juce::ScopedPointer<juce::Label> label;
+    
+    static juce::Identifier propLabelText;
 };
 
 

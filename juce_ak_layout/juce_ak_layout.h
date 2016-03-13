@@ -242,13 +242,16 @@ public:
      */
     void getSizeLimits (int& minW, int& maxW, int& minH, int& maxH) override;
 
+    /** Clears the layout and resets to zero state */
+    void clearLayout (juce::UndoManager* undo=nullptr);
+
+    /**
+     Chance for LayoutItems to fix properties that might have changed for saving
+     */
+    void fixUpLayoutItems () override;
     
     void saveLayoutToValueTree (juce::ValueTree& tree) const override;
     
-protected:
-    /** This is for internal use only. You should not need to call this method */
-    void addRawItem (LayoutItem* item, int idx=-1);
-
     /** Return the number of items in the list of items */
     int getNumItems() const { return itemsList.size(); }
     
@@ -257,11 +260,15 @@ protected:
     /** Return a LayoutItem at a certain index in the list */
     const LayoutItem* getLayoutItem (const int idx) const { return itemsList.getUnchecked (idx); }
 
+protected:
+    /** This is for internal use only. You should not need to call this method */
+    void addRawItem (LayoutItem* item, int idx=-1);
 
 private:
     juce::OwnedArray<LayoutItem>       itemsList;
 
     bool isUpdating;
+    bool isFixing;
     mutable bool isCummulatingStretch;
     juce::Component::SafePointer<juce::Component> owningComponent;
     
