@@ -41,7 +41,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include "juce_ak_layout.h"
 
 //==============================================================================
 /*

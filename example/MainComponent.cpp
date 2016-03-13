@@ -141,18 +141,41 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
         }
     }
     
-    
+    // Saving and reloading layout test
+    /*
     ValueTree myLayoutTree;
+    layout.fixUpLayoutItems();
     layout.saveLayoutToValueTree (myLayoutTree);
-    
-    String layoutXML = myLayoutTree.toXmlString();
-    
+
     FileOutputStream out (File::getCurrentWorkingDirectory().getChildFile ("LayoutTest.jui"));
     if (out.openedOk()) {
+        String layoutXML = myLayoutTree.toXmlString();
         out.setPosition (0);
         out.truncate();
         out.write (layoutXML.toRawUTF8(), layoutXML.getNumBytesAsUTF8());
+        out.flush();
     }
+    
+    // Houdini trick:
+    layout.clearLayout();
+
+    ScopedPointer<XmlElement> doc = XmlDocument::parse (File::getCurrentWorkingDirectory().getChildFile ("LayoutTest.jui"));
+    ValueTree myLoadedTree = ValueTree::fromXml (*doc);
+    
+    layout.loadLayoutFromValueTree (myLoadedTree, this);
+    
+    // for debug diff
+    FileOutputStream outDiff (File::getCurrentWorkingDirectory().getChildFile ("LayoutDiff.jui"));
+    if (outDiff.openedOk()) {
+        ValueTree diffTree;
+        layout.saveLayoutToValueTree (diffTree);
+        String layoutXML = diffTree.toXmlString();
+        outDiff.setPosition (0);
+        outDiff.truncate();
+        outDiff.write (layoutXML.toRawUTF8(), layoutXML.getNumBytesAsUTF8());
+        outDiff.flush();
+    }
+     */
 
     // juce again
     setSize (600, 400);
