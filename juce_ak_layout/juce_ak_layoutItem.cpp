@@ -48,14 +48,15 @@ const juce::Identifier LayoutItem::itemTypeSpacer             ("Spacer");
 const juce::Identifier LayoutItem::itemTypeSubLayout          ("Layout");
 
 const juce::Identifier LayoutItem::propComponentID            ("componentID");
+const juce::Identifier LayoutItem::propLabelText              ("labelText");
 
-LayoutItem::LayoutItem (juce::Component* c, Layout* parent)
+LayoutItem::LayoutItem (juce::Component* c, Layout* parent, bool owned)
   : juce::ValueTree (itemTypeComponent),
     itemType (ComponentItem),
-    parentLayout (parent),
-    componentPtr (c)
+    parentLayout (parent)
 {
     jassert (c);
+    setComponent (c, owned);
     if (!c->getComponentID().isEmpty()) {
         setProperty (propComponentID, c->getComponentID(), nullptr);
     }
@@ -81,7 +82,7 @@ bool LayoutItem::isValid()
     if (itemType == Invalid) {
         return false;
     }
-    if (itemType == ComponentItem && componentPtr == nullptr) {
+    if (itemType == ComponentItem && componentPtr == nullptr && ownedComponent == nullptr) {
         return false;
     }
     return true;
@@ -155,6 +156,11 @@ juce::Component* LayoutItem::getOwnedComponent () const
 void LayoutItem::setOwnedComponent (juce::Component* c)
 {
     ownedComponent = c;
+}
+
+void LayoutItem::setLabelText (const juce::String& text)
+{
+    setProperty (propLabelText, text, nullptr);
 }
 
 void LayoutItem::getSizeLimits (int& minW, int& maxW, int& minH, int& maxH)
@@ -244,12 +250,22 @@ LayoutItem* LayoutItem::loadLayoutFromValueTree (const juce::ValueTree& tree, ju
             juce::ValueTree child = tree.getChild (i);
             LayoutItem* item = nullptr;
             if (child.getType() == itemTypeComponent) {
-                if (child.hasProperty (propComponentID)) {
+                if (child.hasProperty (propLabelText)) {
+                    juce::String labelText = child.getProperty (propLabelText);
+                    juce::Label* label = new juce::Label (juce::String::empty, labelText);
+                    label->setJustificationType (juce::Justification::centred);
+                    item = layout->addComponent (label, true);
+                    if (owner) {
+                        owner->addAndMakeVisible (item->getComponent());
+                    }
+                }
+                else if (child.hasProperty (propComponentID)) {
                     juce::String componentID = child.getProperty (propComponentID);
                     if (juce::Component* component = owner->findChildWithID (componentID)) {
                         item = layout->addComponent (component);
                     }
                 }
+                
             }
             else if (child.getType() == itemTypeSpacer) {
                 item = layout->addSpacer();
@@ -387,8 +403,8 @@ bool LayoutSplitter::getIsHorizontal() const
 
 //==============================================================================
 
-const juce::Identifier LabeledLayoutItem::propLabelText ("labelText");
 
+/*
 void LabeledLayoutItem::fixUpLayoutItems ()
 {
     // fix componentID as well
@@ -436,4 +452,4 @@ LayoutItem* LabeledLayoutItem::loadLayoutFromValueTree (const juce::ValueTree& t
     
     return this;
 }
-
+*/

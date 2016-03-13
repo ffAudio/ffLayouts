@@ -87,7 +87,7 @@ public:
         SubLayout
     };
 
-    LayoutItem (juce::Component* c, Layout* parent=nullptr);
+    LayoutItem (juce::Component* c, Layout* parent=nullptr, bool owned=false);
     
     LayoutItem (ItemType i=Invalid, Layout* parent=nullptr);
     
@@ -122,7 +122,9 @@ public:
     juce::Component* getWrappedComponent ()  const;
 
     /**
-     Replace the component pointer
+     Replace the component pointer. If owned is set to true, the component will be destroyed, 
+     when the item is destroyed or another component or nullptr is set. It is always only one
+     pointer present, each call to setComponent removes the other variant.
      */
     void setComponent (juce::Component* ptr, bool owned=false);
     
@@ -140,14 +142,12 @@ public:
     bool isComponentItem ()     const { return itemType == ComponentItem; }
     bool isSplitterItem ()      const { return itemType == SplitterItem; }
     bool isSubLayout ()         const { return itemType == SubLayout; }
-    
-    /**
-     If the item is a label item (sublayout group), you can access the created item.
-     The default item returns a nullptr.
-     * DEPRECATED *
-     */
-    virtual juce::Label* getLabel () { return nullptr; }
 
+    /**
+     Set the text for an automatically recreated Label as property
+     */
+    void setLabelText (const juce::String& text);
+    
     /**
      Return the stretch value of an item.
      */
@@ -438,6 +438,7 @@ private:
     static const juce::Identifier itemTypeSubLayout;
 
     static const juce::Identifier propComponentID;
+    static const juce::Identifier propLabelText;
 };
 
 #ifndef DOXYGEN
@@ -501,43 +502,6 @@ private:
 };
 
 
-//==============================================================================
-/**
- The LabeledLayoutItem is a sub layout containing a LayoutItem and a Label.
- The LabeledLayoutItem takes ownership of the label component, so it is destroyed when the layout is destructed.
- */
-class LabeledLayoutItem : public LayoutItem
-{
-public:
-    LabeledLayoutItem (juce::Component* c, juce::Label* l, Layout* parent)
-      : LayoutItem (c, parent),
-        label (l) {}
-    
-    virtual ~LabeledLayoutItem() {};
-    
-    /**
-     Return the created label, if there is any.
-     */
-    juce::Label* getLabel() override { return label; }
-    
-    /**
-     Load the layout from a ValueTree. The component references are restored to the owning
-     Component using findChildWithID()
-     */
-    LayoutItem* loadLayoutFromValueTree (const juce::ValueTree& tree, juce::Component* owner) override;
-    
-    /**
-     Chance for LayoutItems to fix properties that might have changed for saving
-     */
-    void fixUpLayoutItems () override;
-    
-private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LabeledLayoutItem)
-
-    juce::ScopedPointer<juce::Label> label;
-    
-    static const juce::Identifier propLabelText;
-};
 
 
 #endif  // JUCE_AK_LAYOUTITEM_H_INCLUDED

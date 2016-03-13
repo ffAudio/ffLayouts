@@ -134,9 +134,9 @@ juce::Identifier Layout::getNameFromOrientation (Layout::Orientation o)
         return orientationUnknown;
 }
 
-LayoutItem* Layout::addComponent (juce::Component* c, int idx)
+LayoutItem* Layout::addComponent (juce::Component* c, bool owned, int idx)
 {
-    LayoutItem* item = itemsList.insert (idx, new LayoutItem (c));
+    LayoutItem* item = itemsList.insert (idx, new LayoutItem (c, this, owned));
     updateGeometry();
     return item;
 }
@@ -152,43 +152,28 @@ void Layout::removeComponent (juce::Component* c)
     updateGeometry();
 }
 
-LayoutItem* Layout::addLabeledComponent (juce::Component* c, Orientation o, juce::Label** labelPtr, int idx)
+LayoutItem* Layout::addLabeledComponent (juce::Component* c, juce::StringRef text, Orientation o, int idx)
 {
     // if the layout is not owned by a component, the label will not show up,
     // because addAndMakeVisible can not be called.
     jassert (owningComponent);
     
-    juce::Label* label = new juce::Label();
+    juce::Label* label = new juce::Label (juce::String::empty, text);
+    label->setJustificationType (juce::Justification::centred);
     if (owningComponent) {
         owningComponent->addAndMakeVisible (label);
     }
     Layout* sub = addSubLayout (o, idx);
+    LayoutItem* labelItem = sub->addComponent (label, true);
     if (sub->isVertical()) {
         float h = label->getFont().getHeight();
-        sub->addComponent (label)->setFixedHeight (h);
+        labelItem->setFixedHeight (h);
     }
-    else {
-        sub->addComponent (label);
-    }
-    LabeledLayoutItem* labeledItem = new LabeledLayoutItem (c, label, sub);
-    sub->addRawItem (labeledItem);
-    
-    if (labelPtr) {
-        *labelPtr = label;
-    }
+    labelItem->setLabelText (label->getText());
 
+    LayoutItem* labeledItem = sub->addComponent (c);
     updateGeometry();
     return labeledItem;
-}
-
-LayoutItem* Layout::addLabeledComponent (juce::Component* component, juce::StringRef text, Orientation o, int idx)
-{
-    LayoutItem* item = addLabeledComponent(component, o, nullptr, idx);
-    if (juce::Label* label = item->getLabel()) {
-        label->setText (text, juce::dontSendNotification);
-        label->setJustificationType (juce::Justification::centred);
-    }
-    return item;
 }
 
 Layout* Layout::addSubLayout (Orientation o, int idx)

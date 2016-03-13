@@ -148,7 +148,7 @@ public:
      LayoutItem is returned. You don't need and should not keep this pointer longer 
      than current scope. If you need to alter the item you can access it via @see Layout::getLayoutItem
      */
-    virtual LayoutItem* addComponent (juce::Component*, int idx=-1);
+    virtual LayoutItem* addComponent (juce::Component*, bool owned=false, int idx=-1);
     
     // TODO: grid layout
     //virtual LayoutItem* addComponent (Component*, const int x, const int y);
@@ -160,15 +160,9 @@ public:
     void removeComponent (juce::Component*);
     
     /**
-     Add a component with a label in a sub layout. By chosing the orientation the 
-     placement of the label can be set. Either a pointer to a Label pointer can be 
+     Add a component with a label in a sub layout. By chosing the orientation the
+     placement of the label can be set. Either a pointer to a Label pointer can be
      set to return the created label, or you can call getLabel on the returned LayoutItem.
-     */
-    LayoutItem* addLabeledComponent (juce::Component*, Orientation, juce::Label** labelPtr=nullptr, int idx=-1);
-    
-
-    /**
-     Convenience method to ad a labeled component with a given text
      */
     LayoutItem* addLabeledComponent (juce::Component*, juce::StringRef, Orientation o=Layout::TopDown, int idx=-1);
     
