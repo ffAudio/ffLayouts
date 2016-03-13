@@ -51,6 +51,16 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "juce_ak_layoutItem.cpp"
 
+const juce::Identifier Layout::propOrientation          ("orientation");
+const juce::Identifier Layout::propLayoutBounds         ("layoutBounds");
+
+const juce::Identifier Layout::orientationUnknown       ("unknown");
+const juce::Identifier Layout::orientationLeftToRight   ("leftToRight");
+const juce::Identifier Layout::orientationTopDown       ("topDown");
+const juce::Identifier Layout::orientationRightToLeft   ("rightToLeft");
+const juce::Identifier Layout::orientationBottomUp      ("bottomUp");
+
+
 Layout::Layout(Orientation o, juce::Component* owner, Layout* parent)
   : LayoutItem (SubLayout, parent),
     isUpdating (false),
@@ -68,12 +78,12 @@ Layout::~Layout()
 
 void Layout::setOrientation (const Orientation o, juce::UndoManager* undo)
 {
-    setProperty ("orientation", getNameFromOrientation (o).toString(), undo);
+    setProperty (propOrientation, getNameFromOrientation (o).toString(), undo);
 }
 
 Layout::Orientation Layout::getOrientation() const
 {
-    return getOrientationFromName (juce::Identifier(getProperty ("orientation", Layout::orientationUnknown.toString())));
+    return getOrientationFromName (juce::Identifier(getProperty (propOrientation, Layout::orientationUnknown.toString())));
 }
 
 bool Layout::isHorizontal () const
@@ -87,13 +97,6 @@ bool Layout::isVertical () const
     Layout::Orientation o = getOrientation();
     return o == TopDown || o == BottomUp;
 }
-
-juce::Identifier Layout::orientationUnknown ("unknown");
-juce::Identifier Layout::orientationLeftToRight ("leftToRight");
-juce::Identifier Layout::orientationTopDown ("topDown");
-juce::Identifier Layout::orientationRightToLeft ("rightToLeft");
-juce::Identifier Layout::orientationBottomUp ("bottomUp");
-
 
 Layout::Orientation Layout::getOrientationFromName (juce::Identifier name)
 {

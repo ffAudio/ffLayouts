@@ -272,11 +272,14 @@ private:
     mutable bool isCummulatingStretch;
     juce::Component::SafePointer<juce::Component> owningComponent;
     
-    static juce::Identifier orientationUnknown;
-    static juce::Identifier orientationLeftToRight;
-    static juce::Identifier orientationTopDown;
-    static juce::Identifier orientationRightToLeft;
-    static juce::Identifier orientationBottomUp;
+    static const juce::Identifier propOrientation;
+    static const juce::Identifier propLayoutBounds;
+    
+    static const juce::Identifier orientationUnknown;
+    static const juce::Identifier orientationLeftToRight;
+    static const juce::Identifier orientationTopDown;
+    static const juce::Identifier orientationRightToLeft;
+    static const juce::Identifier orientationBottomUp;
 
 };
 

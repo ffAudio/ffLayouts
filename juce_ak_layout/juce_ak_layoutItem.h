@@ -411,14 +411,14 @@ private:
     
     juce::ListenerList<Listener> layoutItemListeners;
     
-    static juce::Identifier itemTypeInvalid;
-    static juce::Identifier itemTypeComponent;
-    static juce::Identifier itemTypeLabeledComponent;
-    static juce::Identifier itemTypeSplitter;
-    static juce::Identifier itemTypeSpacer;
-    static juce::Identifier itemTypeSubLayout;
+    static const juce::Identifier itemTypeInvalid;
+    static const juce::Identifier itemTypeComponent;
+    static const juce::Identifier itemTypeLabeledComponent;
+    static const juce::Identifier itemTypeSplitter;
+    static const juce::Identifier itemTypeSpacer;
+    static const juce::Identifier itemTypeSubLayout;
 
-    static juce::Identifier propComponentID;
+    static const juce::Identifier propComponentID;
 };
 
 #ifndef DOXYGEN
@@ -472,10 +472,10 @@ public:
     bool getIsHorizontal() const;
     
 private:
-    static juce::Identifier propRelativePosition;
-    static juce::Identifier propRelativeMinPosition;
-    static juce::Identifier propRelativeMaxPosition;
-    static juce::Identifier propIsHorizontal;
+    static const juce::Identifier propRelativePosition;
+    static const juce::Identifier propRelativeMinPosition;
+    static const juce::Identifier propRelativeMaxPosition;
+    static const juce::Identifier propIsHorizontal;
 
 };
 
@@ -513,7 +513,7 @@ public:
 private:
     juce::ScopedPointer<juce::Label> label;
     
-    static juce::Identifier propLabelText;
+    static const juce::Identifier propLabelText;
 };
 
 

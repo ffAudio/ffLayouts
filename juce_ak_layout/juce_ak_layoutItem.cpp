@@ -40,14 +40,14 @@
 
 #include "juce_ak_layout.h"
 
-juce::Identifier LayoutItem::itemTypeInvalid            ("Invalid");
-juce::Identifier LayoutItem::itemTypeComponent          ("Component");
-juce::Identifier LayoutItem::itemTypeLabeledComponent   ("LabeledComponent");
-juce::Identifier LayoutItem::itemTypeSplitter           ("Splitter");
-juce::Identifier LayoutItem::itemTypeSpacer             ("Spacer");
-juce::Identifier LayoutItem::itemTypeSubLayout          ("Layout");
+const juce::Identifier LayoutItem::itemTypeInvalid            ("Invalid");
+const juce::Identifier LayoutItem::itemTypeComponent          ("Component");
+const juce::Identifier LayoutItem::itemTypeLabeledComponent   ("LabeledComponent");
+const juce::Identifier LayoutItem::itemTypeSplitter           ("Splitter");
+const juce::Identifier LayoutItem::itemTypeSpacer             ("Spacer");
+const juce::Identifier LayoutItem::itemTypeSubLayout          ("Layout");
 
-juce::Identifier LayoutItem::propComponentID            ("componentID");
+const juce::Identifier LayoutItem::propComponentID            ("componentID");
 
 LayoutItem::LayoutItem (juce::Component* c, Layout* parent)
   : juce::ValueTree (itemTypeComponent),
@@ -275,10 +275,10 @@ void LayoutItem::callListenersCallback (juce::Rectangle<int> newBounds)
 
 //==============================================================================
 
-juce::Identifier LayoutSplitter::propRelativePosition       ("relativePosition");
-juce::Identifier LayoutSplitter::propRelativeMinPosition    ("relativeMinPosition");
-juce::Identifier LayoutSplitter::propRelativeMaxPosition    ("relativeMaxPosition");
-juce::Identifier LayoutSplitter::propIsHorizontal           ("isHorizontal");
+const juce::Identifier LayoutSplitter::propRelativePosition       ("relativePosition");
+const juce::Identifier LayoutSplitter::propRelativeMinPosition    ("relativeMinPosition");
+const juce::Identifier LayoutSplitter::propRelativeMaxPosition    ("relativeMaxPosition");
+const juce::Identifier LayoutSplitter::propIsHorizontal           ("isHorizontal");
 
 
 LayoutSplitter::LayoutSplitter (juce::Component* owningComponent, float position, bool horizontal, Layout* parent)
@@ -370,7 +370,7 @@ bool LayoutSplitter::getIsHorizontal() const
 
 //==============================================================================
 
-juce::Identifier LabeledLayoutItem::propLabelText ("labelText");
+const juce::Identifier LabeledLayoutItem::propLabelText ("labelText");
 
 void LabeledLayoutItem::fixUpLayoutItems ()
 {
