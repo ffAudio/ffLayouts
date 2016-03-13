@@ -71,15 +71,6 @@ LayoutItem::LayoutItem (ItemType i, Layout* parent)
     parentLayout (parent)
 {}
 
-LayoutItem::LayoutItem (ValueTree& tree, ItemType i, Layout* parent)
-  : ValueTree (tree),
-    itemType (i),
-    parentLayout (parent)
-{
-    
-}
-
-
 LayoutItem::~LayoutItem()
 {
 }
@@ -126,18 +117,44 @@ const Layout* LayoutItem::getRootLayout() const
 
 juce::Component* LayoutItem::getComponent () const
 {
+    if (ownedComponent) {
+        return ownedComponent.get();
+    }
     return componentPtr.getComponent();
 }
 
-void LayoutItem::setComponent (juce::Component* ptr)
+juce::Component* LayoutItem::getWrappedComponent () const
 {
-    componentPtr = ptr;
+    return componentPtr.getComponent();
+}
+
+void LayoutItem::setComponent (juce::Component* ptr, bool owned)
+{
+    if (owned) {
+        ownedComponent = ptr;
+        componentPtr = nullptr;
+    }
+    else {
+        componentPtr = ptr;
+        ownedComponent = nullptr;
+    }
+
     if (ptr->getComponentID().isEmpty()) {
         removeProperty (propComponentID, nullptr);
     }
     else {
         setProperty (propComponentID, ptr->getComponentID(), nullptr);
     }
+}
+
+juce::Component* LayoutItem::getOwnedComponent () const
+{
+    return ownedComponent.get();
+}
+
+void LayoutItem::setOwnedComponent (juce::Component* c)
+{
+    ownedComponent = c;
 }
 
 void LayoutItem::getSizeLimits (int& minW, int& maxW, int& minH, int& maxH)

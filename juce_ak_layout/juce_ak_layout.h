@@ -265,6 +265,8 @@ protected:
     void addRawItem (LayoutItem* item, int idx=-1);
 
 private:
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Layout)
+    
     juce::OwnedArray<LayoutItem>       itemsList;
 
     bool isUpdating;

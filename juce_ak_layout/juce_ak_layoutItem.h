@@ -91,8 +91,6 @@ public:
     
     LayoutItem (ItemType i=Invalid, Layout* parent=nullptr);
     
-    LayoutItem (ValueTree& tree, ItemType i, Layout* parent = nullptr);
-    
     virtual ~LayoutItem();
     
     /**
@@ -114,15 +112,31 @@ public:
     const Layout* getRootLayout() const;
     
     /**
-     Return the wrapped component as pointer.
+     Return the managed component. Tries first the ownedComponent and then the wrappedComponent.
      */
     juce::Component* getComponent ()  const;
     
     /**
+     Return the wrapped component as pointer.
+     */
+    juce::Component* getWrappedComponent ()  const;
+
+    /**
      Replace the component pointer
      */
-    void setComponent (juce::Component* ptr);
-
+    void setComponent (juce::Component* ptr, bool owned=false);
+    
+    /**
+     Return a pointer to the owned component
+     */
+    juce::Component* getOwnedComponent () const;
+    
+    /**
+     Set the owned compnent. It will be removed when the layout item goes out of scope.
+     This is especially usefull for adding e.g. labels you don't need to access later
+     */
+    void setOwnedComponent (juce::Component* c);
+    
     bool isComponentItem ()     const { return itemType == ComponentItem; }
     bool isSplitterItem ()      const { return itemType == SplitterItem; }
     bool isSubLayout ()         const { return itemType == SubLayout; }
@@ -130,6 +144,7 @@ public:
     /**
      If the item is a label item (sublayout group), you can access the created item.
      The default item returns a nullptr.
+     * DEPRECATED *
      */
     virtual juce::Label* getLabel () { return nullptr; }
 
@@ -399,11 +414,15 @@ public:
     void callListenersCallback (juce::Rectangle<int> newBounds);
 
 private:
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LayoutItem)
+    
     ItemType   itemType;
     
     Layout* parentLayout;
 
-    juce::Component::SafePointer<juce::Component> componentPtr;
+    juce::Component::SafePointer<juce::Component>   componentPtr;
+    
+    juce::ScopedPointer<juce::Component>            ownedComponent;
 
     // computed values, not for setting
     juce::Rectangle<int> itemBounds;
@@ -472,6 +491,8 @@ public:
     bool getIsHorizontal() const;
     
 private:
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LayoutSplitter)
+
     static const juce::Identifier propRelativePosition;
     static const juce::Identifier propRelativeMinPosition;
     static const juce::Identifier propRelativeMaxPosition;
@@ -511,6 +532,8 @@ public:
     void fixUpLayoutItems () override;
     
 private:
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LabeledLayoutItem)
+
     juce::ScopedPointer<juce::Label> label;
     
     static const juce::Identifier propLabelText;
