@@ -6,9 +6,6 @@
   <MAINGROUP id="do0b5f" name="JuceLayout">
     <GROUP id="{9490A8E3-0830-8C27-6621-D9C74F6A8304}" name="Source">
       <FILE id="YHCLHp" name="Main.cpp" compile="1" resource="0" file="example/Main.cpp"/>
-      <FILE id="eUUNgy" name="MainComponent.cpp" compile="1" resource="0"
-            file="example/MainComponent.cpp"/>
-      <FILE id="ftywgO" name="MainComponent.h" compile="0" resource="0" file="example/MainComponent.h"/>
       <FILE id="AsZlgb" name="IntroJucedComponent.cpp" compile="1" resource="0"
             file="example/IntroJucedComponent.cpp"/>
       <FILE id="h37Cvl" name="IntroJucedComponent.h" compile="0" resource="0"
