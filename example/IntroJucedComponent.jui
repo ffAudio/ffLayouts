@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Layout orientation="leftToRight" stretchX="-1" stretchY="-1">
+  <Layout orientation="topDown" stretchX="-1" stretchY="-1">
+    <Component componentID="textButton1"/>
+    <Component componentID="textButton2"/>
+    <Component componentID="textButton3"/>
+    <Component componentID="textButton4"/>
+    <Component componentID="textButton5"/>
+  </Layout>
+  <Splitter isHorizontal="1" minWidth="3" maxWidth="3" relativeMinPosition="0.3"/>
+  <Layout orientation="topDown" stretchX="-1" stretchY="-1">
+    <Layout orientation="leftToRight" stretchX="-1" stretchY="-1">
+      <Component componentID="slider1"/>
+      <Component componentID="slider2"/>
+      <Component componentID="slider3"/>
+    </Layout>
+    <Spacer stretchX="1" stretchY="1"/>
+  </Layout>
+</Layout>

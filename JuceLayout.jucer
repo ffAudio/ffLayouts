@@ -9,6 +9,12 @@
       <FILE id="eUUNgy" name="MainComponent.cpp" compile="1" resource="0"
             file="example/MainComponent.cpp"/>
       <FILE id="ftywgO" name="MainComponent.h" compile="0" resource="0" file="example/MainComponent.h"/>
+      <FILE id="AsZlgb" name="IntroJucedComponent.cpp" compile="1" resource="0"
+            file="example/IntroJucedComponent.cpp"/>
+      <FILE id="h37Cvl" name="IntroJucedComponent.h" compile="0" resource="0"
+            file="example/IntroJucedComponent.h"/>
+      <FILE id="de2EHt" name="IntroJucedComponent.jui" compile="0" resource="1"
+            file="example/IntroJucedComponent.jui"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
