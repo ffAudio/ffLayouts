@@ -440,6 +440,7 @@ private:
     static const juce::Identifier propComponentID;
     static const juce::Identifier propComponentName;
     static const juce::Identifier propLabelText;
+    static const juce::Identifier propLabelFontSize;
 };
 
 #ifndef DOXYGEN

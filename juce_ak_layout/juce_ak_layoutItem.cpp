@@ -50,6 +50,7 @@ const juce::Identifier LayoutItem::itemTypeSubLayout          ("Layout");
 const juce::Identifier LayoutItem::propComponentID            ("componentID");
 const juce::Identifier LayoutItem::propComponentName          ("componentName");
 const juce::Identifier LayoutItem::propLabelText              ("labelText");
+const juce::Identifier LayoutItem::propLabelFontSize          ("labelFontSize");
 
 LayoutItem::LayoutItem (juce::Component* c, Layout* parent, bool owned)
   : juce::ValueTree (itemTypeComponent),
@@ -255,6 +256,9 @@ LayoutItem* LayoutItem::loadLayoutFromValueTree (const juce::ValueTree& tree, ju
                     juce::String labelText = child.getProperty (propLabelText);
                     juce::Label* label = new juce::Label (juce::String::empty, labelText);
                     label->setJustificationType (juce::Justification::centred);
+                    if (child.hasProperty(propLabelFontSize)) {
+                        label->setFont(juce::Font (child.getProperty (propLabelFontSize)));
+                    }
                     item = layout->addComponent (label, true);
                     if (owner) {
                         owner->addAndMakeVisible (item->getComponent());
