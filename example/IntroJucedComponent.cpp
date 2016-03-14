@@ -58,13 +58,13 @@ IntroJucedComponent::IntroJucedComponent ()
     slider1->setTextBoxStyle (Slider::TextBoxBelow, false, 80, 20);
     slider1->addListener (this);
 
-    addAndMakeVisible (slider2 = new Slider ("slider1"));
+    addAndMakeVisible (slider2 = new Slider ("slider2"));
     slider2->setRange (0, 10, 0);
     slider2->setSliderStyle (Slider::RotaryHorizontalVerticalDrag);
     slider2->setTextBoxStyle (Slider::TextBoxBelow, false, 80, 20);
     slider2->addListener (this);
 
-    addAndMakeVisible (slider3 = new Slider ("slider1"));
+    addAndMakeVisible (slider3 = new Slider ("slider3"));
     slider3->setRange (0, 10, 0);
     slider3->setSliderStyle (Slider::RotaryHorizontalVerticalDrag);
     slider3->setTextBoxStyle (Slider::TextBoxBelow, false, 80, 20);
@@ -72,16 +72,6 @@ IntroJucedComponent::IntroJucedComponent ()
 
 
     //[UserPreSize]
-    // this should be possible via Introjucer...
-    textButton1->setComponentID ("textButton1");
-    textButton2->setComponentID ("textButton2");
-    textButton3->setComponentID ("textButton3");
-    textButton4->setComponentID ("textButton4");
-    textButton5->setComponentID ("textButton5");
-    slider1->setComponentID ("slider1");
-    slider2->setComponentID ("slider2");
-    slider3->setComponentID ("slider3");
-
     String xml = String::fromUTF8 (BinaryData::IntroJucedComponent_jui, BinaryData::IntroJucedComponent_juiSize);
     layout = new Layout (xml, this);
     //[/UserPreSize]
@@ -242,12 +232,12 @@ BEGIN_JUCER_METADATA
           int="0" style="RotaryHorizontalVerticalDrag" textBoxPos="TextBoxBelow"
           textBoxEditable="1" textBoxWidth="80" textBoxHeight="20" skewFactor="1"
           needsCallback="1"/>
-  <SLIDER name="slider1" id="eccbe10ef791d472" memberName="slider2" virtualName=""
+  <SLIDER name="slider2" id="eccbe10ef791d472" memberName="slider2" virtualName=""
           explicitFocusOrder="0" pos="360 24 150 128" min="0" max="10"
           int="0" style="RotaryHorizontalVerticalDrag" textBoxPos="TextBoxBelow"
           textBoxEditable="1" textBoxWidth="80" textBoxHeight="20" skewFactor="1"
           needsCallback="1"/>
-  <SLIDER name="slider1" id="adfe52a6c03512f9" memberName="slider3" virtualName=""
+  <SLIDER name="slider3" id="adfe52a6c03512f9" memberName="slider3" virtualName=""
           explicitFocusOrder="0" pos="512 24 150 128" min="0" max="10"
           int="0" style="RotaryHorizontalVerticalDrag" textBoxPos="TextBoxBelow"
           textBoxEditable="1" textBoxWidth="80" textBoxHeight="20" skewFactor="1"

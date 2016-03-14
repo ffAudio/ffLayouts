@@ -438,6 +438,7 @@ private:
     static const juce::Identifier itemTypeSubLayout;
 
     static const juce::Identifier propComponentID;
+    static const juce::Identifier propComponentName;
     static const juce::Identifier propLabelText;
 };
 

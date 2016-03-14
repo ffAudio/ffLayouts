@@ -48,6 +48,7 @@ const juce::Identifier LayoutItem::itemTypeSpacer             ("Spacer");
 const juce::Identifier LayoutItem::itemTypeSubLayout          ("Layout");
 
 const juce::Identifier LayoutItem::propComponentID            ("componentID");
+const juce::Identifier LayoutItem::propComponentName          ("componentName");
 const juce::Identifier LayoutItem::propLabelText              ("labelText");
 
 LayoutItem::LayoutItem (juce::Component* c, Layout* parent, bool owned)
@@ -265,7 +266,16 @@ LayoutItem* LayoutItem::loadLayoutFromValueTree (const juce::ValueTree& tree, ju
                         item = layout->addComponent (component);
                     }
                 }
-                
+                else if (child.hasProperty (propComponentName)) {
+                    juce::String componentName = child.getProperty (propComponentName);
+                    for (int k=0; k<owner->getNumChildComponents(); ++k) {
+                        juce::Component* component = owner->getChildComponent (k);
+                        if (component->getName() == componentName) {
+                            item = layout->addComponent (component);
+                            break;
+                        }
+                    }
+                }
             }
             else if (child.getType() == itemTypeSpacer) {
                 item = layout->addSpacer();
