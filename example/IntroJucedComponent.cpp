@@ -83,8 +83,6 @@ IntroJucedComponent::IntroJucedComponent ()
     slider3->setComponentID ("slider3");
 
     String xml = String::fromUTF8 (BinaryData::IntroJucedComponent_jui, BinaryData::IntroJucedComponent_juiSize);
-    //String xml = String::fromUTF8 (BinaryData::LayoutTest_jui, BinaryData::LayoutTest_juiSize);
-
     layout = new Layout (xml, this);
     //[/UserPreSize]
 
