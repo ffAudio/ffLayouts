@@ -51,6 +51,10 @@ const juce::Identifier LayoutItem::propComponentID            ("componentID");
 const juce::Identifier LayoutItem::propComponentName          ("componentName");
 const juce::Identifier LayoutItem::propLabelText              ("labelText");
 const juce::Identifier LayoutItem::propLabelFontSize          ("labelFontSize");
+const juce::Identifier LayoutItem::propGroupName              ("groupName");
+const juce::Identifier LayoutItem::propGroupText              ("groupText");
+const juce::Identifier LayoutItem::propGroupJustification     ("groupJustification");
+
 
 LayoutItem::LayoutItem (juce::Component* c, Layout* parent, bool owned)
   : juce::ValueTree (itemTypeComponent),
@@ -298,6 +302,21 @@ LayoutItem* LayoutItem::loadLayoutFromValueTree (const juce::ValueTree& tree, ju
             else if (child.getType() == itemTypeSubLayout) {
                 Layout* subLayout = layout->addSubLayout (Layout::LeftToRight);
                 item = subLayout->loadLayoutFromValueTree(child, owner);
+                
+                // add a group around if provided
+                if (child.hasProperty (propGroupName) || child.hasProperty (propGroupText)) {
+                    juce::String groupName = child.getProperty (propGroupName, juce::String::empty);
+                    juce::String groupText = child.getProperty (propGroupText, juce::String::empty);
+                    if (owner) {
+                        juce::GroupComponent* groupComponent = new juce::GroupComponent (groupName, groupText);
+                        if (child.hasProperty (propGroupJustification)) {
+                            juce::Justification j (child.getProperty (propGroupJustification, 1));
+                            groupComponent->setTextLabelPosition (j);
+                        }
+                        subLayout->setComponent(groupComponent, true);
+                        owner->addAndMakeVisible (groupComponent);
+                    }
+                }
             }
             
             if (item) {

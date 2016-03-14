@@ -28,7 +28,9 @@
         <Spacer stretchX="1" stretchY="1"/>
       </Layout>
     </Layout>
-    <Spacer stretchX="1" stretchY="2"/>
-    <Component componentName="new label"/>
+    <Spacer stretchX="1" stretchY="1"/>
+    <Layout orientation="topDown" stretchX="-1" stretchY="-1" groupText="Splitter Position" paddingLeft="10" paddingRight="10" paddingTop="20" paddingBottom="10">
+      <Component componentName="new label"/>
+    </Layout>
   </Layout>
 </Layout>

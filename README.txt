@@ -15,9 +15,11 @@ Find the api-documentation here: https://audiokinematics.github.io/juceLayouts/
 The highlights:
 Only one member variable necessary
 Self contained with SafePointers to the components to minimize risk of dangling pointers
+Can be serialized to/from a XML file via ValueTree
 Stretch factors to distribute the available space proportionally
 Restrict minimum and maximum sizes of items
 Add sublayouts nested horizontally and vertically in each directions
+Add labels and GroupComponents from XML definition
 Add a labeled component in one line of code
 Add spacers between components
 

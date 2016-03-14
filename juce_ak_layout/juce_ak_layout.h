@@ -153,7 +153,10 @@ public:
      
      The Layout has the following properties:
      \li \p orientation: the direction in which the items are laid out. Possible values are: \p leftToRight, \p topDown, \p rightToLeft and \p bottomUp
-     \li \p itemBounds: this has only an effect in the root layout, so the layout can be set at fixed positions
+     \li \p layoutBounds: this has only an effect in the root layout, so the layout can be set at fixed positions
+     \li \p groupName: add a GroupComponent around the sub-layout
+     \li \p groupText: add a GroupComponent around the sub-layout with the given text
+     \li \p groupJustification: specifies the position of the groupText. Add the flags to one integer value
      
      */
     Layout (const juce::String& xml, juce::Component* owner=nullptr);
@@ -308,7 +311,7 @@ private:
     
     static const juce::Identifier propOrientation;
     static const juce::Identifier propLayoutBounds;
-    
+
     static const juce::Identifier orientationUnknown;
     static const juce::Identifier orientationLeftToRight;
     static const juce::Identifier orientationTopDown;

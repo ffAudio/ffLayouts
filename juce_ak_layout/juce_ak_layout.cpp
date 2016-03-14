@@ -374,8 +374,12 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds, int start, int end)
                     if (Layout* sub = dynamic_cast<Layout*>(item)) {
                         sub->updateGeometry (item->getPaddedItemBounds());
                     }
+                    if (juce::Component* c = item->getComponent()) {
+                        // component in a layout is a GroupComponent, so don't pad component but contents
+                        c->setBounds (item->getItemBounds());
+                    }
                 }
-                if (juce::Component* c = item->getComponent()) {
+                else if (juce::Component* c = item->getComponent()) {
                     c->setBounds (item->getPaddedItemBounds());
                 }
 
@@ -395,8 +399,12 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds, int start, int end)
                     if (Layout* sub = dynamic_cast<Layout*>(item)) {
                         sub->updateGeometry (item->getPaddedItemBounds());
                     }
+                    if (juce::Component* c = item->getComponent()) {
+                        // component in a layout is a GroupComponent, so don't pad component but contents
+                        c->setBounds (item->getItemBounds());
+                    }
                 }
-                if (juce::Component* c = item->getComponent()) {
+                else if (juce::Component* c = item->getComponent()) {
                     c->setBounds (item->getPaddedItemBounds());
                 }
                 item->callListenersCallback (item->getPaddedItemBounds());
@@ -446,8 +454,12 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds, int start, int end)
                     if (Layout* sub = dynamic_cast<Layout*>(item)) {
                         sub->updateGeometry (item->getPaddedItemBounds());
                     }
+                    if (juce::Component* c = item->getComponent()) {
+                        // component in a layout is a GroupComponent, so don't pad component but contents
+                        c->setBounds (item->getItemBounds());
+                    }
                 }
-                if (juce::Component* c = item->getComponent()) {
+                else if (juce::Component* c = item->getComponent()) {
                     c->setBounds (item->getPaddedItemBounds());
                 }
 
@@ -467,8 +479,12 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds, int start, int end)
                     if (Layout* sub = dynamic_cast<Layout*>(item)) {
                         sub->updateGeometry (item->getPaddedItemBounds());
                     }
+                    if (juce::Component* c = item->getComponent()) {
+                        // component in a layout is a GroupComponent, so don't pad component but contents
+                        c->setBounds (item->getItemBounds());
+                    }
                 }
-                if (juce::Component* c = item->getComponent()) {
+                else if (juce::Component* c = item->getComponent()) {
                     c->setBounds (item->getPaddedItemBounds());
                 }
                 item->callListenersCallback (item->getPaddedItemBounds());

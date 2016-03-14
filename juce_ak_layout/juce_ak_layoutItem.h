@@ -430,6 +430,10 @@ private:
     static const juce::Identifier propComponentName;
     static const juce::Identifier propLabelText;
     static const juce::Identifier propLabelFontSize;
+    static const juce::Identifier propGroupName;
+    static const juce::Identifier propGroupText;
+    static const juce::Identifier propGroupJustification;
+
 };
 
 #ifndef DOXYGEN
