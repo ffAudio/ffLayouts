@@ -356,13 +356,15 @@ void LayoutSplitter::mouseDrag (const juce::MouseEvent &event)
 {
     if (Component* c = getParentComponent()) {
         float pos;
+        bool horizontal = true;
         juce::Rectangle<int> layoutBounds (c->getLocalBounds());
         if (Layout* p = getParentLayout()) {
+            horizontal = p->isHorizontal();
             if (!p->getItemBounds().isEmpty()) {
                 layoutBounds = p->getItemBounds();
             }
         }
-        if (getIsHorizontal()) {
+        if (horizontal) {
             pos = (event.getEventRelativeTo(c).position.getX() - layoutBounds.getX()) / layoutBounds.getWidth();
         }
         else {
