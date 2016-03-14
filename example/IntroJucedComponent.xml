@@ -8,7 +8,7 @@
     <Component componentName="textButton4"/>
     <Component componentName="textButton5"/>
   </Layout>
-  <Splitter isHorizontal="1" minWidth="3" maxWidth="3" relativeMaxPosition="0.7" relativePosition="0.3"/>
+  <Splitter isHorizontal="1" componentID="splitter" minWidth="3" maxWidth="3" relativeMaxPosition="0.7" relativePosition="0.3"/>
   <Layout orientation="topDown" stretchX="-1" stretchY="-1">
     <Component labelText="Some Controls" minHeight="25" maxHeight="25" labelFontSize="25"/>
     <Layout orientation="leftToRight" stretchX="-1" stretchY="-1">
@@ -29,5 +29,6 @@
       </Layout>
     </Layout>
     <Spacer stretchX="1" stretchY="2"/>
+    <Component componentName="new label"/>
   </Layout>
 </Layout>

@@ -36,7 +36,8 @@
 */
 class IntroJucedComponent  : public Component,
                              public ButtonListener,
-                             public SliderListener
+                             public SliderListener,
+                             public LayoutItemListener
 {
 public:
     //==============================================================================
@@ -47,6 +48,10 @@ public:
     //[UserMethods]     -- You can add your own custom methods in this section.
     // The line below can be used to visualize the computed bounds for debugging
     //void paintOverChildren (Graphics& g) override { if (layout) layout->paintBounds (g); }
+
+    void layoutBoundsChanged (juce::Rectangle<int> newBounds) override;
+    void layoutSplitterMoved (float pos, bool final) override;
+
     //[/UserMethods]
 
     void paint (Graphics& g) override;
@@ -54,9 +59,6 @@ public:
     void buttonClicked (Button* buttonThatWasClicked) override;
     void sliderValueChanged (Slider* sliderThatWasMoved) override;
 
-    // Binary resources:
-    static const char* introJucedComponent_xml;
-    static const int introJucedComponent_xmlSize;
 
 
 private:
@@ -73,6 +75,7 @@ private:
     ScopedPointer<Slider> slider1;
     ScopedPointer<Slider> slider2;
     ScopedPointer<Slider> slider3;
+    ScopedPointer<Label> label;
 
 
     //==============================================================================
