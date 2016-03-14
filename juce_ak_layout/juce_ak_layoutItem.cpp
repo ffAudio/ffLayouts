@@ -215,7 +215,7 @@ void LayoutItem::constrainBounds (juce::Rectangle<int>& bounds, bool& changedWid
     }
 }
 
-void LayoutItem::setComponentID (const juce::String& name, bool setComp)
+void LayoutItem::setWrappedComponentID (const juce::String& name, bool setComp)
 {
     if (setComp && getComponent()) {
         getComponent()->setComponentID (name);
@@ -232,7 +232,7 @@ void LayoutItem::setComponentID (const juce::String& name, bool setComp)
 void LayoutItem::fixUpLayoutItems ()
 {
     if (componentPtr) {
-        setComponentID (componentPtr->getComponentID(), false);
+        setWrappedComponentID (componentPtr->getComponentID(), false);
     }
 }
 
@@ -286,7 +286,14 @@ LayoutItem* LayoutItem::loadLayoutFromValueTree (const juce::ValueTree& tree, ju
             }
             else if (child.getType() == itemTypeSplitter) {
                 // property will be replaced automatically
-                item = layout->addSplitterItem (0.5);
+                LayoutSplitter* splitter = layout->addSplitterItem (0.5);
+                if (child.hasProperty (propComponentID)) {
+                    splitter->setComponentID (child.getProperty (propComponentID));
+                }
+                if (child.hasProperty (propComponentName)) {
+                    splitter->setName (child.getProperty (propComponentName));
+                }
+                item = splitter;
             }
             else if (child.getType() == itemTypeSubLayout) {
                 Layout* subLayout = layout->addSubLayout (Layout::LeftToRight);
@@ -319,6 +326,10 @@ void LayoutItem::callListenersCallback (juce::Rectangle<int> newBounds)
     layoutItemListeners.call(&LayoutItemListener::layoutBoundsChanged, newBounds);
 }
 
+void LayoutItem::callListenersCallback (float relativePosition, bool final)
+{
+    layoutItemListeners.call(&LayoutItemListener::layoutSplitterMoved, relativePosition, final);
+}
 
 //==============================================================================
 
@@ -374,6 +385,15 @@ void LayoutSplitter::mouseDrag (const juce::MouseEvent &event)
     }
     if (Layout* rootLayout = getRootLayout()) {
         rootLayout->updateGeometry();
+    }
+    
+    callListenersCallback (getRelativePosition(), false);
+}
+
+void LayoutSplitter::mouseUp (const juce::MouseEvent& event)
+{
+    if (event.mouseWasDraggedSinceMouseDown()) {
+        callListenersCallback (getRelativePosition(), true);
     }
 }
 

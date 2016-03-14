@@ -341,7 +341,7 @@ public:
     }
     
     /** Set the wrapped components componentID and the item's componentID property */
-    void setComponentID (const juce::String& name, bool setComp);
+    void setWrappedComponentID (const juce::String& name, bool setComp);
 
     /**
      Chance for LayoutItems to fix properties that might have changed for saving
@@ -373,6 +373,14 @@ public:
         /** Callback when the layout items bounds are changed */
         virtual void layoutBoundsChanged (juce::Rectangle<int> newBounds) = 0;
         
+        /** 
+         Callback when the item is a splitter and is just moved. 
+         Final is true, if the mouse button is released.
+         To add a listener to a splitter from xml you can set the \p componentName or \p componentID
+         to find it as child of the \p owningComponent.
+         */
+        virtual void layoutSplitterMoved (float relativePos, bool final) {}
+        
     };
     
     /** Registers a listener to receive events when this button's state changes.
@@ -389,6 +397,10 @@ public:
     /** Call the callbacks of LayoutItem::Listeners
      */
     void callListenersCallback (juce::Rectangle<int> newBounds);
+
+    /** Call the callbacks of LayoutItem::Listeners when splitter moved
+     */
+    void callListenersCallback (float relativePosition, bool final);
 
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LayoutItem)
@@ -446,6 +458,11 @@ public:
      */
     void mouseDrag (const juce::MouseEvent &event) override;
 
+    /**
+     mouse callback when slider dragging ended
+     */
+    void mouseUp (const juce::MouseEvent& event) override;
+    
     /** Set the position in normalized form */
     void setRelativePosition (float position, juce::UndoManager* undo=nullptr);
 
