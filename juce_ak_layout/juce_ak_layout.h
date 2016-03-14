@@ -120,6 +120,8 @@ public:
         //GridLayout
     };
     
+    Layout (const juce::String& xml, juce::Component* owner=nullptr);
+    
     Layout (Orientation o=Unknown, juce::Component* owner=nullptr, Layout* parent=nullptr);
     virtual ~Layout();
     

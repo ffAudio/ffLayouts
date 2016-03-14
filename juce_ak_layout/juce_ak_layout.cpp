@@ -61,6 +61,18 @@ const juce::Identifier Layout::orientationRightToLeft   ("rightToLeft");
 const juce::Identifier Layout::orientationBottomUp      ("bottomUp");
 
 
+Layout::Layout (const juce::String& xml, juce::Component* owner)
+  : LayoutItem (SubLayout, nullptr),
+    owningComponent (owner)
+{
+    juce::ScopedPointer<juce::XmlElement> mainElement = juce::XmlDocument::parse (xml);
+    if (mainElement) {
+        juce::ValueTree myLoadedTree = juce::ValueTree::fromXml (*mainElement);
+        loadLayoutFromValueTree (myLoadedTree, owner);
+    }
+}
+
+
 Layout::Layout(Orientation o, juce::Component* owner, Layout* parent)
   : LayoutItem (SubLayout, parent),
     isUpdating (false),
