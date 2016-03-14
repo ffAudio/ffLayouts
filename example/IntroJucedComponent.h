@@ -45,6 +45,8 @@ public:
 
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
+    // The line below can be used to visualize the computed bounds for debugging
+    //void paintOverChildren (Graphics& g) override { if (layout) layout->paintBounds (g); }
     //[/UserMethods]
 
     void paint (Graphics& g) override;

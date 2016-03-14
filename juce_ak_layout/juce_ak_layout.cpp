@@ -496,8 +496,10 @@ void Layout::paintBounds (juce::Graphics& g) const
     for (int i=0; i<getNumItems(); ++i) {
         const LayoutItem* item = getLayoutItem (i);
         if (item->isSubLayout()) {
+            g.saveState();
             dynamic_cast<const Layout*>(item)->paintBounds (g);
             g.drawRect(item->getItemBounds());
+            g.restoreState();
         }
         else {
             g.drawRect(item->getItemBounds().reduced(1));
