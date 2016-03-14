@@ -103,6 +103,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
  };
  \endcode
 
+ You can also instanciate the layout from a xml string.
  
  @see Component
  @see LayoutItem
@@ -120,6 +121,41 @@ public:
         //GridLayout
     };
     
+    /**
+     Create a layout instance defined by a xml string. The xml items are:
+     \li \p Layout: A layout containing components or layouts
+     \li \p Component: An item referring to a component. It is connected via the property \p componentID or \p componentName
+     \li \p Spacer: An item which leaves an empty space between the other components or items
+     \li \p Splitter: A movable item which squeezes the items around the splitter according to th mouse moves
+     
+     The items can have the following properties:
+     \li \p stretchX: a factor how much proportional space the item requires in horizontal direction
+     \li \p stretchY: a factor how much proportional space the item requires in vertical direction
+     \li \p minWidth: the width the item shall not shrink below
+     \li \p maxWidth: the maximum width the item may occupy
+     \li \p minHeight: the height the item shall not shrink below
+     \li \p maxHeight: the maximum height the item may occupy
+     \li \p paddingTop: a space which will be left between the calculated top and the item's top edge
+     \li \p paddingLeft: a space which will be left between the calculated left and the item's right edge
+     \li \p paddingRight: a space which will be left between the calculated right and the item's right edge
+     \li \p paddingBottom: a space which will be left between the calculated bottom and the item's bottom
+     
+     The Component understands the additional properties:
+     \li \p componentID: the componentID to connect to. All child components of the \p owningComponent are searched
+     \li \p componentName: the componentName to connect to. All child components of the \p owningComponent are searched
+     \li \p labelText: if a text is provided, a label owned by the layout is created to display the text
+     \li \p labelFontSize: if a \p labelText is present, this font size is used for the label
+     
+     The Splitter understands the following proberties:
+     \li \p relativePosition: The position in normalized form where the splitter is initially set
+     \li \p relativeMaxPosition: the maximum normalized position to where the splitter can be moved
+     \li \p relativeMinPosition: the minimum normalized position to where the splitter can be moved
+     
+     The Layout has the following properties:
+     \li \p orientation: the direction in which the items are laid out. Possible values are: \p leftToRight, \p topDown, \p rightToLeft and \p bottomUp
+     \li \p itemBounds: this has only an effect in the root layout, so the layout can be set at fixed positions
+     
+     */
     Layout (const juce::String& xml, juce::Component* owner=nullptr);
     
     Layout (Orientation o=Unknown, juce::Component* owner=nullptr, Layout* parent=nullptr);
