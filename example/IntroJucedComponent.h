@@ -55,8 +55,8 @@ public:
     void sliderValueChanged (Slider* sliderThatWasMoved) override;
 
     // Binary resources:
-    static const char* introJucedComponent_jui;
-    static const int introJucedComponent_juiSize;
+    static const char* introJucedComponent_xml;
+    static const int introJucedComponent_xmlSize;
 
 
 private:

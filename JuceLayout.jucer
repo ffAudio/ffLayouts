@@ -10,8 +10,8 @@
             file="example/IntroJucedComponent.cpp"/>
       <FILE id="h37Cvl" name="IntroJucedComponent.h" compile="0" resource="0"
             file="example/IntroJucedComponent.h"/>
-      <FILE id="xyiw6T" name="IntroJucedComponent.jui" compile="0" resource="1"
-            file="example/IntroJucedComponent.jui"/>
+      <FILE id="wimASe" name="IntroJucedComponent.xml" compile="0" resource="1"
+            file="example/IntroJucedComponent.xml"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
