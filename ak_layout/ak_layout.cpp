@@ -47,9 +47,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 
-#include "juce_ak_layout.h"
+#include "ak_layout.h"
 
-#include "juce_ak_layoutItem.cpp"
+#include "ak_layoutItem.cpp"
 
 const juce::Identifier Layout::propOrientation          ("orientation");
 const juce::Identifier Layout::propLayoutBounds         ("layoutBounds");

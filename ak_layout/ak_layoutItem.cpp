@@ -38,7 +38,7 @@
  */
 
 
-#include "juce_ak_layout.h"
+#include "ak_layout.h"
 
 const juce::Identifier LayoutItem::itemTypeInvalid            ("Invalid");
 const juce::Identifier LayoutItem::itemTypeComponent          ("Component");

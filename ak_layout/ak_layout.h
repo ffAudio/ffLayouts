@@ -31,7 +31,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
   ==============================================================================
 
-    juce_ak_layout.h
+    ak_layout.h
     Created: 21 Feb 2016 9:14:52pm
 
   ==============================================================================
@@ -40,7 +40,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef JUCE_AK_LAYOUT_H_INCLUDED
 #define JUCE_AK_LAYOUT_H_INCLUDED
 
-#include "juce_ak_layoutItem.h"
+#include "ak_layoutItem.h"
 
 /**
  \mainpage

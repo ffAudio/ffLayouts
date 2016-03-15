@@ -30,12 +30,12 @@
         <MODULEPATH id="juce_graphics" path="../juceOsx/modules"/>
         <MODULEPATH id="juce_gui_basics" path="../juceOsx/modules"/>
         <MODULEPATH id="juce_data_structures" path="../juceOsx/modules"/>
-        <MODULEPATH id="juce_ak_layout" path="../juceLayouts"/>
+        <MODULEPATH id="ak_layout" path="../juceLayouts"/>
       </MODULEPATHS>
     </XCODE_MAC>
   </EXPORTFORMATS>
   <MODULES>
-    <MODULE id="juce_ak_layout" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="ak_layout" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_core" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_events" showAllCode="1" useLocalCopy="0"/>

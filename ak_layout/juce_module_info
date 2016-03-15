@@ -1,5 +1,5 @@
 {
-  "id":             "juce_ak_layout",
+  "id":             "ak_layout",
   "name":           "JUCE GUI alternative layout mechanism",
   "version":        "1.0.0",
   "description":    "",
@@ -12,11 +12,11 @@
                       { "id": "juce_graphics",          "version": ">3.2.0" },
                       { "id": "juce_gui_basics",        "version": ">3.2.0" } ],
 
-  "include":        "juce_ak_layout.h",
+  "include":        "ak_layout.h",
 
-  "compile":        [ { "file": "juce_ak_layout.cpp",   "target": "! xcode" },
-                      { "file": "juce_ak_layout.mm",    "target": "xcode" } ],
+  "compile":        [ { "file": "ak_layout.cpp",   "target": "! xcode" },
+                      { "file": "ak_layout.mm",    "target": "xcode" } ],
 
-  "browse":         [ "juce_ak_layout/*", ],
+  "browse":         [ "ak_layout/*", ],
 
 }
