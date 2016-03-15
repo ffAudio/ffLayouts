@@ -73,6 +73,7 @@ Layout::Layout (const juce::String& xml, juce::Component* owner)
     if (mainElement) {
         juce::ValueTree myLoadedTree = juce::ValueTree::fromXml (*mainElement);
         loadLayoutFromValueTree (myLoadedTree, owner);
+        updateGeometry();
     }
 }
 
@@ -153,7 +154,6 @@ juce::Identifier Layout::getNameFromOrientation (Layout::Orientation o)
 LayoutItem* Layout::addComponent (juce::Component* c, bool owned, int idx)
 {
     LayoutItem* item = itemsList.insert (idx, new LayoutItem (c, this, owned));
-    updateGeometry();
     return item;
 }
 
@@ -188,7 +188,6 @@ LayoutItem* Layout::addLabeledComponent (juce::Component* c, juce::StringRef tex
     labelItem->setLabelText (label->getText());
 
     LayoutItem* labeledItem = sub->addComponent (c);
-    updateGeometry();
     return labeledItem;
 }
 
@@ -196,7 +195,6 @@ Layout* Layout::addSubLayout (Orientation o, int idx)
 {
     Layout* sub = new Layout (o, owningComponent, this);
     itemsList.insert (idx, sub);
-    updateGeometry();
     return sub;
 }
 
@@ -208,7 +206,6 @@ LayoutSplitter* Layout::addSplitterItem (float position, int idx)
     LayoutSplitter* splitter = new LayoutSplitter (owningComponent, position, isHorizontal(), this);
     owningComponent->addAndMakeVisible (splitter);
     itemsList.insert (idx, splitter);
-    updateGeometry();
     return splitter;
 }
 
@@ -216,7 +213,6 @@ LayoutItem* Layout::addSpacer (float sx, float sy, int idx)
 {
     LayoutItem* item = itemsList.insert (idx, new LayoutItem (LayoutItem::SpacerItem));
     item->setStretch (sx, sy);
-    updateGeometry();
     return item;
 }
 
