@@ -72,7 +72,7 @@ public:
             newComponent->setComponentID (componentID);
             newComponent->setText ("ID:" + componentID, dontSendNotification);
             newComponent->setJustificationType (Justification::centred);
-            newComponent->setColour (Label::backgroundColourId, Colour::fromRGB (rand() % 255, rand() % 255, rand() % 255));
+            newComponent->setColour (Label::backgroundColourId, Colour::fromRGB (rand() % 128 + 127, rand() % 128 + 127, rand() % 128 + 127));
             addAndMakeVisible (newComponent);
             testComponents.add (newComponent);
         }
