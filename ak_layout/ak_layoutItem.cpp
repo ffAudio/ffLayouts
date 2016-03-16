@@ -214,8 +214,8 @@ void LayoutItem::getSizeLimits (int& minW, int& maxW, int& minH, int& maxH)
 {
     const int minWidth = getMinimumWidth();
     const int maxWidth = getMinimumWidth();
-    const int minHeight = getMinimumWidth();
-    const int maxHeight = getMinimumWidth();
+    const int minHeight = getMinimumHeight();
+    const int maxHeight = getMinimumHeight();
     if (minWidth >= 0) minW = (minW < 0) ? minWidth : juce::jmax (minW, minWidth);
     if (maxWidth >= 0) maxW = (maxW < 0) ? maxWidth : juce::jmin (maxW, maxWidth);
     if (minHeight >= 0) minH = (minH < 0) ? minHeight : juce::jmax (minH, minHeight);
