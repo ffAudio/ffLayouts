@@ -50,7 +50,7 @@ const juce::Identifier LayoutItem::itemTypeSubLayout          ("Layout");
 const juce::Identifier LayoutItem::propOverlay              ("overlay");
 const juce::Identifier LayoutItem::propOverlayWidth         ("overlayWidth");
 const juce::Identifier LayoutItem::propOverlayHeight        ("overlayHeight");
-const juce::Identifier LayoutItem::propOverlayJustification ("overlayJusification");
+const juce::Identifier LayoutItem::propOverlayJustification ("overlayJustification");
 
 const juce::Identifier LayoutItem::propComponentID            ("componentID");
 const juce::Identifier LayoutItem::propComponentName          ("componentName");

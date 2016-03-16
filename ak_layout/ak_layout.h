@@ -139,6 +139,10 @@ public:
      \li \p paddingLeft: a space which will be left between the calculated left and the item's right edge
      \li \p paddingRight: a space which will be left between the calculated right and the item's right edge
      \li \p paddingBottom: a space which will be left between the calculated bottom and the item's bottom
+     \li \p overlay: use the space of an other item instead using it's own space. 1: parent node, 2: previous node. Having no previous node or parent results in zero size
+     \li \p overlayWidth: relative width inside the referenced item
+     \li \p overlayHeight: relative height inside the referenced item
+     \li \p overlayJustification: justification flag (as integer) where to put the overlay inside the referenced item
      
      The Component understands the additional properties:
      \li \p componentID: the componentID to connect to. All child components of the \p owningComponent are searched
