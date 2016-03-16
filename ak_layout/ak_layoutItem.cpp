@@ -47,6 +47,11 @@ const juce::Identifier LayoutItem::itemTypeSplitter           ("Splitter");
 const juce::Identifier LayoutItem::itemTypeSpacer             ("Spacer");
 const juce::Identifier LayoutItem::itemTypeSubLayout          ("Layout");
 
+const juce::Identifier LayoutItem::propOverlay              ("overlay");
+const juce::Identifier LayoutItem::propOverlayWidth         ("overlayWidth");
+const juce::Identifier LayoutItem::propOverlayHeight        ("overlayHeight");
+const juce::Identifier LayoutItem::propOverlayJustification ("overlayJusification");
+
 const juce::Identifier LayoutItem::propComponentID            ("componentID");
 const juce::Identifier LayoutItem::propComponentName          ("componentName");
 const juce::Identifier LayoutItem::propLabelText              ("labelText");
@@ -120,6 +125,42 @@ const Layout* LayoutItem::getRootLayout() const
         p = p->getParentLayout();
     }
     return p;
+}
+
+int LayoutItem::isOverlay () const
+{
+    return getProperty (propOverlay, 0);
+}
+
+void LayoutItem::setIsOverlay (const int overlay)
+{
+    setProperty (propOverlay, overlay, nullptr);
+}
+
+float LayoutItem::getOverlayWidth () const
+{
+    return getProperty (propOverlayWidth, 1.0);
+}
+void LayoutItem::setOverlayWidth (float w)
+{
+    setProperty (propOverlayWidth, w, nullptr);
+}
+float LayoutItem::getOverlayHeight () const
+{
+    return getProperty (propOverlayHeight, 1.0);
+}
+void LayoutItem::setOverlayHeight (float h)
+{
+    setProperty (propOverlayHeight, h, nullptr);
+}
+
+int LayoutItem::getOverlayJustification () const
+{
+    return getProperty (propOverlayJustification, 36);
+}
+void LayoutItem::setOverlayJustification (int j)
+{
+    setProperty (propOverlayJustification, j, nullptr);
 }
 
 juce::Component* LayoutItem::getComponent () const

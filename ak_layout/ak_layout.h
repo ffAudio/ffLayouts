@@ -311,7 +311,7 @@ private:
     
     static const juce::Identifier propOrientation;
     static const juce::Identifier propLayoutBounds;
-
+    
     static const juce::Identifier orientationUnknown;
     static const juce::Identifier orientationLeftToRight;
     static const juce::Identifier orientationTopDown;

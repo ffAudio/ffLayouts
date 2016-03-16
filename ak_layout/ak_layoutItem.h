@@ -89,6 +89,29 @@ public:
     const Layout* getRootLayout() const;
     
     /**
+     If overlay is set the item will be placed over an earlier defined item. Possible values are
+     \li 0: normal (default) - no overlay
+     \li 1: previous item 
+     \li 2: parent item
+     */
+    int isOverlay () const;
+    void setIsOverlay (const int overlay);
+    
+    /**
+     Overlay width and overlay height are given in relative sizes to the referenced item @see isOverlay
+     */
+    float getOverlayWidth () const;
+    void setOverlayWidth (float w);
+    float getOverlayHeight () const;
+    void setOverlayHeight (float h);
+
+    /**
+     overlayJustification defines, where the item is placed inside the referenced item
+     */
+    int getOverlayJustification () const;
+    void setOverlayJustification (int j);
+
+    /**
      Return the managed component. Tries first the ownedComponent and then the wrappedComponent.
      */
     juce::Component* getComponent ()  const;
@@ -425,6 +448,11 @@ private:
     static const juce::Identifier itemTypeSplitter;
     static const juce::Identifier itemTypeSpacer;
     static const juce::Identifier itemTypeSubLayout;
+    
+    static const juce::Identifier propOverlay;
+    static const juce::Identifier propOverlayWidth;
+    static const juce::Identifier propOverlayHeight;
+    static const juce::Identifier propOverlayJustification;
 
     static const juce::Identifier propComponentID;
     static const juce::Identifier propComponentName;

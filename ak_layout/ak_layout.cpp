@@ -272,43 +272,45 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds)
     juce::Rectangle<int> childBounds (bounds);
     for (int i=0; i<itemsList.size(); ++i) {
         LayoutItem* item = itemsList.getUnchecked (i);
-        if (item->isSplitterItem()) {
-            if (LayoutSplitter* splitter = dynamic_cast<LayoutSplitter*>(item)) {
-                juce::Rectangle<int> splitterBounds (bounds);
-                if (orientation == Layout::LeftToRight) {
-                    int right = childBounds.getX() + splitter->getRelativePosition() * bounds.getWidth();
-                    updateGeometry (childBounds.withRight (right-1), last, i);
-                    splitterBounds.setX (right-1);
-                    splitterBounds.setWidth (3);
-                    childBounds.setLeft (right+1);
+        if (item->isOverlay() < 1) {
+            if (item->isSplitterItem()) {
+                if (LayoutSplitter* splitter = dynamic_cast<LayoutSplitter*>(item)) {
+                    juce::Rectangle<int> splitterBounds (bounds);
+                    if (orientation == Layout::LeftToRight) {
+                        int right = childBounds.getX() + splitter->getRelativePosition() * bounds.getWidth();
+                        updateGeometry (childBounds.withRight (right-1), last, i);
+                        splitterBounds.setX (right-1);
+                        splitterBounds.setWidth (3);
+                        childBounds.setLeft (right+1);
+                    }
+                    else if (orientation == Layout::TopDown) {
+                        int bottom = childBounds.getY() + splitter->getRelativePosition() * bounds.getHeight();
+                        updateGeometry (childBounds.withBottom (bottom), last, i);
+                        splitterBounds.setY (bottom-1);
+                        splitterBounds.setHeight (3);
+                        childBounds.setTop (bottom+1);
+                    }
+                    else if (orientation == Layout::RightToLeft) {
+                        int left = childBounds.getX() + splitter->getRelativePosition() * bounds.getWidth();
+                        updateGeometry (childBounds.withLeft (left), last, i);
+                        splitterBounds.setX (left-1);
+                        splitterBounds.setWidth (3);
+                        childBounds.setRight (left-1);
+                    }
+                    else if (orientation == Layout::BottomUp) {
+                        int top = childBounds.getY() + splitter->getRelativePosition() * bounds.getHeight();
+                        updateGeometry (childBounds.withTop (top), last, i);
+                        splitterBounds.setY (top-1);
+                        splitterBounds.setHeight (3);
+                        childBounds.setBottom (top-1);
+                    }
+                    splitter->setItemBounds (splitterBounds);
+                    splitter->setBounds (splitterBounds);
+                    splitter->setBoundsAreFinal (true);
                 }
-                else if (orientation == Layout::TopDown) {
-                    int bottom = childBounds.getY() + splitter->getRelativePosition() * bounds.getHeight();
-                    updateGeometry (childBounds.withBottom (bottom), last, i);
-                    splitterBounds.setY (bottom-1);
-                    splitterBounds.setHeight (3);
-                    childBounds.setTop (bottom+1);
-                }
-                else if (orientation == Layout::RightToLeft) {
-                    int left = childBounds.getX() + splitter->getRelativePosition() * bounds.getWidth();
-                    updateGeometry (childBounds.withLeft (left), last, i);
-                    splitterBounds.setX (left-1);
-                    splitterBounds.setWidth (3);
-                    childBounds.setRight (left-1);
-                }
-                else if (orientation == Layout::BottomUp) {
-                    int top = childBounds.getY() + splitter->getRelativePosition() * bounds.getHeight();
-                    updateGeometry (childBounds.withTop (top), last, i);
-                    splitterBounds.setY (top-1);
-                    splitterBounds.setHeight (3);
-                    childBounds.setBottom (top-1);
-                }
-                splitter->setItemBounds (splitterBounds);
-                splitter->setBounds (splitterBounds);
-                splitter->setBoundsAreFinal (true);
+                i++;
+                last = i;
             }
-            i++;
-            last = i;
         }
     }
     
@@ -333,23 +335,44 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds, int start, int end)
     if (isVertical()) {
         for (int i=start; i<juce::jmin (itemsList.size(), end); ++i) {
             LayoutItem* item = itemsList.getUnchecked (i);
-            float sx, sy;
-            item->getStretch (sx, sy);
-            float h = bounds.getHeight() * sy / cummulatedY;
-            juce::Rectangle<int> childBounds (bounds.getX(), bounds.getY(), bounds.getWidth(), h);
-            bool changedWidth, changedHeight;
-            item->constrainBounds (childBounds, changedWidth, changedHeight, true);
-            item->setItemBounds (childBounds);
-            if (changedHeight) {
-                item->setBoundsAreFinal (true);
-                availableHeight -= childBounds.getHeight();
-                cummulatedY -= sy;
+            int overlay = item->isOverlay();
+            if (overlay < 1) {
+                float sx, sy;
+                item->getStretch (sx, sy);
+                float h = bounds.getHeight() * sy / cummulatedY;
+                juce::Rectangle<int> childBounds (bounds.getX(), bounds.getY(), bounds.getWidth(), h);
+                bool changedWidth, changedHeight;
+                item->constrainBounds (childBounds, changedWidth, changedHeight, true);
+                item->setItemBounds (childBounds);
+                if (changedHeight) {
+                    item->setBoundsAreFinal (true);
+                    availableHeight -= childBounds.getHeight();
+                    cummulatedY -= sy;
+                }
+                else {
+                    item->setBoundsAreFinal (false);
+                }
+                if (changedWidth) {
+                    availableWidth = std::max (bounds.getWidth(), childBounds.getWidth());
+                }
             }
             else {
-                item->setBoundsAreFinal (false);
-            }
-            if (changedWidth) {
-                availableWidth = std::max (bounds.getWidth(), childBounds.getWidth());
+                float overlayWidth = item->getOverlayWidth();
+                float overlayHeight = item->getOverlayHeight();
+                juce::Rectangle<int> overlayTarget;
+                if (overlay == 1 && i>start) {
+                    // relate to previous
+                    overlayTarget = itemsList.getUnchecked (i-1)->getItemBounds();
+                    item->setBoundsAreFinal (itemsList.getUnchecked (i-1)->getBoundsAreFinal());
+                }
+                else if (overlay == 2) {
+                    // relate to parent
+                    overlayTarget = bounds;
+                    item->setBoundsAreFinal (getBoundsAreFinal());
+                }
+                juce::Rectangle<int> overlayBounds (overlayTarget.withSize (overlayTarget.getWidth() * overlayWidth, overlayTarget.getHeight() * overlayHeight));
+                juce::Justification j (item->getOverlayJustification());
+                item->setItemBounds (j.appliedToRectangle (overlayBounds, overlayTarget));
             }
         }
 
@@ -360,37 +383,68 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds, int start, int end)
         for (int i=start; i<juce::jmin (itemsList.size(), end); ++i) {
             LayoutItem* item = itemsList.getUnchecked (i);
 
-            if (item->getBoundsAreFinal()) {
-                float h = item->getItemBounds().getHeight();
-                if (orientation == BottomUp) {
-                    y -= h;
-                }
-                item->setItemBounds (bounds.getX(), y, availableWidth, h);
-                if (item->isSubLayout()) {
-                    if (Layout* sub = dynamic_cast<Layout*>(item)) {
-                        sub->updateGeometry (item->getPaddedItemBounds());
+            if (item->isOverlay() == 0) {
+                if (item->getBoundsAreFinal()) {
+                    float h = item->getItemBounds().getHeight();
+                    if (orientation == BottomUp) {
+                        y -= h;
                     }
-                    if (juce::Component* c = item->getComponent()) {
-                        // component in a layout is a GroupComponent, so don't pad component but contents
-                        c->setBounds (item->getItemBounds());
+                    item->setItemBounds (bounds.getX(), y, availableWidth, h);
+                    if (item->isSubLayout()) {
+                        if (Layout* sub = dynamic_cast<Layout*>(item)) {
+                            sub->updateGeometry (item->getPaddedItemBounds());
+                        }
+                        if (juce::Component* c = item->getComponent()) {
+                            // component in a layout is a GroupComponent, so don't pad component but contents
+                            c->setBounds (item->getItemBounds());
+                        }
+                    }
+                    else if (juce::Component* c = item->getComponent()) {
+                        c->setBounds (item->getPaddedItemBounds());
+                    }
+                    
+                    if (orientation == TopDown) {
+                        y += h;
                     }
                 }
-                else if (juce::Component* c = item->getComponent()) {
-                    c->setBounds (item->getPaddedItemBounds());
-                }
-
-                if (orientation == TopDown) {
-                    y += h;
+                else {
+                    float sx, sy;
+                    item->getStretch (sx, sy);
+                    float h = availableHeight * sy /cummulatedY;
+                    if (orientation == BottomUp) {
+                        y -= h;
+                    }
+                    item->setItemBounds (bounds.getX(), y, availableWidth, h );
+                    if (item->isSubLayout()) {
+                        if (Layout* sub = dynamic_cast<Layout*>(item)) {
+                            sub->updateGeometry (item->getPaddedItemBounds());
+                        }
+                        if (juce::Component* c = item->getComponent()) {
+                            // component in a layout is a GroupComponent, so don't pad component but contents
+                            c->setBounds (item->getItemBounds());
+                        }
+                    }
+                    else if (juce::Component* c = item->getComponent()) {
+                        c->setBounds (item->getPaddedItemBounds());
+                    }
+                    item->callListenersCallback (item->getPaddedItemBounds());
+                    if (orientation == TopDown) {
+                        y += h;
+                    }
                 }
             }
             else {
-                float sx, sy;
-                item->getStretch (sx, sy);
-                float h = availableHeight * sy /cummulatedY;
-                if (orientation == BottomUp) {
-                    y -= h;
+                // overlay other item
+                juce::Rectangle<int> overlayTarget;
+                if (item->isOverlay() == 1 && i > start) {
+                    overlayTarget = itemsList.getUnchecked (i-1)->getItemBounds();
                 }
-                item->setItemBounds (bounds.getX(), y, availableWidth, h );
+                else if (item->isOverlay() == 2) {
+                    overlayTarget = bounds;
+                }
+                juce::Rectangle<int> overlayBounds (0, 0, item->getOverlayWidth() * overlayTarget.getWidth(), item->getOverlayHeight() * overlayTarget.getHeight());
+                juce::Justification j (item->getOverlayJustification());
+                item->setItemBounds (j.appliedToRectangle (overlayBounds, overlayTarget));
                 if (item->isSubLayout()) {
                     if (Layout* sub = dynamic_cast<Layout*>(item)) {
                         sub->updateGeometry (item->getPaddedItemBounds());
@@ -404,31 +458,53 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds, int start, int end)
                     c->setBounds (item->getPaddedItemBounds());
                 }
                 item->callListenersCallback (item->getPaddedItemBounds());
-                if (orientation == TopDown) {
-                    y += h;
-                }
+
             }
         }
     } else if (isHorizontal()) {
         for (int i=start; i<juce::jmin (itemsList.size(), end); ++i) {
             LayoutItem* item = itemsList.getUnchecked (i);
-            float sx, sy;
-            item->getStretch (sx, sy);
-            float w = bounds.getWidth() * sx / cummulatedX;
-            juce::Rectangle<int> childBounds (bounds.getX(), bounds.getY(), w, bounds.getHeight());
-            bool changedWidth, changedHeight;
-            item->constrainBounds (childBounds, changedWidth, changedHeight, false);
-            item->setItemBounds (childBounds);
-            if (changedWidth) {
-                item->setBoundsAreFinal (true);
-                availableWidth -= childBounds.getWidth();
-                cummulatedX -= sx;
+            int overlay = item->isOverlay();
+            if (overlay < 1) {
+                float sx, sy;
+                item->getStretch (sx, sy);
+                float w = bounds.getWidth() * sx / cummulatedX;
+                juce::Rectangle<int> childBounds (bounds.getX(), bounds.getY(), w, bounds.getHeight());
+                bool changedWidth, changedHeight;
+                item->constrainBounds (childBounds, changedWidth, changedHeight, false);
+                item->setItemBounds (childBounds);
+                if (changedWidth) {
+                    item->setBoundsAreFinal (true);
+                    availableWidth -= childBounds.getWidth();
+                    cummulatedX -= sx;
+                }
+                else {
+                    item->setBoundsAreFinal (false);
+                }
+                if (changedHeight) {
+                    availableHeight = std::max (bounds.getHeight(), childBounds.getHeight());
+                }
             }
             else {
-                item->setBoundsAreFinal (false);
-            }
-            if (changedHeight) {
-                availableHeight = std::max (bounds.getHeight(), childBounds.getHeight());
+                float overlayWidth = item->getOverlayWidth();
+                float overlayHeight = item->getOverlayHeight();
+                juce::Rectangle<int> overlayTarget;
+                if (overlay == 1 && i>start) {
+                    // relate to previous
+                    overlayTarget = juce::Rectangle<int>(itemsList.getUnchecked (i-1)->getItemBounds());
+                    item->setBoundsAreFinal (itemsList.getUnchecked (i-1)->getBoundsAreFinal());
+                }
+                else if (overlay == 2) {
+                    // relate to parent
+                    overlayTarget = bounds;
+                    item->setBoundsAreFinal (getBoundsAreFinal());
+                }
+                juce::Rectangle<int> overlayBounds (overlayTarget.withSize (overlayTarget.getWidth() * overlayWidth, overlayTarget.getHeight() * overlayHeight));
+                juce::Justification j (item->getOverlayJustification());
+                item->setItemBounds (j.appliedToRectangle (overlayBounds, overlayTarget));
+                if (juce::Component* c = item->getComponent()) {
+                    c->setBounds (item->getPaddedItemBounds());
+                }
             }
         }
 
@@ -438,39 +514,69 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds, int start, int end)
         }
         for (int i=start; i<juce::jmin (itemsList.size(), end); ++i) {
             LayoutItem* item = itemsList.getUnchecked (i);
-
-            if (item->getBoundsAreFinal()) {
-                float w = item->getItemBounds().getWidth();
-                if (orientation == RightToLeft) {
-                    x -= w;
-                }
-                item->setItemBounds (x, bounds.getY(), w, availableHeight);
-                juce::Rectangle<int> childBounds (x, bounds.getY(), w, availableHeight);
-                if (item->isSubLayout()) {
-                    if (Layout* sub = dynamic_cast<Layout*>(item)) {
-                        sub->updateGeometry (item->getPaddedItemBounds());
+            if (item->isOverlay() < 1) {
+                if (item->getBoundsAreFinal()) {
+                    float w = item->getItemBounds().getWidth();
+                    if (orientation == RightToLeft) {
+                        x -= w;
                     }
-                    if (juce::Component* c = item->getComponent()) {
-                        // component in a layout is a GroupComponent, so don't pad component but contents
-                        c->setBounds (item->getItemBounds());
+                    item->setItemBounds (x, bounds.getY(), w, availableHeight);
+                    juce::Rectangle<int> childBounds (x, bounds.getY(), w, availableHeight);
+                    if (item->isSubLayout()) {
+                        if (Layout* sub = dynamic_cast<Layout*>(item)) {
+                            sub->updateGeometry (item->getPaddedItemBounds());
+                        }
+                        if (juce::Component* c = item->getComponent()) {
+                            // component in a layout is a GroupComponent, so don't pad component but contents
+                            c->setBounds (item->getItemBounds());
+                        }
+                    }
+                    else if (juce::Component* c = item->getComponent()) {
+                        c->setBounds (item->getPaddedItemBounds());
+                    }
+                    
+                    if (orientation == LeftToRight) {
+                        x += w;
                     }
                 }
-                else if (juce::Component* c = item->getComponent()) {
-                    c->setBounds (item->getPaddedItemBounds());
-                }
-
-                if (orientation == LeftToRight) {
-                    x += w;
+                else {
+                    float sx, sy;
+                    item->getStretch (sx, sy);
+                    float w = availableWidth * sx /cummulatedX;
+                    if (orientation == RightToLeft) {
+                        x -= w;
+                    }
+                    item->setItemBounds (x, bounds.getY(), w, availableHeight);
+                    if (item->isSubLayout()) {
+                        if (Layout* sub = dynamic_cast<Layout*>(item)) {
+                            sub->updateGeometry (item->getPaddedItemBounds());
+                        }
+                        if (juce::Component* c = item->getComponent()) {
+                            // component in a layout is a GroupComponent, so don't pad component but contents
+                            c->setBounds (item->getItemBounds());
+                        }
+                    }
+                    else if (juce::Component* c = item->getComponent()) {
+                        c->setBounds (item->getPaddedItemBounds());
+                    }
+                    item->callListenersCallback (item->getPaddedItemBounds());
+                    if (orientation == LeftToRight) {
+                        x += w;
+                    }
                 }
             }
             else {
-                float sx, sy;
-                item->getStretch (sx, sy);
-                float w = availableWidth * sx /cummulatedX;
-                if (orientation == RightToLeft) {
-                    x -= w;
+                // overlay other item
+                juce::Rectangle<int> overlayTarget;
+                if (item->isOverlay() == 1 && i > start) {
+                    overlayTarget = itemsList.getUnchecked (i-1)->getItemBounds();
                 }
-                item->setItemBounds (x, bounds.getY(), w, availableHeight);
+                else if (item->isOverlay() == 2) {
+                    overlayTarget = bounds;
+                }
+                juce::Rectangle<int> overlayBounds (0, 0, item->getOverlayWidth() * overlayTarget.getWidth(), item->getOverlayHeight() * overlayTarget.getHeight());
+                juce::Justification j (item->getOverlayJustification());
+                item->setItemBounds (j.appliedToRectangle (overlayBounds, overlayTarget));
                 if (item->isSubLayout()) {
                     if (Layout* sub = dynamic_cast<Layout*>(item)) {
                         sub->updateGeometry (item->getPaddedItemBounds());
@@ -484,9 +590,7 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds, int start, int end)
                     c->setBounds (item->getPaddedItemBounds());
                 }
                 item->callListenersCallback (item->getPaddedItemBounds());
-                if (orientation == LeftToRight) {
-                    x += w;
-                }
+
             }
         }
     }
@@ -547,19 +651,21 @@ void Layout::getCummulatedStretch (float& w, float& h, int start, int end) const
     
     for (int i=start; i<end; ++i) {
         LayoutItem* item = itemsList.getUnchecked (i);
-        float x, y;
-        item->getStretch (x, y);
-        if (isHorizontal()) {
-            w += x;
-            h = std::max (h, y);
-        }
-        else if (isVertical()) {
-            w = std::max (w, x);
-            h += y;
-        }
-        else {
-            w += x;
-            h += y;
+        if (item->isOverlay() < 1) {
+            float x, y;
+            item->getStretch (x, y);
+            if (isHorizontal()) {
+                w += x;
+                h = std::max (h, y);
+            }
+            else if (isVertical()) {
+                w = std::max (w, x);
+                h += y;
+            }
+            else {
+                w += x;
+                h += y;
+            }
         }
         ++item;
     }
@@ -574,29 +680,33 @@ void Layout::getSizeLimits (int& minW, int& maxW, int& minH, int& maxH)
     if (isVertical()) {
         for (int i=0; i<getNumItems(); ++i) {
             LayoutItem* item = getLayoutItem (i);
-            if (item->getMinimumWidth() >= 0) minW = (minW < 0) ? item->getMinimumWidth() : juce::jmax(minW, item->getMinimumWidth());
-            if (item->getMaximumWidth() >= 0) maxW = (maxW < 0) ? item->getMaximumWidth() : juce::jmin(maxW, item->getMaximumWidth());
-            if (item->getMinimumHeight() >= 0) minH = (minH < 0) ? item->getMinimumHeight() : minH + item->getMinimumHeight();
-            if (item->getMaximumHeight() >= 0) {
-                maxH = (maxH < 0) ? item->getMaximumHeight() : maxH + item->getMaximumHeight();
-            }
-            else {
-                canConsumeHeight = true;
+            if (item->isOverlay() < 1) {
+                if (item->getMinimumWidth() >= 0) minW = (minW < 0) ? item->getMinimumWidth() : juce::jmax(minW, item->getMinimumWidth());
+                if (item->getMaximumWidth() >= 0) maxW = (maxW < 0) ? item->getMaximumWidth() : juce::jmin(maxW, item->getMaximumWidth());
+                if (item->getMinimumHeight() >= 0) minH = (minH < 0) ? item->getMinimumHeight() : minH + item->getMinimumHeight();
+                if (item->getMaximumHeight() >= 0) {
+                    maxH = (maxH < 0) ? item->getMaximumHeight() : maxH + item->getMaximumHeight();
+                }
+                else {
+                    canConsumeHeight = true;
+                }
             }
         }
     }
     else if (isHorizontal()) {
         for (int i=0; i<getNumItems(); ++i) {
             LayoutItem* item = getLayoutItem (i);
-            if (item->getMinimumWidth() >= 0) minW = (minW < 0) ? item->getMinimumWidth() : minW + item->getMinimumWidth();
-            if (item->getMaximumWidth() >= 0) {
-                maxW = (maxW < 0) ? item->getMaximumWidth() : maxW + item->getMaximumWidth();
+            if (item->isOverlay() < 1) {
+                if (item->getMinimumWidth() >= 0) minW = (minW < 0) ? item->getMinimumWidth() : minW + item->getMinimumWidth();
+                if (item->getMaximumWidth() >= 0) {
+                    maxW = (maxW < 0) ? item->getMaximumWidth() : maxW + item->getMaximumWidth();
+                }
+                else {
+                    canConsumeWidth = true;
+                }
+                if (item->getMinimumHeight() >= 0) minH = (minH < 0) ? item->getMinimumHeight() : juce::jmax(minH, item->getMinimumHeight());
+                if (item->getMaximumHeight() >= 0) maxH = (maxH < 0) ? item->getMaximumHeight() : juce::jmin(maxH, item->getMaximumHeight());
             }
-            else {
-                canConsumeWidth = true;
-            }
-            if (item->getMinimumHeight() >= 0) minH = (minH < 0) ? item->getMinimumHeight() : juce::jmax(minH, item->getMinimumHeight());
-            if (item->getMaximumHeight() >= 0) maxH = (maxH < 0) ? item->getMaximumHeight() : juce::jmin(maxH, item->getMaximumHeight());
         }
     }
     if (canConsumeWidth)  maxW = -1;
