@@ -356,24 +356,6 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds, int start, int end)
                     availableWidth = std::max (bounds.getWidth(), childBounds.getWidth());
                 }
             }
-            else {
-                float overlayWidth = item->getOverlayWidth();
-                float overlayHeight = item->getOverlayHeight();
-                juce::Rectangle<int> overlayTarget;
-                if (overlay == 1 && i>start) {
-                    // relate to previous
-                    overlayTarget = itemsList.getUnchecked (i-1)->getItemBounds();
-                    item->setBoundsAreFinal (itemsList.getUnchecked (i-1)->getBoundsAreFinal());
-                }
-                else if (overlay == 2) {
-                    // relate to parent
-                    overlayTarget = bounds;
-                    item->setBoundsAreFinal (getBoundsAreFinal());
-                }
-                juce::Rectangle<int> overlayBounds (overlayTarget.withSize (overlayTarget.getWidth() * overlayWidth, overlayTarget.getHeight() * overlayHeight));
-                juce::Justification j (item->getOverlayJustification());
-                item->setItemBounds (j.appliedToRectangle (overlayBounds, overlayTarget));
-            }
         }
 
         float y = bounds.getY();
@@ -483,27 +465,6 @@ void Layout::updateGeometry (juce::Rectangle<int> bounds, int start, int end)
                 }
                 if (changedHeight) {
                     availableHeight = std::max (bounds.getHeight(), childBounds.getHeight());
-                }
-            }
-            else {
-                float overlayWidth = item->getOverlayWidth();
-                float overlayHeight = item->getOverlayHeight();
-                juce::Rectangle<int> overlayTarget;
-                if (overlay == 1 && i>start) {
-                    // relate to previous
-                    overlayTarget = juce::Rectangle<int>(itemsList.getUnchecked (i-1)->getItemBounds());
-                    item->setBoundsAreFinal (itemsList.getUnchecked (i-1)->getBoundsAreFinal());
-                }
-                else if (overlay == 2) {
-                    // relate to parent
-                    overlayTarget = bounds;
-                    item->setBoundsAreFinal (getBoundsAreFinal());
-                }
-                juce::Rectangle<int> overlayBounds (overlayTarget.withSize (overlayTarget.getWidth() * overlayWidth, overlayTarget.getHeight() * overlayHeight));
-                juce::Justification j (item->getOverlayJustification());
-                item->setItemBounds (j.appliedToRectangle (overlayBounds, overlayTarget));
-                if (juce::Component* c = item->getComponent()) {
-                    c->setBounds (item->getPaddedItemBounds());
                 }
             }
         }
