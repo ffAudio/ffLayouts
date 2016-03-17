@@ -127,17 +127,7 @@ public:
      pointer present, each call to setComponent removes the other variant.
      */
     void setComponent (juce::Component* ptr, bool owned=false);
-    
-    /**
-     Return a pointer to the owned component
-     */
-    juce::Component* getOwnedComponent () const;
-    
-    /**
-     Set the owned compnent. It will be removed when the layout item goes out of scope.
-     This is especially usefull for adding e.g. labels you don't need to access later
-     */
-    void setOwnedComponent (juce::Component* c);
+
     
     bool isComponentItem ()     const { return itemType == ComponentItem; }
     bool isSplitterItem ()      const { return itemType == SplitterItem; }
@@ -307,61 +297,38 @@ public:
      which is the default, the local bounds of the owningComponent are used as
      available space.
      */
-    void setItemBounds (juce::Rectangle<int> b)
-    {
-        itemBounds = b;
-    }
+    void setItemBounds (juce::Rectangle<int> b);
 
     /**
      Convenience method to save creation of a rectangle struct.
      @see setItemBounds
      */
-    void setItemBounds (int x, int y, int w, int h)
-    {
-        itemBounds.setBounds (x, y, w, h);
-    }
+    void setItemBounds (int x, int y, int w, int h);
 
     /**
      returns the calculated bounds of the item or layout.
      Calling this on the root node returns only a valid rectangle, if it was set
      as fixed bounds.
      */
-    juce::Rectangle<int> getItemBounds() const
-    {
-        return itemBounds;
-    }
+    juce::Rectangle<int> getItemBounds() const;
 
     /**
      Returns the computed bounds reduced by the specified padding of the item
      */
-    juce::Rectangle<int> getPaddedItemBounds () const
-    {
-        const int paddingLeft = getPaddingLeft();
-        const int paddingTop = getPaddingTop();
-        return juce::Rectangle<int> (itemBounds.getX() + paddingLeft,
-                                     itemBounds.getY() + paddingTop,
-                                     itemBounds.getWidth() - (paddingLeft+getPaddingRight()),
-                                     itemBounds.getHeight() - (paddingTop+getPaddingBottom()));
-    }
+    juce::Rectangle<int> getPaddedItemBounds () const;
 
     /**
      set the flag that the bounds are adapted with size limits and shall not change
      This is computed on each updateGeometry and should not be set
      */
-    void setBoundsAreFinal (bool final)
-    {
-        boundsAreFinal = final;
-    }
+    void setBoundsAreFinal (bool final);
 
     /**
      This is computed on each updateGeometry and should not be set.
      It means that the bounds are constrained and the update algorithm shall not change
      the item's size.
      */
-    bool getBoundsAreFinal() const
-    {
-        return boundsAreFinal;
-    }
+    bool getBoundsAreFinal() const;
     
     /** Set the wrapped components componentID and the item's componentID property */
     void setWrappedComponentID (const juce::String& name, bool setComp);
@@ -427,28 +394,119 @@ public:
 
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LayoutItem)
-    
+
     ItemType   itemType;
-    
+
+    class SharedLayoutData : public juce::ReferenceCountedObject
+    {
+
+    private:
+        friend LayoutItem;
+
+        const juce::Component* getComponent() const {
+            if (ownedComponent) {
+                return ownedComponent;
+            }
+            if (componentPtr) {
+                return componentPtr;
+            }
+            return nullptr;
+        }
+
+        juce::Component* getComponent() {
+            if (ownedComponent) {
+                return ownedComponent;
+            }
+            if (componentPtr) {
+                return componentPtr;
+            }
+            return nullptr;
+        }
+
+        void setComponent (juce::Component* c, bool owned=false)
+        {
+            if (owned) {
+                if (ownedComponent == c) {
+                    return;
+                }
+                componentPtr = nullptr;
+                ownedComponent = c;
+            }
+            else {
+                if (componentPtr == c) {
+                    return;
+                }
+                ownedComponent = nullptr;
+                componentPtr = c;
+            }
+        }
+
+        bool hasComponent () const {
+            return componentPtr || ownedComponent;
+        }
+
+        juce::Rectangle<int> getItemBounds() {
+            return itemBounds;
+        }
+
+        void setItemBounds (juce::Rectangle<int> b) {
+            itemBounds = b;
+        }
+
+        void setItemBounds (int x, int y, int w, int h) {
+            itemBounds.setBounds (x, y, w, h);
+        }
+
+        void setBoundsAreFinal (bool f) {
+            boundsAreFinal = f;
+        }
+        bool getBoundsAreFinal () const {
+            return boundsAreFinal;
+        }
+
+        void addLayoutListener (LayoutItem::Listener* l) {
+            layoutItemListeners.add (l);
+        }
+        void removeLayoutListener (LayoutItem::Listener* l) {
+            layoutItemListeners.remove (l);
+        }
+        void removeAllListeners () {
+            layoutItemListeners.clear();
+        }
+
+        void callListenersCallback (juce::Rectangle<int> newBounds)
+        {
+            layoutItemListeners.call(&LayoutItem::Listener::layoutBoundsChanged, newBounds);
+        }
+
+        void callListenersCallback (float relativePosition, bool final)
+        {
+            layoutItemListeners.call(&LayoutItem::Listener::layoutSplitterMoved, relativePosition, final);
+        }
+
+    private:
+        juce::Component::SafePointer<juce::Component>   componentPtr;
+
+        juce::ScopedPointer<juce::Component>            ownedComponent;
+
+        juce::ListenerList<Listener> layoutItemListeners;
+
+        // computed values, not for setting
+        juce::Rectangle<int> itemBounds;
+        bool                 boundsAreFinal;
+    };
+
+    juce::ReferenceCountedObjectPtr<SharedLayoutData> sharedLayoutData;
+
     Layout* parentLayout;
 
-    juce::Component::SafePointer<juce::Component>   componentPtr;
-    
-    juce::ScopedPointer<juce::Component>            ownedComponent;
-
-    // computed values, not for setting
-    juce::Rectangle<int> itemBounds;
-    bool                 boundsAreFinal;
-    
-    juce::ListenerList<Listener> layoutItemListeners;
-    
     static const juce::Identifier itemTypeInvalid;
     static const juce::Identifier itemTypeComponent;
     static const juce::Identifier itemTypeLabeledComponent;
     static const juce::Identifier itemTypeSplitter;
     static const juce::Identifier itemTypeSpacer;
     static const juce::Identifier itemTypeSubLayout;
-    
+
     static const juce::Identifier propOverlay;
     static const juce::Identifier propOverlayWidth;
     static const juce::Identifier propOverlayHeight;

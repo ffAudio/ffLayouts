@@ -31,7 +31,7 @@
  
  ==============================================================================
  
- juce_ak_layoutItem.cpp
+ ak_layoutItem.cpp
  Created: 12 Mar 2016 13:14:52pm
  
  ==============================================================================
@@ -66,6 +66,7 @@ LayoutItem::LayoutItem (juce::Component* c, Layout* parent, bool owned)
     itemType (ComponentItem),
     parentLayout (parent)
 {
+    sharedLayoutData = new SharedLayoutData;
     jassert (c);
     setComponent (c, owned);
     if (!c->getComponentID().isEmpty()) {
@@ -81,7 +82,9 @@ LayoutItem::LayoutItem (ItemType i, Layout* parent)
                      (i==SubLayout) ? itemTypeSubLayout : itemTypeInvalid),
     itemType (i),
     parentLayout (parent)
-{}
+{
+    sharedLayoutData = new SharedLayoutData;
+}
 
 LayoutItem::~LayoutItem()
 {
@@ -93,7 +96,7 @@ bool LayoutItem::isValid()
     if (itemType == Invalid) {
         return false;
     }
-    if (itemType == ComponentItem && componentPtr == nullptr && ownedComponent == nullptr) {
+    if (itemType == ComponentItem && !sharedLayoutData->hasComponent()) {
         return false;
     }
     return true;
@@ -165,27 +168,12 @@ void LayoutItem::setOverlayJustification (int j)
 
 juce::Component* LayoutItem::getComponent () const
 {
-    if (ownedComponent) {
-        return ownedComponent.get();
-    }
-    return componentPtr.getComponent();
-}
-
-juce::Component* LayoutItem::getWrappedComponent () const
-{
-    return componentPtr.getComponent();
+    return sharedLayoutData->getComponent();
 }
 
 void LayoutItem::setComponent (juce::Component* ptr, bool owned)
 {
-    if (owned) {
-        ownedComponent = ptr;
-        componentPtr = nullptr;
-    }
-    else {
-        componentPtr = ptr;
-        ownedComponent = nullptr;
-    }
+    sharedLayoutData->setComponent(ptr, owned);
 
     if (ptr->getComponentID().isEmpty()) {
         removeProperty (propComponentID, nullptr);
@@ -193,16 +181,6 @@ void LayoutItem::setComponent (juce::Component* ptr, bool owned)
     else {
         setProperty (propComponentID, ptr->getComponentID(), nullptr);
     }
-}
-
-juce::Component* LayoutItem::getOwnedComponent () const
-{
-    return ownedComponent.get();
-}
-
-void LayoutItem::setOwnedComponent (juce::Component* c)
-{
-    ownedComponent = c;
 }
 
 void LayoutItem::setLabelText (const juce::String& text)
@@ -260,6 +238,43 @@ void LayoutItem::constrainBounds (juce::Rectangle<int>& bounds, bool& changedWid
     }
 }
 
+void LayoutItem::setItemBounds (juce::Rectangle<int> b)
+{
+    sharedLayoutData->setItemBounds (b);
+}
+
+void LayoutItem::setItemBounds (int x, int y, int w, int h)
+{
+    sharedLayoutData->setItemBounds (x, y, w, h);
+}
+
+juce::Rectangle<int> LayoutItem::getItemBounds() const
+{
+    return sharedLayoutData->getItemBounds();
+}
+
+juce::Rectangle<int> LayoutItem::getPaddedItemBounds () const
+{
+    const int paddingLeft = getPaddingLeft();
+    const int paddingTop = getPaddingTop();
+    juce::Rectangle<int> bounds = sharedLayoutData->getItemBounds();
+    return juce::Rectangle<int> (bounds.getX() + paddingLeft,
+                                 bounds.getY() + paddingTop,
+                                 bounds.getWidth() - (paddingLeft+getPaddingRight()),
+                                 bounds.getHeight() - (paddingTop+getPaddingBottom()));
+}
+
+void LayoutItem::setBoundsAreFinal (bool final)
+{
+    sharedLayoutData->setBoundsAreFinal (final);
+}
+
+bool LayoutItem::getBoundsAreFinal() const
+{
+    return sharedLayoutData->getBoundsAreFinal();
+}
+
+
 void LayoutItem::setWrappedComponentID (const juce::String& name, bool setComp)
 {
     if (setComp && getComponent()) {
@@ -276,8 +291,8 @@ void LayoutItem::setWrappedComponentID (const juce::String& name, bool setComp)
 
 void LayoutItem::fixUpLayoutItems ()
 {
-    if (componentPtr) {
-        setWrappedComponentID (componentPtr->getComponentID(), false);
+    if (juce::Component* comp = sharedLayoutData->getComponent()) {
+        setWrappedComponentID (comp->getComponentID(), false);
     }
 }
 
@@ -373,22 +388,22 @@ LayoutItem* LayoutItem::loadLayoutFromValueTree (const juce::ValueTree& tree, ju
 // =============================================================================
 void LayoutItem::addListener (LayoutItemListener* const newListener)
 {
-    layoutItemListeners.add (newListener);
+    sharedLayoutData->addLayoutListener (newListener);
 }
 
 void LayoutItem::removeListener (LayoutItemListener* const listener)
 {
-    layoutItemListeners.remove (listener);
+    sharedLayoutData->removeLayoutListener (listener);
 }
 
 void LayoutItem::callListenersCallback (juce::Rectangle<int> newBounds)
 {
-    layoutItemListeners.call(&LayoutItemListener::layoutBoundsChanged, newBounds);
+    sharedLayoutData->callListenersCallback (newBounds);
 }
 
 void LayoutItem::callListenersCallback (float relativePosition, bool final)
 {
-    layoutItemListeners.call(&LayoutItemListener::layoutSplitterMoved, relativePosition, final);
+    sharedLayoutData->callListenersCallback (relativePosition, final);
 }
 
 //==============================================================================
