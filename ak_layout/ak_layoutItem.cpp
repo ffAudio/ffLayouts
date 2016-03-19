@@ -127,6 +127,22 @@ const Layout* LayoutItem::getRootLayout() const
     return p;
 }
 
+const juce::Component* LayoutItem::getOwningComponent () const
+{
+    if (const Layout* layout = getRootLayout()) {
+        return layout->getOwningComponent();
+    }
+    return nullptr;
+}
+
+juce::Component* LayoutItem::getOwningComponent ()
+{
+    if (Layout* layout = getRootLayout()) {
+        return layout->getOwningComponent();
+    }
+    return nullptr;
+}
+
 int LayoutItem::isOverlay () const
 {
     return getProperty (propOverlay, 0);
@@ -168,7 +184,17 @@ juce::Component* LayoutItem::getComponent () const
     if (ownedComponent) {
         return ownedComponent.get();
     }
-    return componentPtr.getComponent();
+    else if (componentPtr) {
+        return componentPtr.getComponent();
+    }
+    else {
+        // fallback method, if connection was not established during loading
+        jassert (itemType != ComponentItem);
+        if (const juce::Component* owner = getOwningComponent()) {
+            return owner->findChildWithID (getProperty (propComponentID).toString());
+        }
+    }
+    return nullptr;
 }
 
 juce::Component* LayoutItem::getWrappedComponent () const

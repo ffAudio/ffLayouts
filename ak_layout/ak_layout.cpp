@@ -93,6 +93,16 @@ Layout::~Layout()
 {
 }
 
+juce::Component* Layout::getOwningComponent()
+{
+    return owningComponent;
+}
+
+const juce::Component* Layout::getOwningComponent() const
+{
+    return owningComponent;    
+}
+
 void Layout::setOrientation (const Orientation o, juce::UndoManager* undo)
 {
     setProperty (propOrientation, getNameFromOrientation (o).toString(), undo);
@@ -256,15 +266,7 @@ void Layout::updateGeometry ()
 }
 
 void Layout::updateGeometry (juce::Rectangle<int> bounds)
-{
-    // remove items of deleted or invalid components
-    for (int i=0; i<itemsList.size(); ++i) {
-        LayoutItem* item = itemsList.getUnchecked (i);
-        if (!item->isValid()) {
-            itemsList.remove (i);
-        }
-    }
-    
+{    
     const Orientation orientation = getOrientation();
     
     // find splitter items

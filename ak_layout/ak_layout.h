@@ -174,6 +174,12 @@ public:
     void setOrientation (const Orientation, juce::UndoManager* undo=nullptr);
 
     /**
+     return the owning component, if it's set
+     */
+    juce::Component* getOwningComponent();
+    const juce::Component* getOwningComponent() const;
+    
+    /**
      Returns the orientation including direction. If you are only intersted if horizontal or vertical
      @see isHorizontal and @see isVertival
      */

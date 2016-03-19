@@ -89,6 +89,12 @@ public:
     const Layout* getRootLayout() const;
     
     /**
+     Return the owningComponent of the root layout
+     */
+    const juce::Component* getOwningComponent () const;
+    juce::Component* getOwningComponent ();
+    
+    /**
      If overlay is set the item will be placed over an earlier defined item. Possible values are
      \li 0: normal (default) - no overlay
      \li 1: previous item 
