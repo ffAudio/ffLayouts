@@ -45,6 +45,7 @@ const juce::Identifier LayoutItem::itemTypeComponent          ("Component");
 const juce::Identifier LayoutItem::itemTypeLabeledComponent   ("LabeledComponent");
 const juce::Identifier LayoutItem::itemTypeSplitter           ("Splitter");
 const juce::Identifier LayoutItem::itemTypeSpacer             ("Spacer");
+const juce::Identifier LayoutItem::itemTypeLine               ("Line");
 const juce::Identifier LayoutItem::itemTypeSubLayout          ("Layout");
 
 const juce::Identifier LayoutItem::propOverlay              ("overlay");
@@ -79,6 +80,7 @@ LayoutItem::LayoutItem (ItemType i, Layout* parent)
                      (i==LabeledComponentItem) ? itemTypeLabeledComponent :
                      (i==SplitterItem) ? itemTypeSplitter :
                      (i==SpacerItem) ? itemTypeSpacer :
+                     (i==LineItem) ? itemTypeLine :
                      (i==SubLayout) ? itemTypeSubLayout : itemTypeInvalid),
     itemType (i),
     parentLayout (parent)
@@ -128,6 +130,22 @@ const Layout* LayoutItem::getRootLayout() const
         p = p->getParentLayout();
     }
     return p;
+}
+
+const juce::Component* LayoutItem::getOwningComponent () const
+{
+    if (const Layout* layout = getRootLayout()) {
+        return layout->getOwningComponent();
+    }
+    return nullptr;
+}
+
+juce::Component* LayoutItem::getOwningComponent ()
+{
+    if (Layout* layout = getRootLayout()) {
+        return layout->getOwningComponent();
+    }
+    return nullptr;
 }
 
 int LayoutItem::isOverlay () const
@@ -343,6 +361,9 @@ LayoutItem* LayoutItem::loadLayoutFromValueTree (const juce::ValueTree& tree, ju
             }
             else if (child.getType() == itemTypeSpacer) {
                 item = layout->addSpacer();
+            }
+            else if (child.getType() == itemTypeLine) {
+                item = layout->addLine (1);
             }
             else if (child.getType() == itemTypeSplitter) {
                 // property will be replaced automatically

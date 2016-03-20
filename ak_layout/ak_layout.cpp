@@ -93,6 +93,16 @@ Layout::~Layout()
 {
 }
 
+juce::Component* Layout::getOwningComponent()
+{
+    return owningComponent;
+}
+
+const juce::Component* Layout::getOwningComponent() const
+{
+    return owningComponent;    
+}
+
 void Layout::setOrientation (const Orientation o, juce::UndoManager* undo)
 {
     setProperty (propOrientation, getNameFromOrientation (o).toString(), undo);
@@ -216,6 +226,24 @@ LayoutItem* Layout::addSpacer (float sx, float sy, int idx)
     return item;
 }
 
+LayoutItem* Layout::addLine (int width, int idx)
+{
+    juce::DrawableRectangle* c = new juce::DrawableRectangle;
+    c->setFill (juce::FillType (juce::Colours::black));
+    if (juce::Component* owningComponent = getOwningComponent()) {
+        owningComponent->addAndMakeVisible (c);
+    }
+    LayoutItem* item = itemsList.insert (idx, new LayoutItem (c, this, true));
+    if (isHorizontal()) {
+        setFixedWidth (width);
+    }
+    if (isVertical()) {
+        setFixedHeight (width);
+    }
+    
+    return item;
+}
+
 LayoutItem* Layout::getLayoutItem (juce::Component* c)
 {
     for (int i=0; i<itemsList.size(); ++i) {
@@ -256,15 +284,7 @@ void Layout::updateGeometry ()
 }
 
 void Layout::updateGeometry (juce::Rectangle<int> bounds)
-{
-    // remove items of deleted or invalid components
-    for (int i=0; i<itemsList.size(); ++i) {
-        LayoutItem* item = itemsList.getUnchecked (i);
-        if (!item->isValid()) {
-            itemsList.remove (i);
-        }
-    }
-    
+{    
     const Orientation orientation = getOrientation();
     
     // find splitter items

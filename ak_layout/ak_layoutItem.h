@@ -61,6 +61,7 @@ public:
         LabeledComponentItem,
         SplitterItem,
         SpacerItem,
+        LineItem,
         SubLayout
     };
 
@@ -87,6 +88,12 @@ public:
      */
     Layout* getRootLayout();
     const Layout* getRootLayout() const;
+    
+    /**
+     Return the owningComponent of the root layout
+     */
+    const juce::Component* getOwningComponent () const;
+    juce::Component* getOwningComponent ();
     
     /**
      If overlay is set the item will be placed over an earlier defined item. Possible values are
@@ -505,6 +512,7 @@ private:
     static const juce::Identifier itemTypeLabeledComponent;
     static const juce::Identifier itemTypeSplitter;
     static const juce::Identifier itemTypeSpacer;
+    static const juce::Identifier itemTypeLine;
     static const juce::Identifier itemTypeSubLayout;
 
     static const juce::Identifier propOverlay;
