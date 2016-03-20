@@ -226,6 +226,24 @@ LayoutItem* Layout::addSpacer (float sx, float sy, int idx)
     return item;
 }
 
+LayoutItem* Layout::addLine (int width, int idx)
+{
+    juce::DrawableRectangle* c = new juce::DrawableRectangle;
+    c->setFill (juce::FillType (juce::Colours::black));
+    if (juce::Component* owningComponent = getOwningComponent()) {
+        owningComponent->addAndMakeVisible (c);
+    }
+    LayoutItem* item = itemsList.insert (idx, new LayoutItem (c, this, true));
+    if (isHorizontal()) {
+        setFixedWidth (width);
+    }
+    if (isVertical()) {
+        setFixedHeight (width);
+    }
+    
+    return item;
+}
+
 LayoutItem* Layout::getLayoutItem (juce::Component* c)
 {
     for (int i=0; i<itemsList.size(); ++i) {

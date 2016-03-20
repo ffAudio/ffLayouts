@@ -232,6 +232,11 @@ public:
      the space it occupies
      */
     LayoutItem* addSpacer (float sx=1.0, float sy=1.0, int idx=-1);
+
+    /**
+     add a line to separate items
+     */
+    LayoutItem* addLine (int width, int idx=-1);
     
     /**
      Retrieve the LayoutItem for a component. If the Component is not found in the

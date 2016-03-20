@@ -45,6 +45,7 @@ const juce::Identifier LayoutItem::itemTypeComponent          ("Component");
 const juce::Identifier LayoutItem::itemTypeLabeledComponent   ("LabeledComponent");
 const juce::Identifier LayoutItem::itemTypeSplitter           ("Splitter");
 const juce::Identifier LayoutItem::itemTypeSpacer             ("Spacer");
+const juce::Identifier LayoutItem::itemTypeLine               ("Line");
 const juce::Identifier LayoutItem::itemTypeSubLayout          ("Layout");
 
 const juce::Identifier LayoutItem::propOverlay              ("overlay");
@@ -78,6 +79,7 @@ LayoutItem::LayoutItem (ItemType i, Layout* parent)
                      (i==LabeledComponentItem) ? itemTypeLabeledComponent :
                      (i==SplitterItem) ? itemTypeSplitter :
                      (i==SpacerItem) ? itemTypeSpacer :
+                     (i==LineItem) ? itemTypeLine :
                      (i==SubLayout) ? itemTypeSubLayout : itemTypeInvalid),
     itemType (i),
     parentLayout (parent)
@@ -190,8 +192,10 @@ juce::Component* LayoutItem::getComponent () const
     else {
         // fallback method, if connection was not established during loading
         jassert (itemType != ComponentItem);
-        if (const juce::Component* owner = getOwningComponent()) {
-            return owner->findChildWithID (getProperty (propComponentID).toString());
+        if (hasProperty (propComponentID)) {
+            if (const juce::Component* owner = getOwningComponent()) {
+                return owner->findChildWithID (getProperty (propComponentID).toString());
+            }
         }
     }
     return nullptr;
@@ -354,6 +358,9 @@ LayoutItem* LayoutItem::loadLayoutFromValueTree (const juce::ValueTree& tree, ju
             }
             else if (child.getType() == itemTypeSpacer) {
                 item = layout->addSpacer();
+            }
+            else if (child.getType() == itemTypeLine) {
+                item = layout->addLine (1);
             }
             else if (child.getType() == itemTypeSplitter) {
                 // property will be replaced automatically

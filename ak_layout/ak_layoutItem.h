@@ -61,6 +61,7 @@ public:
         LabeledComponentItem,
         SplitterItem,
         SpacerItem,
+        LineItem,
         SubLayout
     };
 
@@ -453,6 +454,7 @@ private:
     static const juce::Identifier itemTypeLabeledComponent;
     static const juce::Identifier itemTypeSplitter;
     static const juce::Identifier itemTypeSpacer;
+    static const juce::Identifier itemTypeLine;
     static const juce::Identifier itemTypeSubLayout;
     
     static const juce::Identifier propOverlay;
