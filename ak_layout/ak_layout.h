@@ -219,6 +219,11 @@ public:
     juce::ValueTree getLayoutItem (juce::Component*);
     
     /**
+     Call this to connect a fresh state to the owningComponent
+     */
+    void realize();
+    
+    /**
      Call this method in your Component::resized() callback.
      If the layout has an owning component, this calls updateGeometry with the
      bounds of the owning component.

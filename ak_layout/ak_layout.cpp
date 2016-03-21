@@ -191,6 +191,12 @@ void Layout::clearLayout (juce::UndoManager* undo)
     state.removeAllChildren (undo);
 }
 
+void Layout::realize()
+{
+    LayoutItem root (state);
+    root.realize (state, owningComponent, this);
+}
+
 void Layout::updateGeometry ()
 {
     LayoutItem root (state);
@@ -225,17 +231,6 @@ void Layout::fixUpLayoutItems ()
         itemsList.getUnchecked (i)->fixUpLayoutItems();
     }
     isFixing = false;
-}
-
-void Layout::saveLayoutToValueTree (juce::ValueTree& tree) const
-{
-    tree = juce::ValueTree (getType());
-    for (int i=0; i < itemsList.size(); ++i) {
-        juce::ValueTree child;
-        itemsList.getUnchecked (i)->saveLayoutToValueTree (child);
-        tree.addChild (child, -1, nullptr);
-    }
-    tree.copyPropertiesFrom (*this, nullptr);
 }
 */
 
