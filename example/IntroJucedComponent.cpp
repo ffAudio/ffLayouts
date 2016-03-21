@@ -83,9 +83,14 @@ IntroJucedComponent::IntroJucedComponent ()
     String xml = String::fromUTF8 (BinaryData::IntroJucedComponent_xml, BinaryData::IntroJucedComponent_xmlSize);
     layout = new Layout (xml, this);
 
+    // just fancy stuff to demonstrate LayoutListener
     Component* splitterComponent = findChildWithID ("splitter");
-    if (LayoutSplitter* splitter = dynamic_cast<LayoutSplitter*>(splitterComponent)) {
-        splitter->addListener (this);
+    if (splitterComponent) {
+        juce::ValueTree node = layout->getLayoutItem (splitterComponent);
+        if (node.isValid()) {
+            LayoutSplitter item (node);
+            item.addListener (this);
+        }
     }
     //[/UserPreSize]
 
@@ -234,9 +239,9 @@ void IntroJucedComponent::layoutSplitterMoved (float pos, bool final)
 BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="IntroJucedComponent" componentName=""
-                 parentClasses="public Component" constructorParams="" variableInitialisers=""
-                 snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
-                 fixedSize="0" initialWidth="600" initialHeight="400">
+                 parentClasses="public Component, public LayoutItemListener" constructorParams=""
+                 variableInitialisers="" snapPixels="8" snapActive="1" snapShown="1"
+                 overlayOpacity="0.330" fixedSize="0" initialWidth="600" initialHeight="400">
   <BACKGROUND backgroundColour="ffffffff"/>
   <TEXTBUTTON name="textButton1" id="e88308a3559be3f5" memberName="textButton1"
               virtualName="" explicitFocusOrder="0" pos="0 24 150 24" buttonText="Do Something 1"

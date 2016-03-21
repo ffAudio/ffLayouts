@@ -52,8 +52,70 @@ class Layout;
  
  @see Layout
  */
-class LayoutItem : protected juce::ValueTree
+class LayoutItem
 {
+
+public:
+    //==============================================================================
+    /**
+     The LayoutItem::Listener will be called, whenever the bounds of a LayoutItem are changed
+     */
+    class Listener {
+    public:
+        /** Destructor. */
+        virtual ~Listener()  {}
+        
+        /** Callback when the layout items bounds are changed */
+        virtual void layoutBoundsChanged (juce::Rectangle<int> newBounds) = 0;
+        
+        /**
+         Callback when the item is a splitter and is just moved.
+         Final is true, if the mouse button is released.
+         To add a listener to a splitter from xml you can set the \p componentName or \p componentID
+         to find it as child of the \p owningComponent.
+         */
+        virtual void layoutSplitterMoved (float relativePos, bool final) {}
+        
+    };
+
+private:
+    //==============================================================================
+    /**
+     Internal data shared over ValueTree instances
+     */
+    class SharedLayoutData : public juce::ReferenceCountedObject
+    {
+        
+    private:
+        friend LayoutItem;
+        
+        const juce::Component* getComponent() const;
+        
+        juce::Component* getComponent();
+        
+        void setComponent (juce::Component* c, bool owned=false);
+        
+        bool hasComponent () const;
+        
+        void addLayoutListener (LayoutItem::Listener* l);
+        
+        void removeLayoutListener (LayoutItem::Listener* l);
+        
+        void removeAllListeners ();
+        
+        void callListenersCallback (juce::Rectangle<int> newBounds);
+
+        void callListenersCallback (float relativePosition, bool final);
+        
+    private:
+        juce::Component::SafePointer<juce::Component>   componentPtr;
+        
+        juce::ScopedPointer<juce::Component>            ownedComponent;
+        
+        juce::ListenerList<Listener> layoutItemListeners;
+    };
+
+
 public:
     enum ItemType {
         Invalid = 0,
@@ -64,11 +126,18 @@ public:
         LineItem,
         SubLayout
     };
-
-    LayoutItem (juce::Component* c, Layout* parent=nullptr, bool owned=false);
     
-    LayoutItem (ItemType i=Invalid, Layout* parent=nullptr);
+    enum Orientation {
+        Unknown = 0,
+        LeftToRight,
+        TopDown,
+        RightToLeft,
+        BottomUp,
+        //GridLayout
+    };
     
+    LayoutItem (juce::ValueTree state);
+        
     virtual ~LayoutItem();
     
     /**
@@ -76,19 +145,26 @@ public:
      valid component is also considered invalid
      */
     bool isValid();
-
-    /**
-     Return the containing layout
-     */
-    Layout* getParentLayout();
-    const Layout* getParentLayout() const;
-
-    /**
-     Return the topmost layout
-     */
-    Layout* getRootLayout();
-    const Layout* getRootLayout() const;
     
+    /**
+     Changes the orientation of the layout
+     */
+    void setOrientation (const Orientation, juce::UndoManager* undo=nullptr);
+
+    /**
+     Returns the orientation including direction. If you are only intersted if horizontal or vertical
+     @see isHorizontal and @see isVertival
+     */
+    Orientation getOrientation () const;
+    
+    static Orientation getOrientationFromName (juce::Identifier name);
+    
+    static juce::Identifier getNameFromOrientation (LayoutItem::Orientation o);
+    
+    bool isHorizontal () const;
+    
+    bool isVertical ()   const;
+        
     /**
      Return the owningComponent of the root layout
      */
@@ -124,10 +200,15 @@ public:
     juce::Component* getComponent ()  const;
     
     /**
+     Returns true, if a component is set and available as pointer
+     */
+    bool hasComponent () const;
+    
+    /**
      Return the wrapped component as pointer.
      */
     juce::Component* getWrappedComponent ()  const;
-
+    
     /**
      Replace the component pointer. If owned is set to true, the component will be destroyed, 
      when the item is destroyed or another component or nullptr is set. It is always only one
@@ -136,10 +217,28 @@ public:
     void setComponent (juce::Component* ptr, bool owned=false);
 
     
+    /**
+     Get or create a shared layout data blob for state node. @see SharedLayoutData
+     */
+    static LayoutItem::SharedLayoutData* getOrCreateData (juce::ValueTree& node);
+
+    /**
+     Get or create a shared layout data blob. @see SharedLayoutData
+     */
+    LayoutItem::SharedLayoutData* getOrCreateData ();
+
+    /**
+     Searches for Component to link or create owned components
+     */
+    void linkOrCreateComponent (juce::ValueTree& node, juce::Component* owner);
+    
+    
+    /*
     bool isComponentItem ()     const { return itemType == ComponentItem; }
     bool isSplitterItem ()      const { return itemType == SplitterItem; }
     bool isSubLayout ()         const { return itemType == SubLayout; }
-
+     */
+    
     /**
      Set the text for an automatically recreated Label as property
      */
@@ -148,11 +247,7 @@ public:
     /**
      Return the stretch value of an item.
      */
-    virtual void getStretch (float& w, float& h) const
-    {
-        w = getProperty ("stretchX", 1.0);
-        h = getProperty ("stretchY", 1.0);
-    }
+    void getStretch (float& w, float& h) const;
 
     /**
      Used to set stretch factors for the wrapped component. The space is distributed
@@ -160,11 +255,7 @@ public:
      For sub layouts, if you want to use the cummulated stretch of the child items,
      set this to a negative value. This is the default for new created sub layouts.
      */
-    virtual void setStretch (float w, float h, juce::UndoManager* undo=nullptr)
-    {
-        setProperty ("stretchX", w, undo);
-        setProperty ("stretchY", h, undo);
-    }
+    void setStretch (float w, float h, juce::UndoManager* undo=nullptr);
 
     /**
      Set constraints to the items size. In doubt the minimum size is used.
@@ -172,22 +263,22 @@ public:
      For a fixed size set the same value to minimum and maximum. To remove a constraint 
      set it to -1.
      */
-    void setMinimumWidth  (const int w, juce::UndoManager* undo=nullptr) { setProperty ("minWidth", w, undo); }
+    void setMinimumWidth  (const int w, juce::UndoManager* undo=nullptr);
     /** Set the maximum width @see setMinimumWidth */
-    void setMaximumWidth  (const int w, juce::UndoManager* undo=nullptr) { setProperty ("maxWidth", w, undo); }
+    void setMaximumWidth  (const int w, juce::UndoManager* undo=nullptr);
     /** Set the minimum height @see setMinimumWidth */
-    void setMinimumHeight (const int h, juce::UndoManager* undo=nullptr) { setProperty ("minHeight", h, undo); }
+    void setMinimumHeight (const int h, juce::UndoManager* undo=nullptr);
     /** Set the maximum height @see setMinimumWidth */
-    void setMaximumHeight (const int h, juce::UndoManager* undo=nullptr) { setProperty ("maxHeight", h, undo); }
+    void setMaximumHeight (const int h, juce::UndoManager* undo=nullptr);
 
     /** Returns the minimum width */
-    int getMinimumWidth  () const { return getProperty ("minWidth", -1); }
+    int getMinimumWidth  () const;
     /** Returns the maximum width */
-    int getMaximumWidth  () const { return getProperty ("maxWidth", -1); }
+    int getMaximumWidth  () const;
     /** Returns the minimum height */
-    int getMinimumHeight () const { return getProperty ("minHeight", -1); }
+    int getMinimumHeight () const;
     /** Returns the maximum height */
-    int getMaximumHeight () const { return getProperty ("maxHeight", -1); }
+    int getMaximumHeight () const;
 
     /**
      Return the size limits of the item. You can use this method to cummulate
@@ -197,13 +288,13 @@ public:
     virtual void getSizeLimits (int& minW, int& maxW, int& minH, int& maxH);
 
     /** Set a padding value for the wrapped component or item to it's calculated top bounds */
-    void setPaddingTop    (const int p, juce::UndoManager* undo=nullptr) { setProperty ("paddingTop", p, undo); }
+    void setPaddingTop    (const int p, juce::UndoManager* undo=nullptr);
     /** Set a padding value for the wrapped component or item to it's calculated left bounds */
-    void setPaddingLeft   (const int p, juce::UndoManager* undo=nullptr) { setProperty ("paddingLeft", p, undo); }
+    void setPaddingLeft   (const int p, juce::UndoManager* undo=nullptr);
     /** Set a padding value for the wrapped component or item to it's calculated right bounds */
-    void setPaddingRight  (const int p, juce::UndoManager* undo=nullptr) { setProperty ("paddingRight", p, undo); }
+    void setPaddingRight  (const int p, juce::UndoManager* undo=nullptr);
     /** Set a padding value for the wrapped component or item to it's calculated bottom bounds */
-    void setPaddingBottom (const int p, juce::UndoManager* undo=nullptr) { setProperty ("paddingBottom", p, undo); }
+    void setPaddingBottom (const int p, juce::UndoManager* undo=nullptr);
     
     /**
      Set one value to all bounaries
@@ -216,13 +307,13 @@ public:
     }
 
     /** Returns the padding value for the wrapped component or item to it's calculated top bounds */
-    int getPaddingTop () const    { return getProperty ("paddingTop", 0); }
+    int getPaddingTop () const;
     /** Returns the padding value for the wrapped component or item to it's calculated left bounds */
-    int getPaddingLeft () const   { return getProperty ("paddingLeft", 0); }
+    int getPaddingLeft () const;
     /** Returns the padding value for the wrapped component or item to it's calculated right bounds */
-    int getPaddingRight () const  { return getProperty ("paddingRight", 0); }
+    int getPaddingRight () const;
     /** Returns the padding value for the wrapped component or item to it's calculated bottom bounds */
-    int getPaddingBottom () const { return getProperty ("paddingBottom", 0); }
+    int getPaddingBottom () const;
     
     /** Sets fixed width as minimum width = maximum width */
     void setFixedWidth (const int w, juce::UndoManager* undo=nullptr)
@@ -248,18 +339,12 @@ public:
     /**
      Set an aspect ratio to constrain the bounds
      */
-    void setAspectRatio (const float ratio, juce::UndoManager* undo=nullptr)
-    {
-        setProperty ("aspectRatio", ratio, undo);
-    }
+    void setAspectRatio (const float ratio, juce::UndoManager* undo=nullptr);
     
     /**
      Set an aspect ratio to constrain the bounds
      */
-    float getAspectRatio () const
-    {
-        return getProperty ("aspectRatio", 0.0);
-    }
+    float getAspectRatio () const;
 
     /**
      Convenience method to set all parameters in one line
@@ -289,7 +374,22 @@ public:
         setAspectRatio (inAspectRatio, undo);
     }
 
-    ItemType getItemType() const { return itemType; }
+    juce::Identifier getItemType() const { return state.getType(); }
+
+    static LayoutItem makeChildComponent (juce::ValueTree& parent, juce::Component* component, bool owned=false, int idx=-1);
+    static LayoutItem makeChildSplitter (juce::ValueTree& parent, float position, int idx=-1);
+    static LayoutItem makeChildSpacer (juce::ValueTree& parent, float stretchX=1.0, float stretchY=1.0, int idx=-1);
+    
+    /**
+     Remove a component item from a specific layout level
+     */
+    static void removeComponent (juce::ValueTree& parent, juce::Component* c);
+    
+    /**
+     Retrieve the LayoutItem for a component. If the Component is not found in the
+     Layout, an invalid ValueTree node is returned.
+     */
+    static juce::ValueTree getLayoutItem (juce::ValueTree& node, juce::Component*);
 
     /**
      Applies the size constraints to the items.
@@ -341,44 +441,42 @@ public:
     void setWrappedComponentID (const juce::String& name, bool setComp);
 
     /**
+     paint the bounds of the item and sub items for debugging
+     */
+    static void paintBounds (const juce::ValueTree& node, juce::Graphics& g);
+    
+    /**
      Chance for LayoutItems to fix properties that might have changed for saving
      */
     virtual void fixUpLayoutItems ();
     
     /**
-     Save the layout into a ValueTree. To get proper references to the components,
-     don't forget to set unique componentIDs.
+     Hook to component or create an owned component
      */
-    virtual void saveLayoutToValueTree (juce::ValueTree& tree) const;
+    virtual void realize (juce::ValueTree& node, juce::Component* owningComponent, Layout* layout);
     
     /**
-     Load the layout from a ValueTree. The component references are restored to the owning
-     Component using findChildWithID()
+     Recompute the geometry of all components. Recoursively recomputes all sub layouts.
      */
-    virtual LayoutItem* loadLayoutFromValueTree (const juce::ValueTree& tree, juce::Component* owner);
+    static void updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bounds);
+    
+    /**
+     Recompute the geometry of all components. Recoursively recomputes all sub layouts.
+     */
+    static void updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bounds, int start, int end);
+    
+    /**
+     Cummulates all stretch factors inside the nested layout
+     */
+    static void getStretch (const juce::ValueTree& node, float& w, float& h, int start=0, int end=-1);
 
+    /**
+     Compute size limits over all child nodes
+     */
+    static void getSizeLimits (const juce::ValueTree& node, int& minW, int& maxW, int& minH, int& maxH);
+    
     // =============================================================================
     
-    /**
-     The LayoutItem::Listener will be called, whenever the bounds of a LayoutItem are changed
-     */
-    class Listener {
-    public:
-        /** Destructor. */
-        virtual ~Listener()  {}
-        
-        /** Callback when the layout items bounds are changed */
-        virtual void layoutBoundsChanged (juce::Rectangle<int> newBounds) = 0;
-        
-        /** 
-         Callback when the item is a splitter and is just moved. 
-         Final is true, if the mouse button is released.
-         To add a listener to a splitter from xml you can set the \p componentName or \p componentID
-         to find it as child of the \p owningComponent.
-         */
-        virtual void layoutSplitterMoved (float relativePos, bool final) {}
-        
-    };
     
     /** Registers a listener to receive events when this button's state changes.
      If the listener is already registered, this will not register it again.
@@ -399,114 +497,12 @@ public:
      */
     void callListenersCallback (float relativePosition, bool final);
 
+protected:
+    juce::ValueTree state;
+
 private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LayoutItem)
-
-    ItemType   itemType;
-
-    class SharedLayoutData : public juce::ReferenceCountedObject
-    {
-
-    private:
-        friend LayoutItem;
-
-        const juce::Component* getComponent() const {
-            if (ownedComponent) {
-                return ownedComponent;
-            }
-            if (componentPtr) {
-                return componentPtr;
-            }
-            return nullptr;
-        }
-
-        juce::Component* getComponent() {
-            if (ownedComponent) {
-                return ownedComponent;
-            }
-            if (componentPtr) {
-                return componentPtr;
-            }
-            return nullptr;
-        }
-
-        void setComponent (juce::Component* c, bool owned=false)
-        {
-            if (owned) {
-                if (ownedComponent == c) {
-                    return;
-                }
-                componentPtr = nullptr;
-                ownedComponent = c;
-            }
-            else {
-                if (componentPtr == c) {
-                    return;
-                }
-                ownedComponent = nullptr;
-                componentPtr = c;
-            }
-        }
-
-        bool hasComponent () const {
-            return componentPtr || ownedComponent;
-        }
-
-        juce::Rectangle<int> getItemBounds() {
-            return itemBounds;
-        }
-
-        void setItemBounds (juce::Rectangle<int> b) {
-            itemBounds = b;
-        }
-
-        void setItemBounds (int x, int y, int w, int h) {
-            itemBounds.setBounds (x, y, w, h);
-        }
-
-        void setBoundsAreFinal (bool f) {
-            boundsAreFinal = f;
-        }
-        bool getBoundsAreFinal () const {
-            return boundsAreFinal;
-        }
-
-        void addLayoutListener (LayoutItem::Listener* l) {
-            layoutItemListeners.add (l);
-        }
-        void removeLayoutListener (LayoutItem::Listener* l) {
-            layoutItemListeners.remove (l);
-        }
-        void removeAllListeners () {
-            layoutItemListeners.clear();
-        }
-
-        void callListenersCallback (juce::Rectangle<int> newBounds)
-        {
-            layoutItemListeners.call(&LayoutItem::Listener::layoutBoundsChanged, newBounds);
-        }
-
-        void callListenersCallback (float relativePosition, bool final)
-        {
-            layoutItemListeners.call(&LayoutItem::Listener::layoutSplitterMoved, relativePosition, final);
-        }
-
-    private:
-        juce::Component::SafePointer<juce::Component>   componentPtr;
-
-        juce::ScopedPointer<juce::Component>            ownedComponent;
-
-        juce::ListenerList<Listener> layoutItemListeners;
-
-        // computed values, not for setting
-        juce::Rectangle<int> itemBounds;
-        bool                 boundsAreFinal;
-    };
-
-    juce::ReferenceCountedObjectPtr<SharedLayoutData> sharedLayoutData;
-
-    Layout* parentLayout;
-
+    JUCE_LEAK_DETECTOR (LayoutItem)
+    
     static const juce::Identifier itemTypeInvalid;
     static const juce::Identifier itemTypeComponent;
     static const juce::Identifier itemTypeLabeledComponent;
@@ -514,7 +510,27 @@ private:
     static const juce::Identifier itemTypeSpacer;
     static const juce::Identifier itemTypeLine;
     static const juce::Identifier itemTypeSubLayout;
+    
+    static const juce::Identifier orientationUnknown;
+    static const juce::Identifier orientationLeftToRight;
+    static const juce::Identifier orientationTopDown;
+    static const juce::Identifier orientationRightToLeft;
+    static const juce::Identifier orientationBottomUp;
 
+    static const juce::Identifier propStretchX;
+    static const juce::Identifier propStretchY;
+    static const juce::Identifier propMinWidth;
+    static const juce::Identifier propMaxWidth;
+    static const juce::Identifier propMinHeight;
+    static const juce::Identifier propMaxHeight;
+    static const juce::Identifier propAspectRatio;
+    static const juce::Identifier propPaddingTop;
+    static const juce::Identifier propPaddingLeft;
+    static const juce::Identifier propPaddingRight;
+    static const juce::Identifier propPaddingBottom;
+
+    static const juce::Identifier propOrientation;
+    static const juce::Identifier propLayoutBounds;
     static const juce::Identifier propOverlay;
     static const juce::Identifier propOverlayWidth;
     static const juce::Identifier propOverlayHeight;
@@ -527,6 +543,12 @@ private:
     static const juce::Identifier propGroupName;
     static const juce::Identifier propGroupText;
     static const juce::Identifier propGroupJustification;
+    
+    static const juce::Identifier volatileSharedLayoutData;
+    static const juce::Identifier volatileItemBounds;
+    static const juce::Identifier volatileItemBoundsFixed;
+    static const juce::Identifier volatileIsUpdating;
+    
 
 };
 
@@ -539,27 +561,12 @@ typedef LayoutItem::Listener LayoutItemListener;
 /**
  A splitter is a handle to drag boundaries inside the layout
  */
-class LayoutSplitter : public LayoutItem, public juce::Component
+class LayoutSplitter : public LayoutItem
 {
 public:
-    LayoutSplitter (juce::Component* owningComponent, float position, bool horizontal, Layout* parent);
+    LayoutSplitter (juce::ValueTree& node);
 
     virtual ~LayoutSplitter();
-
-    /** 
-     Paint the splitter handle. You can override this to customize the drawing
-     */
-    void paint (juce::Graphics& g) override;
-
-    /**
-     mouse callback to drag the splitter
-     */
-    void mouseDrag (const juce::MouseEvent &event) override;
-
-    /**
-     mouse callback when slider dragging ended
-     */
-    void mouseUp (const juce::MouseEvent& event) override;
     
     /** Set the position in normalized form */
     void setRelativePosition (float position, juce::UndoManager* undo=nullptr);
@@ -579,19 +586,47 @@ public:
     /** Return the maximum normalized position */
     float getMaximumRelativePosition() const;
 
-    /** Set the horizontal flag */
-    void setIsHorizontal (bool isHorizontal, juce::UndoManager* undo=nullptr);
+    /** Return, if parent is horizontal */
+    bool isHorizontal () const;
     
-    /** Return the horizontal flag */
-    bool getIsHorizontal() const;
+    /** Set the bounds of the splitters component */
+    void setBounds (juce::Rectangle<int> b);
+    
+    /** 
+     Splitter component for mouse interaction 
+     */
+    class Component : public juce::Component {
+    public:
+        /**
+         Constructor with a reference to the layout
+         */
+        Component (Layout* layout);
+        
+        /**
+         Paint the splitter handle. You can override this to customize the drawing
+         */
+        void paint (juce::Graphics& g) override;
+        
+        /**
+         mouse callback to drag the splitter
+         */
+        void mouseDrag (const juce::MouseEvent &event) override;
+        
+        /**
+         mouse callback when slider dragging ended
+         */
+        void mouseUp (const juce::MouseEvent& event) override;
+        
+    private:
+        juce::WeakReference<Layout> layoutPtr;
+    };
     
 private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LayoutSplitter)
+    JUCE_LEAK_DETECTOR (LayoutSplitter)
 
     static const juce::Identifier propRelativePosition;
     static const juce::Identifier propRelativeMinPosition;
     static const juce::Identifier propRelativeMaxPosition;
-    static const juce::Identifier propIsHorizontal;
 
 };
 

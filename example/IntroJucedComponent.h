@@ -35,9 +35,9 @@
                                                                     //[/Comments]
 */
 class IntroJucedComponent  : public Component,
+                             public LayoutItemListener,
                              public ButtonListener,
-                             public SliderListener,
-                             public LayoutItemListener
+                             public SliderListener
 {
 public:
     //==============================================================================
@@ -58,6 +58,7 @@ public:
     void resized() override;
     void buttonClicked (Button* buttonThatWasClicked) override;
     void sliderValueChanged (Slider* sliderThatWasMoved) override;
+
 
 
 private:

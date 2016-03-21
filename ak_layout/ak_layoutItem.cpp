@@ -40,171 +40,340 @@
 
 #include "ak_layout.h"
 
-const juce::Identifier LayoutItem::itemTypeInvalid            ("Invalid");
-const juce::Identifier LayoutItem::itemTypeComponent          ("Component");
-const juce::Identifier LayoutItem::itemTypeLabeledComponent   ("LabeledComponent");
-const juce::Identifier LayoutItem::itemTypeSplitter           ("Splitter");
-const juce::Identifier LayoutItem::itemTypeSpacer             ("Spacer");
-const juce::Identifier LayoutItem::itemTypeLine               ("Line");
-const juce::Identifier LayoutItem::itemTypeSubLayout          ("Layout");
+const juce::Identifier LayoutItem::itemTypeInvalid          ("Invalid");
+const juce::Identifier LayoutItem::itemTypeComponent        ("Component");
+const juce::Identifier LayoutItem::itemTypeLabeledComponent ("LabeledComponent");
+const juce::Identifier LayoutItem::itemTypeSplitter         ("Splitter");
+const juce::Identifier LayoutItem::itemTypeSpacer           ("Spacer");
+const juce::Identifier LayoutItem::itemTypeLine             ("Line");
+const juce::Identifier LayoutItem::itemTypeSubLayout        ("Layout");
 
+const juce::Identifier LayoutItem::orientationUnknown       ("unknown");
+const juce::Identifier LayoutItem::orientationLeftToRight   ("leftToRight");
+const juce::Identifier LayoutItem::orientationTopDown       ("topDown");
+const juce::Identifier LayoutItem::orientationRightToLeft   ("rightToLeft");
+const juce::Identifier LayoutItem::orientationBottomUp      ("bottomUp");
+
+const juce::Identifier LayoutItem::propStretchX             ("stretchX");
+const juce::Identifier LayoutItem::propStretchY             ("stretchY");
+const juce::Identifier LayoutItem::propMinWidth             ("minWidth");
+const juce::Identifier LayoutItem::propMaxWidth             ("maxWidth");
+const juce::Identifier LayoutItem::propMinHeight            ("minHeight");
+const juce::Identifier LayoutItem::propMaxHeight            ("maxHeight");
+const juce::Identifier LayoutItem::propAspectRatio          ("aspectRatio");
+const juce::Identifier LayoutItem::propPaddingTop           ("paddingTop");
+const juce::Identifier LayoutItem::propPaddingLeft          ("paddingLeft");
+const juce::Identifier LayoutItem::propPaddingRight         ("paddingRight");
+const juce::Identifier LayoutItem::propPaddingBottom        ("paddingBottom");
+
+const juce::Identifier LayoutItem::propOrientation          ("orientation");
+const juce::Identifier LayoutItem::propLayoutBounds         ("layoutBounds");
 const juce::Identifier LayoutItem::propOverlay              ("overlay");
 const juce::Identifier LayoutItem::propOverlayWidth         ("overlayWidth");
 const juce::Identifier LayoutItem::propOverlayHeight        ("overlayHeight");
 const juce::Identifier LayoutItem::propOverlayJustification ("overlayJustification");
 
-const juce::Identifier LayoutItem::propComponentID            ("componentID");
-const juce::Identifier LayoutItem::propComponentName          ("componentName");
-const juce::Identifier LayoutItem::propLabelText              ("labelText");
-const juce::Identifier LayoutItem::propLabelFontSize          ("labelFontSize");
-const juce::Identifier LayoutItem::propGroupName              ("groupName");
-const juce::Identifier LayoutItem::propGroupText              ("groupText");
-const juce::Identifier LayoutItem::propGroupJustification     ("groupJustification");
+const juce::Identifier LayoutItem::propComponentID          ("componentID");
+const juce::Identifier LayoutItem::propComponentName        ("componentName");
+const juce::Identifier LayoutItem::propLabelText            ("labelText");
+const juce::Identifier LayoutItem::propLabelFontSize        ("labelFontSize");
+const juce::Identifier LayoutItem::propGroupName            ("groupName");
+const juce::Identifier LayoutItem::propGroupText            ("groupText");
+const juce::Identifier LayoutItem::propGroupJustification   ("groupJustification");
+
+const juce::Identifier LayoutItem::volatileSharedLayoutData ("volatileSharedLayoutData");
+const juce::Identifier LayoutItem::volatileItemBounds       ("volatileItemBounds");
+const juce::Identifier LayoutItem::volatileItemBoundsFixed  ("volatileItemBoundsFixed");
+const juce::Identifier LayoutItem::volatileIsUpdating       ("volatileIsUpdating");
 
 
-LayoutItem::LayoutItem (juce::Component* c, Layout* parent, bool owned)
-  : juce::ValueTree (itemTypeComponent),
-    itemType (ComponentItem),
-    parentLayout (parent)
+LayoutItem::LayoutItem (juce::ValueTree state_)
+  : state (state_)
 {
-    sharedLayoutData = new SharedLayoutData;
-    jassert (c);
-    setComponent (c, owned);
-    if (!c->getComponentID().isEmpty()) {
-        setProperty (propComponentID, c->getComponentID(), nullptr);
-    }
-}
-
-LayoutItem::LayoutItem (ItemType i, Layout* parent)
-  : juce::ValueTree ((i==ComponentItem) ? itemTypeComponent :
-                     (i==LabeledComponentItem) ? itemTypeLabeledComponent :
-                     (i==SplitterItem) ? itemTypeSplitter :
-                     (i==SpacerItem) ? itemTypeSpacer :
-                     (i==LineItem) ? itemTypeLine :
-                     (i==SubLayout) ? itemTypeSubLayout : itemTypeInvalid),
-    itemType (i),
-    parentLayout (parent)
-{
-    sharedLayoutData = new SharedLayoutData;
 }
 
 LayoutItem::~LayoutItem()
 {
 }
 
+LayoutItem LayoutItem::makeChildComponent (juce::ValueTree& parent, juce::Component* component, bool owned, int idx)
+{
+    juce::ValueTree child (itemTypeComponent);
+    parent.addChild (child, idx, nullptr);
+    LayoutItem item (child);
+    item.setComponent (component, owned);
+    return item;
+}
+
+LayoutItem LayoutItem::makeChildSplitter (juce::ValueTree& parent, float position, int idx)
+{
+    juce::ValueTree child (itemTypeSplitter);
+    parent.addChild (child, idx, nullptr);
+    LayoutSplitter item (child);
+    item.setRelativePosition (position);
+    return item;
+}
+
+LayoutItem LayoutItem::makeChildSpacer (juce::ValueTree& parent, float stretchX, float stretchY, int idx)
+{
+    juce::ValueTree child (itemTypeSpacer);
+    parent.addChild (child, idx, nullptr);
+    LayoutItem item (child);
+    item.setStretch (stretchX, stretchY);
+    return item;
+}
+
+void LayoutItem::removeComponent (juce::ValueTree& parent, juce::Component* c)
+{
+    for (int i=0; i<parent.getNumChildren(); ++i) {
+        juce::ValueTree child (parent.getChild (i));
+        LayoutItem item (child);
+        if (item.getComponent() == c) {
+            parent.removeChild (child, nullptr);
+        }
+    }
+}
 
 bool LayoutItem::isValid()
 {
-    if (itemType == Invalid) {
-        return false;
+    if (state.getType() == itemTypeComponent) {
+        return hasComponent();
     }
-    if (itemType == ComponentItem && !sharedLayoutData->hasComponent()) {
-        return false;
-    }
-    return true;
+    return state.isValid();
 }
 
-Layout* LayoutItem::getParentLayout()
+void LayoutItem::setOrientation (const Orientation o, juce::UndoManager* undo)
 {
-    return parentLayout;
+    state.setProperty (propOrientation, getNameFromOrientation (o).toString(), undo);
 }
 
-const Layout* LayoutItem::getParentLayout() const
+LayoutItem::Orientation LayoutItem::getOrientation() const
 {
-    return parentLayout;
+    return getOrientationFromName (juce::Identifier (state.getProperty (propOrientation, LayoutItem::orientationUnknown.toString())));
 }
 
-Layout* LayoutItem::getRootLayout()
+bool LayoutItem::isHorizontal () const
 {
-    Layout* p = parentLayout;
-    while (p && p->getParentLayout()) {
-        p = p->getParentLayout();
+    LayoutItem::Orientation o = getOrientation();
+    return o == LeftToRight || o == RightToLeft;
+}
+
+bool LayoutItem::isVertical () const
+{
+    LayoutItem::Orientation o = getOrientation();
+    return o == TopDown || o == BottomUp;
+}
+
+LayoutItem::Orientation LayoutItem::getOrientationFromName (juce::Identifier name)
+{
+    if (name == orientationLeftToRight) {
+        return LayoutItem::LeftToRight;
     }
-    return p;
+    else if (name == orientationTopDown) {
+        return LayoutItem::TopDown;
+    }
+    else if (name == orientationRightToLeft) {
+        return LayoutItem::RightToLeft;
+    }
+    else if (name == orientationBottomUp) {
+        return LayoutItem::BottomUp;
+    }
+    else
+        return LayoutItem::Unknown;
 }
 
-const Layout* LayoutItem::getRootLayout() const
+juce::Identifier LayoutItem::getNameFromOrientation (LayoutItem::Orientation o)
 {
-    Layout* p = parentLayout;
-    while (p && p->getParentLayout()) {
-        p = p->getParentLayout();
+    if (o == LayoutItem::LeftToRight) {
+        return orientationLeftToRight;
     }
-    return p;
-}
-
-const juce::Component* LayoutItem::getOwningComponent () const
-{
-    if (const Layout* layout = getRootLayout()) {
-        return layout->getOwningComponent();
+    else if (o == LayoutItem::TopDown) {
+        return orientationTopDown;
     }
-    return nullptr;
-}
-
-juce::Component* LayoutItem::getOwningComponent ()
-{
-    if (Layout* layout = getRootLayout()) {
-        return layout->getOwningComponent();
+    else if (o == LayoutItem::RightToLeft) {
+        return orientationRightToLeft;
     }
-    return nullptr;
+    else if (o == LayoutItem::BottomUp) {
+        return orientationBottomUp;
+    }
+    else
+        return orientationUnknown;
 }
 
 int LayoutItem::isOverlay () const
 {
-    return getProperty (propOverlay, 0);
+    return state.getProperty (propOverlay, 0);
 }
 
 void LayoutItem::setIsOverlay (const int overlay)
 {
-    setProperty (propOverlay, overlay, nullptr);
+    state.setProperty (propOverlay, overlay, nullptr);
 }
 
 float LayoutItem::getOverlayWidth () const
 {
-    return getProperty (propOverlayWidth, 1.0);
+    return state.getProperty (propOverlayWidth, 1.0);
 }
 void LayoutItem::setOverlayWidth (float w)
 {
-    setProperty (propOverlayWidth, w, nullptr);
+    state.setProperty (propOverlayWidth, w, nullptr);
 }
 float LayoutItem::getOverlayHeight () const
 {
-    return getProperty (propOverlayHeight, 1.0);
+    return state.getProperty (propOverlayHeight, 1.0);
 }
 void LayoutItem::setOverlayHeight (float h)
 {
-    setProperty (propOverlayHeight, h, nullptr);
+    state.setProperty (propOverlayHeight, h, nullptr);
 }
 
 int LayoutItem::getOverlayJustification () const
 {
-    return getProperty (propOverlayJustification, 36);
+    return state.getProperty (propOverlayJustification, 36);
 }
 void LayoutItem::setOverlayJustification (int j)
 {
-    setProperty (propOverlayJustification, j, nullptr);
+    state.setProperty (propOverlayJustification, j, nullptr);
+}
+
+bool LayoutItem::hasComponent () const
+{
+    if (state.hasProperty (volatileSharedLayoutData)) {
+        if (SharedLayoutData* data = dynamic_cast<SharedLayoutData*>(state.getProperty(volatileSharedLayoutData).getObject())) {
+            return data->hasComponent();
+        }
+    }
+    return false;
 }
 
 juce::Component* LayoutItem::getComponent () const
 {
-    return sharedLayoutData->getComponent();
+    if (state.hasProperty (volatileSharedLayoutData)) {
+        if (SharedLayoutData* data = dynamic_cast<SharedLayoutData*>(state.getProperty(volatileSharedLayoutData).getObject())) {
+            return data->getComponent();
+        }
+    }
+    return nullptr;
+}
+
+LayoutItem::SharedLayoutData* LayoutItem::getOrCreateData (juce::ValueTree& node)
+{
+    if (node.hasProperty (volatileSharedLayoutData)) {
+        if (SharedLayoutData* data = dynamic_cast<SharedLayoutData*>(node.getProperty(volatileSharedLayoutData).getObject())) {
+            return data;
+        }
+        // ouch, somebody put a wrong object into that property!
+        jassertfalse;
+    }
+    SharedLayoutData* data = new SharedLayoutData;
+    node.setProperty (volatileSharedLayoutData, data, nullptr);
+    return data;
+}
+
+LayoutItem::SharedLayoutData* LayoutItem::getOrCreateData ()
+{
+    return LayoutItem::getOrCreateData (state);
 }
 
 void LayoutItem::setComponent (juce::Component* ptr, bool owned)
 {
-    sharedLayoutData->setComponent(ptr, owned);
+    SharedLayoutData* data = getOrCreateData();
+    data->setComponent(ptr, owned);
 
     if (ptr->getComponentID().isEmpty()) {
-        removeProperty (propComponentID, nullptr);
+        state.removeProperty (propComponentID, nullptr);
     }
     else {
-        setProperty (propComponentID, ptr->getComponentID(), nullptr);
+        state.setProperty (propComponentID, ptr->getComponentID(), nullptr);
     }
 }
+
+void LayoutItem::linkOrCreateComponent (juce::ValueTree& node, juce::Component* owner)
+{
+    if (node.getType() == itemTypeComponent) {
+        SharedLayoutData* data = getOrCreateData (node);
+        if (node.hasProperty(propComponentID)) {
+            if (juce::Component* component = owner->findChildWithID (node.getProperty (propComponentID, "unknown").toString())) {
+                data->setComponent (component, false);
+            }
+        }
+        else if (node.hasProperty (propComponentName)) {
+            juce::String name = node.getProperty (propComponentName, "unknown").toString();
+            for (int i=0; i < owner->getNumChildComponents(); ++i) {
+                juce::Component* component = owner->getChildComponent (i);
+                if (component->getName() == name) {
+                    data->setComponent (component, false);
+                    break;
+                }
+            }
+        }
+    }
+    else if (node.getType() == itemTypeSubLayout) {
+        for (int i=0; i < node.getNumChildren(); ++i) {
+            juce::ValueTree child = node.getChild (i);
+            linkOrCreateComponent (child, owner);
+        }
+    }
+}
+
 
 void LayoutItem::setLabelText (const juce::String& text)
 {
-    setProperty (propLabelText, text, nullptr);
+    state.setProperty (propLabelText, text, nullptr);
 }
+
+void LayoutItem::getStretch (float& w, float& h) const
+{
+    w = state.getProperty (propStretchX, 1.0);
+    h = state.getProperty (propStretchY, 1.0);
+}
+
+void LayoutItem::setStretch (float w, float h, juce::UndoManager* undo)
+{
+    state.setProperty (propStretchX, w, undo);
+    state.setProperty (propStretchY, h, undo);
+}
+
+void LayoutItem::setMinimumWidth  (const int w, juce::UndoManager* undo)
+{
+    state.setProperty (propMinWidth, w, undo);
+}
+
+void LayoutItem::setMaximumWidth  (const int w, juce::UndoManager* undo)
+{
+    state.setProperty (propMaxWidth, w, undo);
+}
+
+void LayoutItem::setMinimumHeight (const int h, juce::UndoManager* undo)
+{
+    state.setProperty (propMinHeight, h, undo);
+}
+
+void LayoutItem::setMaximumHeight (const int h, juce::UndoManager* undo)
+{
+    state.setProperty (propMaxHeight, h, undo);
+}
+
+int LayoutItem::getMinimumWidth  () const
+{
+    return state.getProperty (propMinWidth, -1);
+}
+
+int LayoutItem::getMaximumWidth  () const
+{
+    return state.getProperty (propMaxWidth, -1);
+}
+
+int LayoutItem::getMinimumHeight () const
+{
+    return state.getProperty (propMinHeight, -1);
+}
+
+int LayoutItem::getMaximumHeight () const
+{
+    return state.getProperty (propMaxHeight, -1);
+}
+
 
 void LayoutItem::getSizeLimits (int& minW, int& maxW, int& minH, int& maxH)
 {
@@ -216,6 +385,70 @@ void LayoutItem::getSizeLimits (int& minW, int& maxW, int& minH, int& maxH)
     if (maxWidth >= 0) maxW = (maxW < 0) ? maxWidth : juce::jmin (maxW, maxWidth);
     if (minHeight >= 0) minH = (minH < 0) ? minHeight : juce::jmax (minH, minHeight);
     if (maxHeight >= 0) maxH = (maxH < 0) ? maxHeight : juce::jmin (maxH, maxHeight);
+}
+
+void LayoutItem::setPaddingTop    (const int p, juce::UndoManager* undo)
+{
+    state.setProperty (propPaddingTop, p, undo);
+}
+void LayoutItem::setPaddingLeft   (const int p, juce::UndoManager* undo)
+{
+    state.setProperty (propPaddingLeft, p, undo);
+}
+void LayoutItem::setPaddingRight  (const int p, juce::UndoManager* undo)
+{
+    state.setProperty (propPaddingRight, p, undo);
+}
+void LayoutItem::setPaddingBottom (const int p, juce::UndoManager* undo)
+{
+    state.setProperty (propPaddingBottom, p, undo);
+}
+
+int LayoutItem::getPaddingTop () const
+{
+    return state.getProperty (propPaddingTop, 0);
+}
+int LayoutItem::getPaddingLeft () const
+{
+    return state.getProperty (propPaddingLeft, 0);
+}
+int LayoutItem::getPaddingRight () const
+{
+    return state.getProperty (propPaddingRight, 0);
+}
+int LayoutItem::getPaddingBottom () const
+{
+    return state.getProperty (propPaddingBottom, 0);
+}
+
+void LayoutItem::setAspectRatio (const float ratio, juce::UndoManager* undo)
+{
+    state.setProperty (propAspectRatio, ratio, undo);
+}
+
+float LayoutItem::getAspectRatio () const
+{
+    return state.getProperty (propAspectRatio, 0.0);
+}
+
+juce::ValueTree LayoutItem::getLayoutItem (juce::ValueTree& node, juce::Component* component)
+{
+    if (node.getType() == itemTypeComponent) {
+        LayoutItem item (node);
+        if (item.getComponent() == component) {
+            return node;
+        }
+    }
+    else if (node.getType() == itemTypeSubLayout) {
+        for (int i=0; i < node.getNumChildren(); ++i) {
+            juce::ValueTree child (node.getChild (i));
+            LayoutItem item (child);
+            if (item.getComponent() == component) {
+                return child;
+            }
+        }
+    }
+    return juce::ValueTree();
 }
 
 void LayoutItem::constrainBounds (juce::Rectangle<int>& bounds, bool& changedWidth, bool& changedHeight, bool preferVertical)
@@ -258,24 +491,28 @@ void LayoutItem::constrainBounds (juce::Rectangle<int>& bounds, bool& changedWid
 
 void LayoutItem::setItemBounds (juce::Rectangle<int> b)
 {
-    sharedLayoutData->setItemBounds (b);
+    state.setProperty (volatileItemBounds, b.toString(), nullptr);
 }
 
 void LayoutItem::setItemBounds (int x, int y, int w, int h)
 {
-    sharedLayoutData->setItemBounds (x, y, w, h);
+    setItemBounds (juce::Rectangle<int> (x, y, w, h));
 }
 
 juce::Rectangle<int> LayoutItem::getItemBounds() const
 {
-    return sharedLayoutData->getItemBounds();
+    if (state.hasProperty (volatileItemBounds)) {
+        juce::Rectangle<int> bounds = juce::Rectangle<int>::fromString (state.getProperty (volatileItemBounds).toString());
+        return bounds;
+    }
+    return juce::Rectangle<int>();
 }
 
 juce::Rectangle<int> LayoutItem::getPaddedItemBounds () const
 {
     const int paddingLeft = getPaddingLeft();
     const int paddingTop = getPaddingTop();
-    juce::Rectangle<int> bounds = sharedLayoutData->getItemBounds();
+    juce::Rectangle<int> bounds = getItemBounds();
     return juce::Rectangle<int> (bounds.getX() + paddingLeft,
                                  bounds.getY() + paddingTop,
                                  bounds.getWidth() - (paddingLeft+getPaddingRight()),
@@ -284,12 +521,41 @@ juce::Rectangle<int> LayoutItem::getPaddedItemBounds () const
 
 void LayoutItem::setBoundsAreFinal (bool final)
 {
-    sharedLayoutData->setBoundsAreFinal (final);
+    state.setProperty (volatileItemBoundsFixed, final, nullptr);
 }
 
 bool LayoutItem::getBoundsAreFinal() const
 {
-    return sharedLayoutData->getBoundsAreFinal();
+    return state.getProperty (volatileItemBoundsFixed, false);
+}
+
+void LayoutItem::paintBounds (const juce::ValueTree& node, juce::Graphics& g)
+{
+    LayoutItem item (node);
+    if (item.isHorizontal()) {
+        g.setColour (juce::Colours::red);
+    }
+    else if (item.isVertical()) {
+        g.setColour (juce::Colours::green);
+    }
+    else {
+        g.setColour (juce::Colours::grey);
+    }
+    for (int i=0; i<node.getNumChildren(); ++i) {
+        juce::ValueTree child (node.getChild (i));
+        const LayoutItem childItem (child);
+        if (child.getType() == itemTypeSubLayout) {
+            g.saveState();
+            LayoutItem::paintBounds (child, g);
+            juce::Rectangle<int> bounds (childItem.getItemBounds());
+            if (!bounds.isEmpty())
+                g.drawRect (bounds);
+            g.restoreState();
+        }
+        else {
+            g.drawRect (childItem.getItemBounds().reduced(1));
+        }
+    }
 }
 
 
@@ -299,132 +565,613 @@ void LayoutItem::setWrappedComponentID (const juce::String& name, bool setComp)
         getComponent()->setComponentID (name);
     }
     if (name.isEmpty()) {
-        removeProperty(propComponentID, nullptr);
+        state.removeProperty(propComponentID, nullptr);
     }
     else {
-        setProperty (propComponentID, name, nullptr);
+        state.setProperty (propComponentID, name, nullptr);
     }
 }
 
 
 void LayoutItem::fixUpLayoutItems ()
 {
-    if (juce::Component* comp = sharedLayoutData->getComponent()) {
-        setWrappedComponentID (comp->getComponentID(), false);
+//    if (juce::Component* comp = sharedLayoutData->getComponent()) {
+//        setWrappedComponentID (comp->getComponentID(), false);
+//    }
+}
+
+void LayoutItem::realize (juce::ValueTree& node, juce::Component* owningComponent, Layout* layout)
+{
+    LayoutItem item (node);
+    if (node.getType() == itemTypeComponent) {
+        if (node.hasProperty (propComponentID)) {
+            if (juce::Component* component = owningComponent->findChildWithID (node.getProperty (propComponentID).toString())) {
+                item.setComponent (component, false);
+                return;
+            }
+        }
+        if (node.hasProperty (propComponentName)) {
+            juce::String name = node.getProperty (propComponentName);
+            for (int i=0; i < owningComponent->getNumChildComponents(); ++i) {
+                juce::Component* child = owningComponent->getChildComponent (i);
+                if (child->getName() == name) {
+                    item.setComponent (child, false);
+                    return;
+                }
+            }
+        }
+        if (node.hasProperty (propLabelText)) {
+            juce::Label* newLabel = new juce::Label();
+            newLabel->setText (node.getProperty (propLabelText).toString(), juce::dontSendNotification);
+            if (node.hasProperty (propLabelFontSize)) {
+                newLabel->setFont (juce::Font (node.getProperty (propLabelFontSize), 12.0));
+            }
+            if (node.hasProperty (propComponentName)) {
+                newLabel->setName (node.getProperty (propComponentName).toString());
+            }
+            if (node.hasProperty (propComponentID)) {
+                newLabel->setComponentID (node.getProperty (propComponentID).toString());
+            }
+            
+            owningComponent->addAndMakeVisible (newLabel);
+            item.setComponent (newLabel, true);
+        }
+    }
+    else if (node.getType() == itemTypeSplitter) {
+        LayoutSplitter::Component* splitterComponent = new LayoutSplitter::Component (layout);
+        LayoutSplitter splitter (node);
+        if (node.hasProperty (propComponentID)) {
+            splitterComponent->setComponentID (node.getProperty (propComponentID).toString());
+        }
+        if (item.isHorizontal()) {
+            splitter.setFixedWidth (3);
+            splitterComponent->setMouseCursor (juce::MouseCursor::LeftRightResizeCursor);
+        }
+        else {
+            splitter.setFixedHeight (3);
+            splitterComponent->setMouseCursor (juce::MouseCursor::LeftRightResizeCursor);
+        }
+        splitter.setComponent (splitterComponent, owningComponent);
+        owningComponent->addAndMakeVisible (splitterComponent);
+    }
+    else if (node.getType() == itemTypeSubLayout) {
+        if (node.hasProperty (propGroupName) || node.hasProperty (propGroupText)) {
+            juce::GroupComponent* group = new juce::GroupComponent();
+            if (node.hasProperty (propGroupName)) {
+                group->setName (node.getProperty (propGroupName).toString());
+            }
+            if (node.hasProperty (propGroupText)) {
+                group->setText (node.getProperty (propGroupText).toString());
+            }
+            if (node.hasProperty (propGroupJustification)) {
+                group->setTextLabelPosition (juce::Justification (node.getProperty (propGroupJustification)));
+            }
+            owningComponent->addAndMakeVisible(group);
+            item.setComponent (group, true);
+        }
+        for (int i=0; i < node.getNumChildren(); ++i) {
+            juce::ValueTree child = node.getChild (i);
+            LayoutItem item (child);
+            item.realize (child, owningComponent, layout);
+        }
     }
 }
 
-void LayoutItem::saveLayoutToValueTree (juce::ValueTree& tree) const
+
+void LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bounds)
 {
-    tree = juce::ValueTree (getType());
-    tree.copyPropertiesFrom (*this, nullptr);
+    if (node.getType() == itemTypeSubLayout) {
+        LayoutItem layout (node);
+        const Orientation orientation = layout.getOrientation();
+        
+        // find splitter items
+        int last = 0;
+        juce::Rectangle<int> childBounds (bounds);
+        for (int i=0; i<node.getNumChildren(); ++i) {
+            juce::ValueTree childNode = node.getChild (i);
+            LayoutItem item (childNode);
+            if (item.isOverlay() < 1) {
+                if (childNode.getType() == itemTypeSplitter) {
+                    LayoutSplitter splitter (childNode);
+                    juce::Rectangle<int> splitterBounds (bounds);
+                    if (orientation == LayoutItem::LeftToRight) {
+                        int right = childBounds.getX() + splitter.getRelativePosition() * bounds.getWidth();
+                        updateGeometry (node, childBounds.withRight (right-1), last, i);
+                        splitterBounds.setX (right-1);
+                        splitterBounds.setWidth (3);
+                        childBounds.setLeft (right+1);
+                    }
+                    else if (orientation == LayoutItem::TopDown) {
+                        int bottom = childBounds.getY() + splitter.getRelativePosition() * bounds.getHeight();
+                        updateGeometry (node, childBounds.withBottom (bottom), last, i);
+                        splitterBounds.setY (bottom-1);
+                        splitterBounds.setHeight (3);
+                        childBounds.setTop (bottom+1);
+                    }
+                    else if (orientation == LayoutItem::RightToLeft) {
+                        int left = childBounds.getX() + splitter.getRelativePosition() * bounds.getWidth();
+                        updateGeometry (node, childBounds.withLeft (left), last, i);
+                        splitterBounds.setX (left-1);
+                        splitterBounds.setWidth (3);
+                        childBounds.setRight (left-1);
+                    }
+                    else if (orientation == LayoutItem::BottomUp) {
+                        int top = childBounds.getY() + splitter.getRelativePosition() * bounds.getHeight();
+                        updateGeometry (node, childBounds.withTop (top), last, i);
+                        splitterBounds.setY (top-1);
+                        splitterBounds.setHeight (3);
+                        childBounds.setBottom (top-1);
+                    }
+                    splitter.setItemBounds (splitterBounds);
+                    splitter.setBounds (splitterBounds);
+                    splitter.setBoundsAreFinal (true);
+                    
+                    i++;
+                    last = i;
+                }
+            }
+        }
+        
+        // layout rest right of splitter, if any
+        updateGeometry (node, childBounds, last, node.getNumChildren());
+    }
 }
 
-LayoutItem* LayoutItem::loadLayoutFromValueTree (const juce::ValueTree& tree, juce::Component* owner)
+void LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bounds, int start, int end)
 {
-    copyPropertiesFrom (tree, nullptr);
+    LayoutItem layout (node);
+    
+    // recursion check
+    if (node.getProperty (volatileIsUpdating, false)) {
+        return;
+    }
+    node.setProperty (volatileIsUpdating, true, nullptr);
+    
+    float cummulatedX, cummulatedY;
+    LayoutItem::getStretch (node, cummulatedX, cummulatedY, start, end);
+    float availableWidth  = bounds.getWidth();
+    float availableHeight = bounds.getHeight();
+    const Orientation orientation = layout.getOrientation();
+    
+    if (layout.isVertical()) {
+        for (int i=start; i<juce::jmin (node.getNumChildren(), end); ++i) {
+            juce::ValueTree child (node.getChild (i));
+            LayoutItem item (child);
+            int overlay = item.isOverlay();
+            if (overlay < 1) {
+                float sx, sy;
+                LayoutItem::getStretch (child, sx, sy);
+                //jassert (sy > 0.0);
 
-    if (isSubLayout()) {
-        Layout* layout = dynamic_cast<Layout*>(this);
-        for (int i=0; i<tree.getNumChildren(); ++i) {
-            juce::ValueTree child = tree.getChild (i);
-            LayoutItem* item = nullptr;
-            if (child.getType() == itemTypeComponent) {
-                if (child.hasProperty (propLabelText)) {
-                    juce::String labelText = child.getProperty (propLabelText);
-                    juce::Label* label = new juce::Label (juce::String::empty, labelText);
-                    label->setJustificationType (juce::Justification::centred);
-                    if (child.hasProperty(propLabelFontSize)) {
-                        label->setFont(juce::Font (child.getProperty (propLabelFontSize)));
-                    }
-                    item = layout->addComponent (label, true);
-                    if (owner) {
-                        owner->addAndMakeVisible (item->getComponent());
-                    }
+                float h = bounds.getHeight() * sy / cummulatedY;
+                juce::Rectangle<int> childBounds (bounds.getX(), bounds.getY(), bounds.getWidth(), h);
+                bool changedWidth, changedHeight;
+                item.constrainBounds (childBounds, changedWidth, changedHeight, true);
+                item.setItemBounds (childBounds);
+                if (changedHeight) {
+                    item.setBoundsAreFinal (true);
+                    availableHeight -= childBounds.getHeight();
+                    cummulatedY -= sy;
                 }
-                else if (child.hasProperty (propComponentID)) {
-                    juce::String componentID = child.getProperty (propComponentID);
-                    if (juce::Component* component = owner->findChildWithID (componentID)) {
-                        item = layout->addComponent (component);
-                    }
+                else {
+                    item.setBoundsAreFinal (false);
                 }
-                else if (child.hasProperty (propComponentName)) {
-                    juce::String componentName = child.getProperty (propComponentName);
-                    for (int k=0; k<owner->getNumChildComponents(); ++k) {
-                        juce::Component* component = owner->getChildComponent (k);
-                        if (component->getName() == componentName) {
-                            item = layout->addComponent (component);
-                            break;
-                        }
-                    }
+                if (changedWidth) {
+                    availableWidth = std::max (bounds.getWidth(), childBounds.getWidth());
                 }
             }
-            else if (child.getType() == itemTypeSpacer) {
-                item = layout->addSpacer();
-            }
-            else if (child.getType() == itemTypeLine) {
-                item = layout->addLine (1);
-            }
-            else if (child.getType() == itemTypeSplitter) {
-                // property will be replaced automatically
-                LayoutSplitter* splitter = layout->addSplitterItem (0.5);
-                if (child.hasProperty (propComponentID)) {
-                    splitter->setComponentID (child.getProperty (propComponentID));
-                }
-                if (child.hasProperty (propComponentName)) {
-                    splitter->setName (child.getProperty (propComponentName));
-                }
-                item = splitter;
-            }
-            else if (child.getType() == itemTypeSubLayout) {
-                Layout* subLayout = layout->addSubLayout (Layout::LeftToRight);
-                item = subLayout->loadLayoutFromValueTree(child, owner);
-                
-                // add a group around if provided
-                if (child.hasProperty (propGroupName) || child.hasProperty (propGroupText)) {
-                    juce::String groupName = child.getProperty (propGroupName, juce::String::empty);
-                    juce::String groupText = child.getProperty (propGroupText, juce::String::empty);
-                    if (owner) {
-                        juce::GroupComponent* groupComponent = new juce::GroupComponent (groupName, groupText);
-                        if (child.hasProperty (propGroupJustification)) {
-                            juce::Justification j (child.getProperty (propGroupJustification, 1));
-                            groupComponent->setTextLabelPosition (j);
-                        }
-                        subLayout->setComponent(groupComponent, true);
-                        owner->addAndMakeVisible (groupComponent);
-                    }
-                }
-            }
+        }
+        
+        float y = bounds.getY();
+        if (orientation == BottomUp) {
+            y = bounds.getY() + bounds.getHeight();
+        }
+        for (int i=start; i<juce::jmin (node.getNumChildren(), end); ++i) {
+            juce::ValueTree child = node.getChild (i);
+            LayoutItem item (child);
             
-            if (item) {
-                item->copyPropertiesFrom (child, nullptr);
+            if (item.isOverlay() == 0) {
+                if (item.getBoundsAreFinal()) {
+                    float h = item.getItemBounds().getHeight();
+                    if (orientation == BottomUp) {
+                        y -= h;
+                    }
+                    item.setItemBounds (bounds.getX(), y, availableWidth, h);
+                    if (child.getType() == itemTypeSubLayout) {
+                        LayoutItem sub (child);
+                        sub.updateGeometry (child, item.getPaddedItemBounds());
+                        if (juce::Component* c = item.getComponent()) {
+                            // component in a layout is a GroupComponent, so don't pad component but contents
+                            c->setBounds (item.getItemBounds());
+                        }
+                    }
+                    else if (juce::Component* c = item.getComponent()) {
+                        c->setBounds (item.getPaddedItemBounds());
+                    }
+                    
+                    if (orientation == TopDown) {
+                        y += h;
+                    }
+                }
+                else {
+                    float sx, sy;
+                    LayoutItem::getStretch (child, sx, sy);
+                    //jassert (sy > 0.0);
+                    
+                    float h = availableHeight * sy /cummulatedY;
+                    if (orientation == BottomUp) {
+                        y -= h;
+                    }
+                    item.setItemBounds (bounds.getX(), y, availableWidth, h );
+                    if (child.getType() == itemTypeSubLayout) {
+                        LayoutItem sub (child);
+                        sub.updateGeometry (child, item.getPaddedItemBounds());
+                        if (juce::Component* c = item.getComponent()) {
+                            // component in a layout is a GroupComponent, so don't pad component but contents
+                            c->setBounds (item.getItemBounds());
+                        }
+                    }
+                    else if (juce::Component* c = item.getComponent()) {
+                        c->setBounds (item.getPaddedItemBounds());
+                    }
+                    item.callListenersCallback (item.getPaddedItemBounds());
+                    if (orientation == TopDown) {
+                        y += h;
+                    }
+                }
+            }
+            else {
+                // overlay other item
+                juce::Rectangle<int> overlayTarget;
+                if (item.isOverlay() == 1 && i > start) {
+                    LayoutItem previous (node.getChild(i-1));
+                    overlayTarget = previous.getItemBounds();
+                }
+                else if (item.isOverlay() == 2) {
+                    overlayTarget = bounds;
+                }
+                juce::Rectangle<int> overlayBounds (0, 0, item.getOverlayWidth() * overlayTarget.getWidth(), item.getOverlayHeight() * overlayTarget.getHeight());
+                juce::Justification j (item.getOverlayJustification());
+                item.setItemBounds (j.appliedToRectangle (overlayBounds, overlayTarget));
+                if (child.getType() == itemTypeSubLayout) {
+                    LayoutItem sub (child);
+                    sub.updateGeometry (child, item.getPaddedItemBounds());
+                    if (juce::Component* c = item.getComponent()) {
+                        // component in a layout is a GroupComponent, so don't pad component but contents
+                        c->setBounds (item.getItemBounds());
+                    }
+                }
+                else if (juce::Component* c = item.getComponent()) {
+                    c->setBounds (item.getPaddedItemBounds());
+                }
+                item.callListenersCallback (item.getPaddedItemBounds());
+                
+            }
+        }
+    } else if (layout.isHorizontal()) {
+        for (int i=start; i<juce::jmin (node.getNumChildren(), end); ++i) {
+            juce::ValueTree child (node.getChild (i));
+            LayoutItem item (child);
+            int overlay = item.isOverlay();
+            if (overlay < 1) {
+                float sx, sy;
+                LayoutItem::getStretch (child, sx, sy);
+                //jassert (sx > 0.0);
+
+                float w = bounds.getWidth() * sx / cummulatedX;
+                juce::Rectangle<int> childBounds (bounds.getX(), bounds.getY(), w, bounds.getHeight());
+                bool changedWidth, changedHeight;
+                item.constrainBounds (childBounds, changedWidth, changedHeight, false);
+                item.setItemBounds (childBounds);
+                if (changedWidth) {
+                    item.setBoundsAreFinal (true);
+                    availableWidth -= childBounds.getWidth();
+                    cummulatedX -= sx;
+                }
+                else {
+                    item.setBoundsAreFinal (false);
+                }
+                if (changedHeight) {
+                    availableHeight = std::max (bounds.getHeight(), childBounds.getHeight());
+                }
+            }
+        }
+        
+        float x = bounds.getX();
+        if (orientation == RightToLeft) {
+            x = bounds.getX() + bounds.getWidth();
+        }
+        for (int i=start; i<juce::jmin (node.getNumChildren(), end); ++i) {
+            juce::ValueTree child = node.getChild (i);
+            LayoutItem item (child);
+            if (item.isOverlay() < 1) {
+                if (item.getBoundsAreFinal()) {
+                    float w = item.getItemBounds().getWidth();
+                    if (orientation == RightToLeft) {
+                        x -= w;
+                    }
+                    item.setItemBounds (x, bounds.getY(), w, availableHeight);
+                    juce::Rectangle<int> childBounds (x, bounds.getY(), w, availableHeight);
+                    if (child.getType() == itemTypeSubLayout) {
+                        LayoutItem sub (child);
+                        sub.updateGeometry (child, item.getPaddedItemBounds());
+                        if (juce::Component* c = item.getComponent()) {
+                            // component in a layout is a GroupComponent, so don't pad component but contents
+                            c->setBounds (item.getItemBounds());
+                        }
+                    }
+                    else if (juce::Component* c = item.getComponent()) {
+                        c->setBounds (item.getPaddedItemBounds());
+                    }
+                    
+                    if (orientation == LeftToRight) {
+                        x += w;
+                    }
+                }
+                else {
+                    float sx, sy;
+                    LayoutItem::getStretch (child, sx, sy);
+                    //jassert (sx > 0.0);
+
+                    float w = availableWidth * sx /cummulatedX;
+                    if (orientation == RightToLeft) {
+                        x -= w;
+                    }
+                    item.setItemBounds (x, bounds.getY(), w, availableHeight);
+                    if (child.getType() == itemTypeSubLayout) {
+                        LayoutItem sub (child);
+                        sub.updateGeometry (child, item.getPaddedItemBounds());
+                        if (juce::Component* c = item.getComponent()) {
+                            // component in a layout is a GroupComponent, so don't pad component but contents
+                            c->setBounds (item.getItemBounds());
+                        }
+                    }
+                    else if (juce::Component* c = item.getComponent()) {
+                        c->setBounds (item.getPaddedItemBounds());
+                    }
+                    item.callListenersCallback (item.getPaddedItemBounds());
+                    if (orientation == LeftToRight) {
+                        x += w;
+                    }
+                }
+            }
+            else {
+                // overlay other item
+                juce::Rectangle<int> overlayTarget;
+                if (item.isOverlay() == 1 && i > start) {
+                    LayoutItem previous (node.getChild(i-1));
+                    overlayTarget = previous.getItemBounds();
+                }
+                else if (item.isOverlay() == 2) {
+                    overlayTarget = bounds;
+                }
+                juce::Rectangle<int> overlayBounds (0, 0, item.getOverlayWidth() * overlayTarget.getWidth(), item.getOverlayHeight() * overlayTarget.getHeight());
+                juce::Justification j (item.getOverlayJustification());
+                item.setItemBounds (j.appliedToRectangle (overlayBounds, overlayTarget));
+                if (child.getType() == itemTypeSubLayout) {
+                    LayoutItem sub (child);
+                    sub.updateGeometry (child, item.getPaddedItemBounds());
+                    if (juce::Component* c = item.getComponent()) {
+                        // component in a layout is a GroupComponent, so don't pad component but contents
+                        c->setBounds (item.getItemBounds());
+                    }
+                }
+                else if (juce::Component* c = item.getComponent()) {
+                    c->setBounds (item.getPaddedItemBounds());
+                }
+                item.callListenersCallback (item.getPaddedItemBounds());
+                
             }
         }
     }
     
-    return this;
+    node.setProperty (volatileIsUpdating, false, nullptr);
 }
 
+void LayoutItem::getStretch (const juce::ValueTree& node, float& w, float& h, int start, int end)
+{
+    if (node.getType() != itemTypeSubLayout) {
+        w = node.getProperty (propStretchX, 1.0);
+        h = node.getProperty (propStretchY, 1.0);
+        return;
+    }
+
+    LayoutItem layout (node);
+    bool horizontal = layout.isHorizontal();
+    bool vertical   = layout.isVertical();
+    
+    float stretchX = node.getProperty (propStretchX, -1.0);
+    float stretchY = node.getProperty (propStretchY, -1.0);
+    
+    if (stretchX > 0) {
+        w = stretchX;
+    }
+    else {
+        w = 0.0;
+    }
+    if (stretchY > 0) {
+        h = stretchY;
+    }
+    else {
+        h = 0.0;
+    }
+    
+    if (w > 0.0 && h > 0.0) {
+        return;
+    }
+
+    for (int i=start; i<std::min (end, node.getNumChildren()); ++i) {
+        juce::ValueTree child = node.getChild (i);
+        LayoutItem item (child);
+        if (item.isOverlay() < 1) {
+            float x, y;
+            LayoutItem::getStretch (child, x, y);
+            if (horizontal) {
+                if (stretchX <= 0) w += x;
+                if (stretchY <= 0) h = std::max (h, y);
+            }
+            else if (vertical) {
+                if (stretchX <= 0) w = std::max (w, x);
+                if (stretchY <= 0) h += y;
+            }
+            else {
+                if (stretchX <= 0) w += x;
+                if (stretchY <= 0) h += y;
+            }
+        }
+    }
+
+    if (w <= 0.0) w = 1.0;
+    if (h <= 0.0) h = 1.0;
+    
+}
+
+
+void LayoutItem::getSizeLimits (const juce::ValueTree& node, int& minW, int& maxW, int& minH, int& maxH)
+{
+    bool canConsumeWidth = false;
+    bool canConsumeHeight = false;
+
+    LayoutItem item (node);
+
+    if (node.getType() == itemTypeSubLayout) {
+        if (item.isVertical()) {
+            for (int i=0; i<node.getNumChildren(); ++i) {
+                LayoutItem item (node.getChild (i));
+                if (item.isOverlay() < 1) {
+                    if (item.getMinimumWidth() >= 0) minW = (minW < 0) ? item.getMinimumWidth() : juce::jmax(minW, item.getMinimumWidth());
+                    if (item.getMaximumWidth() >= 0) maxW = (maxW < 0) ? item.getMaximumWidth() : juce::jmin(maxW, item.getMaximumWidth());
+                    if (item.getMinimumHeight() >= 0) minH = (minH < 0) ? item.getMinimumHeight() : minH + item.getMinimumHeight();
+                    if (item.getMaximumHeight() >= 0) {
+                        maxH = (maxH < 0) ? item.getMaximumHeight() : maxH + item.getMaximumHeight();
+                    }
+                    else {
+                        canConsumeHeight = true;
+                    }
+                }
+            }
+        }
+        else if (item.isHorizontal()) {
+            for (int i=0; i<node.getNumChildren(); ++i) {
+                LayoutItem item (node.getChild (i));
+                if (item.isOverlay() < 1) {
+                    if (item.getMinimumWidth() >= 0) minW = (minW < 0) ? item.getMinimumWidth() : minW + item.getMinimumWidth();
+                    if (item.getMaximumWidth() >= 0) {
+                        maxW = (maxW < 0) ? item.getMaximumWidth() : maxW + item.getMaximumWidth();
+                    }
+                    else {
+                        canConsumeWidth = true;
+                    }
+                    if (item.getMinimumHeight() >= 0) minH = (minH < 0) ? item.getMinimumHeight() : juce::jmax(minH, item.getMinimumHeight());
+                    if (item.getMaximumHeight() >= 0) maxH = (maxH < 0) ? item.getMaximumHeight() : juce::jmin(maxH, item.getMaximumHeight());
+                }
+            }
+        }
+        if (canConsumeWidth)  maxW = -1;
+        if (canConsumeHeight) maxH = -1;
+    }
+    else {
+        int cMinW = item.getMinimumWidth();
+        int cMaxW = item.getMaximumWidth();
+        int cMinH = item.getMinimumHeight();
+        int cMaxH = item.getMaximumHeight();
+        if (cMinW >= 0) { if (minW < 0) minW = cMinW; else minW = std::max (minW, cMinW); }
+        if (cMaxW >= 0) { if (maxW < 0) maxW = cMaxW; else maxW = std::min (maxW, cMaxW); }
+        if (cMinH >= 0) { if (minH < 0) minH = cMinH; else minH = std::max (minH, cMinH); }
+        if (cMaxH >= 0) { if (maxH < 0) maxH = cMaxH; else maxH = std::min (maxH, cMaxH); }
+    }
+}
+
+// =============================================================================
+
+
+const juce::Component* LayoutItem::SharedLayoutData::getComponent() const {
+    if (ownedComponent) {
+        return ownedComponent;
+    }
+    if (componentPtr) {
+        return componentPtr;
+    }
+    return nullptr;
+}
+
+juce::Component* LayoutItem::SharedLayoutData::getComponent() {
+    if (ownedComponent) {
+        return ownedComponent;
+    }
+    if (componentPtr) {
+        return componentPtr;
+    }
+    return nullptr;
+}
+
+void LayoutItem::SharedLayoutData::setComponent (juce::Component* c, bool owned)
+{
+    if (owned) {
+        if (ownedComponent == c) {
+            return;
+        }
+        componentPtr = nullptr;
+        ownedComponent = c;
+    }
+    else {
+        if (componentPtr == c) {
+            return;
+        }
+        ownedComponent = nullptr;
+        componentPtr = c;
+    }
+}
+
+bool LayoutItem::SharedLayoutData::hasComponent () const {
+    return componentPtr || ownedComponent;
+}
+
+void LayoutItem::SharedLayoutData::addLayoutListener (LayoutItem::Listener* l) {
+    layoutItemListeners.add (l);
+}
+void LayoutItem::SharedLayoutData::removeLayoutListener (LayoutItem::Listener* l) {
+    layoutItemListeners.remove (l);
+}
+void LayoutItem::SharedLayoutData::removeAllListeners () {
+    layoutItemListeners.clear();
+}
+
+void LayoutItem::SharedLayoutData::callListenersCallback (juce::Rectangle<int> newBounds)
+{
+    layoutItemListeners.call(&LayoutItem::Listener::layoutBoundsChanged, newBounds);
+}
+
+void LayoutItem::SharedLayoutData::callListenersCallback (float relativePosition, bool final)
+{
+    layoutItemListeners.call(&LayoutItem::Listener::layoutSplitterMoved, relativePosition, final);
+}
 
 // =============================================================================
 void LayoutItem::addListener (LayoutItemListener* const newListener)
 {
-    sharedLayoutData->addLayoutListener (newListener);
+    SharedLayoutData* data = getOrCreateData (state);
+    data->addLayoutListener (newListener);
 }
 
 void LayoutItem::removeListener (LayoutItemListener* const listener)
 {
-    sharedLayoutData->removeLayoutListener (listener);
+    if (state.hasProperty (volatileSharedLayoutData)) {
+        SharedLayoutData* data = getOrCreateData (state);
+        data->removeLayoutListener (listener);
+    }
 }
 
 void LayoutItem::callListenersCallback (juce::Rectangle<int> newBounds)
 {
-    sharedLayoutData->callListenersCallback (newBounds);
+    SharedLayoutData* data = getOrCreateData (state);
+    data->callListenersCallback (newBounds);
 }
 
 void LayoutItem::callListenersCallback (float relativePosition, bool final)
 {
-    sharedLayoutData->callListenersCallback (relativePosition, final);
+    SharedLayoutData* data = getOrCreateData (state);
+    data->callListenersCallback (relativePosition, final);
 }
 
 //==============================================================================
@@ -432,103 +1179,109 @@ void LayoutItem::callListenersCallback (float relativePosition, bool final)
 const juce::Identifier LayoutSplitter::propRelativePosition       ("relativePosition");
 const juce::Identifier LayoutSplitter::propRelativeMinPosition    ("relativeMinPosition");
 const juce::Identifier LayoutSplitter::propRelativeMaxPosition    ("relativeMaxPosition");
-const juce::Identifier LayoutSplitter::propIsHorizontal           ("isHorizontal");
 
 
-LayoutSplitter::LayoutSplitter (juce::Component* owningComponent, float position, bool horizontal, Layout* parent)
-:  LayoutItem(Layout::SplitterItem, parent)
+LayoutSplitter::LayoutSplitter (juce::ValueTree& node)
+:  LayoutItem(node)
 {
-    setComponent (this);
-    setIsHorizontal (horizontal);
-    if (horizontal) {
-        setMouseCursor (juce::MouseCursor::LeftRightResizeCursor);
-        setFixedWidth (3);
-    }
-    else {
-        setMouseCursor (juce::MouseCursor::UpDownResizeCursor);
-        setFixedHeight (3);
-    }
 }
 
 LayoutSplitter::~LayoutSplitter()
 {
 }
 
-void LayoutSplitter::paint (juce::Graphics& g)
-{
-    g.fillAll (juce::Colours::grey);
-}
 
-void LayoutSplitter::mouseDrag (const juce::MouseEvent &event)
+float LayoutSplitter::getRelativePosition() const
 {
-    if (Component* c = getParentComponent()) {
-        float pos;
-        bool horizontal = true;
-        juce::Rectangle<int> layoutBounds (c->getLocalBounds());
-        if (Layout* p = getParentLayout()) {
-            horizontal = p->isHorizontal();
-            if (!p->getItemBounds().isEmpty()) {
-                layoutBounds = p->getItemBounds();
-            }
-        }
-        if (horizontal) {
-            pos = (event.getEventRelativeTo(c).position.getX() - layoutBounds.getX()) / layoutBounds.getWidth();
-        }
-        else {
-            pos = (event.getEventRelativeTo(c).position.getY() - layoutBounds.getY()) / layoutBounds.getHeight();
-        }
-        setRelativePosition (juce::jmax (getMinimumRelativePosition(), juce::jmin (getMaximumRelativePosition(), pos)));
-    }
-    if (Layout* rootLayout = getRootLayout()) {
-        rootLayout->updateGeometry();
-    }
-    
-    callListenersCallback (getRelativePosition(), false);
-}
-
-void LayoutSplitter::mouseUp (const juce::MouseEvent& event)
-{
-    if (event.mouseWasDraggedSinceMouseDown()) {
-        callListenersCallback (getRelativePosition(), true);
-    }
+    return state.getProperty (propRelativePosition, 0.5);
 }
 
 void LayoutSplitter::setRelativePosition (float position, juce::UndoManager* undo)
 {
-    setProperty (propRelativePosition, position, undo);
-}
-
-float LayoutSplitter::getRelativePosition() const
-{
-    return getProperty (propRelativePosition, 0.5);
+    state.setProperty (propRelativePosition, position, undo);
 }
 
 void LayoutSplitter::setMinimumRelativePosition (const float min, juce::UndoManager* undo)
 {
-    setProperty (propRelativeMinPosition, min, undo);
+    state.setProperty (propRelativeMinPosition, min, undo);
 }
 
 void LayoutSplitter::setMaximumRelativePosition (const float max, juce::UndoManager* undo)
 {
-    setProperty (propRelativeMaxPosition, max, undo);
+    state.setProperty (propRelativeMaxPosition, max, undo);
 }
 
 float LayoutSplitter::getMinimumRelativePosition() const
 {
-    return getProperty (propRelativeMinPosition, 0.0);
+    return state.getProperty (propRelativeMinPosition, 0.0);
 }
 
 float LayoutSplitter::getMaximumRelativePosition() const
 {
-    return getProperty (propRelativeMaxPosition, 1.0);
+    return state.getProperty (propRelativeMaxPosition, 1.0);
 }
 
-void LayoutSplitter::setIsHorizontal (bool isHorizontal, juce::UndoManager* undo)
+bool LayoutSplitter::isHorizontal () const
 {
-    setProperty (propIsHorizontal, isHorizontal, undo);
+    LayoutItem parent (state.getParent());
+    return parent.isHorizontal();
 }
 
-bool LayoutSplitter::getIsHorizontal() const
+void LayoutSplitter::setBounds (juce::Rectangle<int> b)
 {
-    return getProperty (propIsHorizontal, false);
+    if (juce::Component* splitterComponent = getComponent()) {
+        splitterComponent->setBounds (b);
+    }
+}
+
+LayoutSplitter::Component::Component (Layout* layout)
+: layoutPtr (layout)
+{
+}
+
+void LayoutSplitter::Component::paint (juce::Graphics& g)
+{
+    g.fillAll (juce::Colours::grey);
+}
+
+void LayoutSplitter::Component::mouseDrag (const juce::MouseEvent &event)
+{
+    if (layoutPtr) {
+        juce::ValueTree item = layoutPtr->getLayoutItem (this);
+        juce::ValueTree parentNode (item.getParent());
+        LayoutSplitter  splitter (item);
+        LayoutItem      parent   (parentNode);
+        
+        if (juce::Component* parentComponent = getParentComponent()) {
+            float pos;
+            bool horizontal = true;
+            juce::Rectangle<int> layoutBounds (parentComponent->getLocalBounds());
+            
+            horizontal = parent.isHorizontal();
+            if (!parent.getItemBounds().isEmpty()) {
+                layoutBounds = parent.getItemBounds();
+            }
+            if (horizontal) {
+                pos = (event.getEventRelativeTo(parentComponent).position.getX() - layoutBounds.getX()) / layoutBounds.getWidth();
+            }
+            else {
+                pos = (event.getEventRelativeTo(parentComponent).position.getY() - layoutBounds.getY()) / layoutBounds.getHeight();
+            }
+            splitter.setRelativePosition (juce::jmax (splitter.getMinimumRelativePosition(), juce::jmin (splitter.getMaximumRelativePosition(), pos)));
+            
+            layoutPtr->updateGeometry();
+            splitter.callListenersCallback (splitter.getRelativePosition(), false);
+        }
+    }
+}
+
+void LayoutSplitter::Component::mouseUp (const juce::MouseEvent& event)
+{
+    if (layoutPtr) {
+        juce::ValueTree item = layoutPtr->getLayoutItem (this);
+        LayoutSplitter  splitter (item);
+        if (splitter.isValid()) {
+            splitter.callListenersCallback (splitter.getRelativePosition(), true);
+        }
+    }
 }

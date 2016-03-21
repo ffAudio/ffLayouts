@@ -109,17 +109,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
  @see LayoutItem
  */
 
-class Layout : public LayoutItem
+class Layout
 {
 public:
-    enum Orientation {
-        Unknown = 0,
-        LeftToRight,
-        TopDown,
-        RightToLeft,
-        BottomUp,
-        //GridLayout
-    };
     
     /**
      Create a layout instance defined by a xml string. The xml items are:
@@ -163,35 +155,17 @@ public:
      \li \p groupJustification: specifies the position of the groupText. Add the flags to one integer value
      
      */
+    Layout (juce::Component* owner=nullptr);
     Layout (const juce::String& xml, juce::Component* owner=nullptr);
-    
-    Layout (Orientation o=Unknown, juce::Component* owner=nullptr, Layout* parent=nullptr);
-    virtual ~Layout();
-    
-    /**
-     Changes the orientation of the layout
-     */
-    void setOrientation (const Orientation, juce::UndoManager* undo=nullptr);
+    Layout (const juce::ValueTree& state, juce::Component* owner=nullptr);
 
+    ~Layout ();
+    
     /**
      return the owning component, if it's set
      */
     juce::Component* getOwningComponent();
     const juce::Component* getOwningComponent() const;
-    
-    /**
-     Returns the orientation including direction. If you are only intersted if horizontal or vertical
-     @see isHorizontal and @see isVertival
-     */
-    Orientation getOrientation () const;
-    
-    static Orientation getOrientationFromName (juce::Identifier name);
-    
-    static juce::Identifier getNameFromOrientation (Layout::Orientation o);
-    
-    bool isHorizontal () const;
-
-    bool isVertical ()   const;
 
     /**
      addComponent creates a LayoutItem to wrap the given Component. To add 
@@ -199,7 +173,7 @@ public:
      LayoutItem is returned. You don't need and should not keep this pointer longer 
      than current scope. If you need to alter the item you can access it via @see Layout::getLayoutItem
      */
-    virtual LayoutItem* addComponent (juce::Component*, bool owned=false, int idx=-1);
+    //LayoutItem addComponent (juce::ValueTree& parent, juce::Component*, bool owned=false, int idx=-1);
     
     // TODO: grid layout
     //virtual LayoutItem* addComponent (Component*, const int x, const int y);
@@ -208,59 +182,49 @@ public:
      Remove a component from the layout. The LayoutItem is destructed, but the
      Component is left untouched.
      */
-    void removeComponent (juce::Component*);
+    void removeComponent (juce::Component* component);
     
     /**
      Add a component with a label in a sub layout. By chosing the orientation the
      placement of the label can be set. Either a pointer to a Label pointer can be
      set to return the created label, or you can call getLabel on the returned LayoutItem.
      */
-    LayoutItem* addLabeledComponent (juce::Component*, juce::StringRef, Orientation o=Layout::TopDown, int idx=-1);
+    //LayoutItem* addLabeledComponent (juce::Component*, juce::StringRef, LayoutItem::Orientation o=LayoutItem::TopDown, int idx=-1);
     
     /**
      Creates a nested layout inside a layout.
      */
-    Layout* addSubLayout (Orientation, int idx=-1);
+    //Layout* addSubLayout (juce::ValueTree& parent, LayoutItem::Orientation, int idx=-1);
     
     /**
      Creates a splitter item to separate a layout manually
      */
-    LayoutSplitter* addSplitterItem (float position, int idx=-1);
+    //LayoutSplitter* addSplitterItem (juce::ValueTree& parent, float position, int idx=-1);
 
     /**
      Creates a spacer to put space between items. Use stretch factors to increase
      the space it occupies
      */
-    LayoutItem* addSpacer (float sx=1.0, float sy=1.0, int idx=-1);
+    //LayoutItem* addSpacer (juce::ValueTree& parent, float sx=1.0, float sy=1.0, int idx=-1);
 
     /**
      add a line to separate items
      */
-    LayoutItem* addLine (int width, int idx=-1);
+    //LayoutItem* addLine (int width, int idx=-1);
     
     /**
      Retrieve the LayoutItem for a component. If the Component is not found in the
-     Layout, a nullptr is returned.
+     Layout, an invalid ValueTree node is returned.
      */
-    LayoutItem* getLayoutItem (juce::Component*);
+    juce::ValueTree getLayoutItem (juce::Component*);
     
     /**
      Call this method in your Component::resized() callback.
      If the layout has an owning component, this calls updateGeometry with the
      bounds of the owning component.
      */
-    virtual void updateGeometry ();
-    
-    /**
-     Recompute the geometry of all components. Recoursively recomputes all sub layouts.
-     */
-    virtual void updateGeometry (juce::Rectangle<int> bounds);
+    void updateGeometry ();
 
-    /**
-     Recompute the geometry of all components. Recoursively recomputes all sub layouts.
-     */
-    virtual void updateGeometry (juce::Rectangle<int> bounds, int start, int end);
-    
     /**
      To show the layout bounds e.g. for debugging yout layout structure simply add the following line to yout Component:
      \code{.cpp}
@@ -270,27 +234,7 @@ public:
      }
      \endcode
      */
-    virtual void paintBounds (juce::Graphics& g) const;
-
-    /**
-     Cummulates all stretch factors inside the nested layout
-     
-     Along the orientation the factors are summed up. In the other
-     dimension the maximum of the stretch factors is returned.
-     */
-    void getStretch (float& w, float& h) const override;
-
-    
-    /**
-     Cummulates all stretch factors inside the nested layout
-     */
-    void getCummulatedStretch (float& w, float& h, int start=0, int end=-1) const;
-    
-    /**
-     Cummulates size limits of all child items. Along the orientation it sums up
-     the minimum sizes and maximum sizes.
-     */
-    void getSizeLimits (int& minW, int& maxW, int& minH, int& maxH) override;
+    void paintBounds (juce::Graphics& g) const;
 
     /** Clears the layout and resets to zero state */
     void clearLayout (juce::UndoManager* undo=nullptr);
@@ -298,40 +242,16 @@ public:
     /**
      Chance for LayoutItems to fix properties that might have changed for saving
      */
-    void fixUpLayoutItems () override;
-    
-    void saveLayoutToValueTree (juce::ValueTree& tree) const override;
-    
-    /** Return the number of items in the list of items */
-    int getNumItems() const { return itemsList.size(); }
-    
-    /** Return a LayoutItem at a certain index in the list */
-    LayoutItem* getLayoutItem (const int idx) { return itemsList.getUnchecked (idx); }
-    /** Return a LayoutItem at a certain index in the list */
-    const LayoutItem* getLayoutItem (const int idx) const { return itemsList.getUnchecked (idx); }
-
-protected:
-    /** This is for internal use only. You should not need to call this method */
-    void addRawItem (LayoutItem* item, int idx=-1);
+    //void fixUpLayoutItems () override;
 
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Layout)
     
-    juce::OwnedArray<LayoutItem>       itemsList;
-
-    bool isUpdating;
-    bool isFixing;
-    mutable bool isCummulatingStretch;
+    juce::WeakReference<Layout>::Master masterReference;
+    friend class juce::WeakReference<Layout>;
+    
+    juce::ValueTree state;
     juce::Component::SafePointer<juce::Component> owningComponent;
-    
-    static const juce::Identifier propOrientation;
-    static const juce::Identifier propLayoutBounds;
-    
-    static const juce::Identifier orientationUnknown;
-    static const juce::Identifier orientationLeftToRight;
-    static const juce::Identifier orientationTopDown;
-    static const juce::Identifier orientationRightToLeft;
-    static const juce::Identifier orientationBottomUp;
 
 };
 
