@@ -466,7 +466,7 @@ public:
     /**
      Compute size limits over all child nodes
      */
-    static void getSizeLimits (const juce::ValueTree& node, int& minW, int& maxW, int& minH, int& maxH);
+    static void getSizeLimits (const juce::ValueTree& node, int& minW, int& maxW, int& minH, int& maxH, int start, int end);
     
     // =============================================================================
     

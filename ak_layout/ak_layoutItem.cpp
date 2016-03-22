@@ -426,13 +426,12 @@ juce::ValueTree LayoutItem::getLayoutItem (juce::ValueTree& node, juce::Componen
 
 void LayoutItem::constrainBounds (juce::Rectangle<int>& bounds, bool& changedWidth, bool& changedHeight, bool preferVertical)
 {
-    int cbMinWidth = -1;
-    int cbMaxWidth = -1;
-    int cbMinHeight = -1;
-    int cbMaxHeight = -1;
+    int cbMinWidth = getMinimumWidth();
+    int cbMaxWidth = getMaximumWidth();
+    int cbMinHeight = getMinimumHeight();
+    int cbMaxHeight = getMaximumHeight();
     float aspectRatio = getAspectRatio();
     
-    getSizeLimits (cbMinWidth, cbMaxWidth, cbMinHeight, cbMaxHeight);
     changedWidth  = false;
     changedHeight = false;
     
@@ -440,7 +439,7 @@ void LayoutItem::constrainBounds (juce::Rectangle<int>& bounds, bool& changedWid
         bounds.setWidth (cbMaxWidth);
         changedWidth = true;
     }
-    if (aspectRatio > 0.0 && !preferVertical) {
+    if (aspectRatio > 0.001 && !preferVertical) {
         bounds.setWidth (bounds.getHeight() * aspectRatio);
         changedWidth = true;
     }
@@ -452,7 +451,7 @@ void LayoutItem::constrainBounds (juce::Rectangle<int>& bounds, bool& changedWid
         bounds.setHeight (cbMaxHeight);
         changedHeight = true;
     }
-    if (aspectRatio > 0.0 && preferVertical) {
+    if (aspectRatio > 0.001 && preferVertical) {
         bounds.setHeight (bounds.getWidth() / aspectRatio);
         changedHeight = true;
     }
@@ -647,7 +646,31 @@ void LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bou
                 if (childNode.getType() == itemTypeSplitter) {
                     LayoutSplitter splitter (childNode);
                     juce::Rectangle<int> splitterBounds (bounds);
+                    
+                    // calculate minimum and maximum splitter positions
+                    int leftMinW = -1;
+                    int leftMaxW = -1;
+                    int leftMinH = -1;
+                    int leftMaxH = -1;
+                    getSizeLimits (node, leftMinW, leftMaxW, leftMinH, leftMaxH, last, i);
+                    int rightMinW = -1;
+                    int rightMaxW = -1;
+                    int rightMinH = -1;
+                    int rightMaxH = -1;
+                    getSizeLimits (node, rightMinW, rightMaxW, rightMinH, rightMaxH, i, node.getNumChildren());
+                    
                     if (orientation == LayoutItem::LeftToRight) {
+                        if (bounds.getWidth() > 0) {
+                            float relPosition = splitter.getRelativePosition();
+                            float minRelPosition = static_cast<float>(leftMinW) / bounds.getWidth();
+                            float maxRelPosition = 1.0 - static_cast<float>(rightMinW) / bounds.getWidth();
+                            if (relPosition < minRelPosition) {
+                                splitter.setRelativePosition (minRelPosition);
+                            }
+                            else if (relPosition > maxRelPosition) {
+                                splitter.setRelativePosition (maxRelPosition);
+                            }
+                        }
                         int right = childBounds.getX() + splitter.getRelativePosition() * bounds.getWidth();
                         updateGeometry (node, childBounds.withRight (right-1), last, i);
                         splitterBounds.setX (right-1);
@@ -655,6 +678,17 @@ void LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bou
                         childBounds.setLeft (right+1);
                     }
                     else if (orientation == LayoutItem::TopDown) {
+                        if (bounds.getWidth() > 0) {
+                            float relPosition = splitter.getRelativePosition();
+                            float minRelPosition = static_cast<float>(leftMinH) / bounds.getWidth();
+                            float maxRelPosition = 1.0 - static_cast<float>(rightMinH) / bounds.getWidth();
+                            if (relPosition < minRelPosition) {
+                                splitter.setRelativePosition (minRelPosition);
+                            }
+                            else if (relPosition > maxRelPosition) {
+                                splitter.setRelativePosition (maxRelPosition);
+                            }
+                        }
                         int bottom = childBounds.getY() + splitter.getRelativePosition() * bounds.getHeight();
                         updateGeometry (node, childBounds.withBottom (bottom), last, i);
                         splitterBounds.setY (bottom-1);
@@ -662,6 +696,17 @@ void LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bou
                         childBounds.setTop (bottom+1);
                     }
                     else if (orientation == LayoutItem::RightToLeft) {
+                        if (bounds.getWidth() > 0) {
+                            float relPosition = splitter.getRelativePosition();
+                            float minRelPosition = 1.0 - static_cast<float>(leftMinW) / bounds.getWidth();
+                            float maxRelPosition = static_cast<float>(rightMinW) / bounds.getWidth();
+                            if (relPosition < minRelPosition) {
+                                splitter.setRelativePosition (minRelPosition);
+                            }
+                            else if (relPosition > maxRelPosition) {
+                                splitter.setRelativePosition (maxRelPosition);
+                            }
+                        }
                         int left = childBounds.getX() + splitter.getRelativePosition() * bounds.getWidth();
                         updateGeometry (node, childBounds.withLeft (left), last, i);
                         splitterBounds.setX (left-1);
@@ -669,6 +714,18 @@ void LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bou
                         childBounds.setRight (left-1);
                     }
                     else if (orientation == LayoutItem::BottomUp) {
+                        if (bounds.getWidth() > 0) {
+                            float relPosition = splitter.getRelativePosition();
+                            float minRelPosition = 1.0 - static_cast<float>(leftMinH) / bounds.getWidth();
+                            float maxRelPosition = static_cast<float>(rightMinH) / bounds.getWidth();
+                            if (relPosition < minRelPosition) {
+                                splitter.setRelativePosition (minRelPosition);
+                            }
+                            else if (relPosition > maxRelPosition) {
+                                splitter.setRelativePosition (maxRelPosition);
+                            }
+                        }
+
                         int top = childBounds.getY() + splitter.getRelativePosition() * bounds.getHeight();
                         updateGeometry (node, childBounds.withTop (top), last, i);
                         splitterBounds.setY (top-1);
@@ -994,16 +1051,20 @@ void LayoutItem::getStretch (const juce::ValueTree& node, float& w, float& h, in
 }
 
 
-void LayoutItem::getSizeLimits (const juce::ValueTree& node, int& minW, int& maxW, int& minH, int& maxH)
+void LayoutItem::getSizeLimits (const juce::ValueTree& node, int& minW, int& maxW, int& minH, int& maxH, int start, int end)
 {
     bool canConsumeWidth = false;
     bool canConsumeHeight = false;
 
     LayoutItem item (node);
+    
+    if (end < 0) {
+        end = node.getNumChildren();
+    }
 
     if (node.getType() == itemTypeSubLayout) {
         if (item.isVertical()) {
-            for (int i=0; i<node.getNumChildren(); ++i) {
+            for (int i=start; i < std::min (end, node.getNumChildren()); ++i) {
                 LayoutItem item (node.getChild (i));
                 if (item.isOverlay() < 1) {
                     if (item.getMinimumWidth() >= 0) minW = (minW < 0) ? item.getMinimumWidth() : juce::jmax(minW, item.getMinimumWidth());
@@ -1019,7 +1080,7 @@ void LayoutItem::getSizeLimits (const juce::ValueTree& node, int& minW, int& max
             }
         }
         else if (item.isHorizontal()) {
-            for (int i=0; i<node.getNumChildren(); ++i) {
+            for (int i=start; i < std::min (end, node.getNumChildren()); ++i) {
                 LayoutItem item (node.getChild (i));
                 if (item.isOverlay() < 1) {
                     if (item.getMinimumWidth() >= 0) minW = (minW < 0) ? item.getMinimumWidth() : minW + item.getMinimumWidth();
