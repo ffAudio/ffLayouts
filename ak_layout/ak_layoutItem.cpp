@@ -630,8 +630,10 @@ void LayoutItem::realize (juce::ValueTree& node, juce::Component* owningComponen
 }
 
 
-void LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bounds)
+int LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bounds)
 {
+    int needsGrowing = 0;
+    
     if (node.getType() == itemTypeSubLayout) {
         LayoutItem layout (node);
         const Orientation orientation = layout.getOrientation();
@@ -745,15 +747,25 @@ void LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bou
         // layout rest right of splitter, if any
         updateGeometry (node, childBounds, last, node.getNumChildren());
     }
+    else {
+        // give the chance to respect aspectRatio constraint - depends on given size
+        juce::Rectangle<int> childBounds (bounds);
+        LayoutItem item (node);
+        LayoutItem parent (node.getParent());
+        bool changedWidth, changedHeight;
+        item.constrainBounds (childBounds, changedWidth, changedHeight, parent.isVertical());
+    }
+    return needsGrowing;
 }
 
-void LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bounds, int start, int end)
+int LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bounds, int start, int end)
 {
     LayoutItem layout (node);
+    int needsGrowing = 0;
     
     // recursion check
     if (node.getProperty (volatileIsUpdating, false)) {
-        return;
+        return 0;
     }
     node.setProperty (volatileIsUpdating, true, nullptr);
     
@@ -790,6 +802,7 @@ void LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bou
                 }
             }
         }
+        needsGrowing = std::max (static_cast<int>(-availableHeight), 0);
         
         float y = bounds.getY();
         if (orientation == BottomUp) {
@@ -861,8 +874,7 @@ void LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bou
                 juce::Justification j (item.getOverlayJustification());
                 item.setItemBounds (j.appliedToRectangle (overlayBounds, overlayTarget));
                 if (child.getType() == itemTypeSubLayout) {
-                    LayoutItem sub (child);
-                    sub.updateGeometry (child, item.getPaddedItemBounds());
+                    LayoutItem::updateGeometry (child, item.getPaddedItemBounds());
                     if (juce::Component* c = item.getComponent()) {
                         // component in a layout is a GroupComponent, so don't pad component but contents
                         c->setBounds (item.getItemBounds());
@@ -902,7 +914,8 @@ void LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bou
                 }
             }
         }
-        
+        needsGrowing = std::max (static_cast<int>(-availableWidth), 0);
+
         float x = bounds.getX();
         if (orientation == RightToLeft) {
             x = bounds.getX() + bounds.getWidth();
@@ -943,8 +956,7 @@ void LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bou
                     }
                     item.setItemBounds (x, bounds.getY(), w, availableHeight);
                     if (child.getType() == itemTypeSubLayout) {
-                        LayoutItem sub (child);
-                        sub.updateGeometry (child, item.getPaddedItemBounds());
+                        LayoutItem::updateGeometry (child, item.getPaddedItemBounds());
                         if (juce::Component* c = item.getComponent()) {
                             // component in a layout is a GroupComponent, so don't pad component but contents
                             c->setBounds (item.getItemBounds());
@@ -990,6 +1002,7 @@ void LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bou
     }
     
     node.setProperty (volatileIsUpdating, false, nullptr);
+    return needsGrowing;
 }
 
 void LayoutItem::getStretch (const juce::ValueTree& node, float& w, float& h, int start, int end)

@@ -451,12 +451,12 @@ public:
     /**
      Recompute the geometry of all components. Recoursively recomputes all sub layouts.
      */
-    static void updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bounds);
+    static int updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bounds);
     
     /**
      Recompute the geometry of all components. Recoursively recomputes all sub layouts.
      */
-    static void updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bounds, int start, int end);
+    static int updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bounds, int start, int end);
     
     /**
      Cummulates all stretch factors inside the nested layout
