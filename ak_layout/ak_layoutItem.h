@@ -226,23 +226,16 @@ public:
      Get or create a shared layout data blob. @see SharedLayoutData
      */
     LayoutItem::SharedLayoutData* getOrCreateData ();
-
-    /**
-     Searches for Component to link or create owned components
-     */
-    void linkOrCreateComponent (juce::ValueTree& node, juce::Component* owner);
     
     
-    /*
-    bool isComponentItem ()     const { return itemType == ComponentItem; }
-    bool isSplitterItem ()      const { return itemType == SplitterItem; }
-    bool isSubLayout ()         const { return itemType == SubLayout; }
-     */
+    bool isComponentItem ()     const { return state.getType() == itemTypeComponent; }
+    bool isSplitterItem ()      const { return state.getType() == itemTypeSplitter; }
+    bool isSubLayout ()         const { return state.getType() == itemTypeSubLayout; }
     
     /**
      Set the text for an automatically recreated Label as property
      */
-    void setLabelText (const juce::String& text);
+    void setLabelText (const juce::String& text, juce::UndoManager* undo=nullptr);
     
     /**
      Return the stretch value of an item.
@@ -376,14 +369,14 @@ public:
 
     juce::Identifier getItemType() const { return state.getType(); }
 
-    static LayoutItem makeChildComponent (juce::ValueTree& parent, juce::Component* component, bool owned=false, int idx=-1);
-    static LayoutItem makeChildSplitter (juce::ValueTree& parent, float position, int idx=-1);
-    static LayoutItem makeChildSpacer (juce::ValueTree& parent, float stretchX=1.0, float stretchY=1.0, int idx=-1);
+    static LayoutItem makeChildComponent (juce::ValueTree& parent, juce::Component* component, bool owned=false, int idx=-1, juce::UndoManager* undo=nullptr);
+    static LayoutItem makeChildSplitter (juce::ValueTree& parent, float position, int idx=-1, juce::UndoManager* undo=nullptr);
+    static LayoutItem makeChildSpacer (juce::ValueTree& parent, float stretchX=1.0, float stretchY=1.0, int idx=-1, juce::UndoManager* undo=nullptr);
     
     /**
      Remove a component item from a specific layout level
      */
-    static void removeComponent (juce::ValueTree& parent, juce::Component* c);
+    static void removeComponent (juce::ValueTree& parent, juce::Component* c, juce::UndoManager* undo=nullptr);
     
     /**
      Retrieve the LayoutItem for a component. If the Component is not found in the

@@ -96,7 +96,7 @@ LayoutItem::~LayoutItem()
 {
 }
 
-LayoutItem LayoutItem::makeChildComponent (juce::ValueTree& parent, juce::Component* component, bool owned, int idx)
+LayoutItem LayoutItem::makeChildComponent (juce::ValueTree& parent, juce::Component* component, bool owned, int idx, juce::UndoManager* undo)
 {
     juce::ValueTree child (itemTypeComponent);
     parent.addChild (child, idx, nullptr);
@@ -105,31 +105,33 @@ LayoutItem LayoutItem::makeChildComponent (juce::ValueTree& parent, juce::Compon
     return item;
 }
 
-LayoutItem LayoutItem::makeChildSplitter (juce::ValueTree& parent, float position, int idx)
+LayoutItem LayoutItem::makeChildSplitter (juce::ValueTree& parent, float position, int idx, juce::UndoManager* undo)
 {
+    if (undo) undo->beginNewTransaction (TRANS ("Add splitter item"));
     juce::ValueTree child (itemTypeSplitter);
-    parent.addChild (child, idx, nullptr);
+    parent.addChild (child, idx, undo);
     LayoutSplitter item (child);
-    item.setRelativePosition (position);
+    item.setRelativePosition (position, undo);
     return item;
 }
 
-LayoutItem LayoutItem::makeChildSpacer (juce::ValueTree& parent, float stretchX, float stretchY, int idx)
+LayoutItem LayoutItem::makeChildSpacer (juce::ValueTree& parent, float stretchX, float stretchY, int idx, juce::UndoManager* undo)
 {
+    if (undo) undo->beginNewTransaction (TRANS ("Add spacer item"));
     juce::ValueTree child (itemTypeSpacer);
-    parent.addChild (child, idx, nullptr);
+    parent.addChild (child, idx, undo);
     LayoutItem item (child);
-    item.setStretch (stretchX, stretchY);
+    item.setStretch (stretchX, stretchY, undo);
     return item;
 }
 
-void LayoutItem::removeComponent (juce::ValueTree& parent, juce::Component* c)
+void LayoutItem::removeComponent (juce::ValueTree& parent, juce::Component* c, juce::UndoManager* undo)
 {
     for (int i=0; i<parent.getNumChildren(); ++i) {
         juce::ValueTree child (parent.getChild (i));
         LayoutItem item (child);
         if (item.getComponent() == c) {
-            parent.removeChild (child, nullptr);
+            parent.removeChild (child, undo);
         }
     }
 }
@@ -288,38 +290,9 @@ void LayoutItem::setComponent (juce::Component* ptr, bool owned)
     }
 }
 
-void LayoutItem::linkOrCreateComponent (juce::ValueTree& node, juce::Component* owner)
+void LayoutItem::setLabelText (const juce::String& text, juce::UndoManager* undo)
 {
-    if (node.getType() == itemTypeComponent) {
-        SharedLayoutData* data = getOrCreateData (node);
-        if (node.hasProperty(propComponentID)) {
-            if (juce::Component* component = owner->findChildWithID (node.getProperty (propComponentID, "unknown").toString())) {
-                data->setComponent (component, false);
-            }
-        }
-        else if (node.hasProperty (propComponentName)) {
-            juce::String name = node.getProperty (propComponentName, "unknown").toString();
-            for (int i=0; i < owner->getNumChildComponents(); ++i) {
-                juce::Component* component = owner->getChildComponent (i);
-                if (component->getName() == name) {
-                    data->setComponent (component, false);
-                    break;
-                }
-            }
-        }
-    }
-    else if (node.getType() == itemTypeSubLayout) {
-        for (int i=0; i < node.getNumChildren(); ++i) {
-            juce::ValueTree child = node.getChild (i);
-            linkOrCreateComponent (child, owner);
-        }
-    }
-}
-
-
-void LayoutItem::setLabelText (const juce::String& text)
-{
-    state.setProperty (propLabelText, text, nullptr);
+    state.setProperty (propLabelText, text, undo);
 }
 
 void LayoutItem::getStretch (float& w, float& h) const
