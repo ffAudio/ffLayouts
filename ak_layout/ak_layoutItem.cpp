@@ -1007,20 +1007,10 @@ void LayoutItem::getStretch (const juce::ValueTree& node, float& w, float& h, in
     float stretchX = node.getProperty (propStretchX, -1.0);
     float stretchY = node.getProperty (propStretchY, -1.0);
     
-    if (stretchX > 0) {
-        w = stretchX;
-    }
-    else {
-        w = 0.0;
-    }
-    if (stretchY > 0) {
-        h = stretchY;
-    }
-    else {
-        h = 0.0;
-    }
+    w = std::max (stretchX, 0.0f);
+    h = std::max (stretchY, 0.0f);
     
-    if (w > 0.0 && h > 0.0) {
+    if (w > 0.0001 && h > 0.0001) {
         return;
     }
 
@@ -1045,9 +1035,9 @@ void LayoutItem::getStretch (const juce::ValueTree& node, float& w, float& h, in
         }
     }
 
+    // no stretch in children defaults to 1.0
     if (w <= 0.0) w = 1.0;
     if (h <= 0.0) h = 1.0;
-    
 }
 
 
