@@ -714,7 +714,6 @@ void LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bou
             if (overlay < 1) {
                 float sx, sy;
                 LayoutItem::getStretch (child, sx, sy);
-                //jassert (sy > 0.0);
 
                 float h = bounds.getHeight() * sy / cummulatedY;
                 juce::Rectangle<int> childBounds (bounds.getX(), bounds.getY(), bounds.getWidth(), h);
@@ -751,8 +750,7 @@ void LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bou
                     }
                     item.setItemBounds (bounds.getX(), y, availableWidth, h);
                     if (child.getType() == itemTypeSubLayout) {
-                        LayoutItem sub (child);
-                        sub.updateGeometry (child, item.getPaddedItemBounds());
+                        LayoutItem::updateGeometry (child, item.getPaddedItemBounds());
                         if (juce::Component* c = item.getComponent()) {
                             // component in a layout is a GroupComponent, so don't pad component but contents
                             c->setBounds (item.getItemBounds());
@@ -769,7 +767,6 @@ void LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bou
                 else {
                     float sx, sy;
                     LayoutItem::getStretch (child, sx, sy);
-                    //jassert (sy > 0.0);
                     
                     float h = availableHeight * sy /cummulatedY;
                     if (orientation == BottomUp) {
@@ -829,7 +826,6 @@ void LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bou
             if (overlay < 1) {
                 float sx, sy;
                 LayoutItem::getStretch (child, sx, sy);
-                //jassert (sx > 0.0);
 
                 float w = bounds.getWidth() * sx / cummulatedX;
                 juce::Rectangle<int> childBounds (bounds.getX(), bounds.getY(), w, bounds.getHeight());
@@ -866,8 +862,7 @@ void LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bou
                     item.setItemBounds (x, bounds.getY(), w, availableHeight);
                     juce::Rectangle<int> childBounds (x, bounds.getY(), w, availableHeight);
                     if (child.getType() == itemTypeSubLayout) {
-                        LayoutItem sub (child);
-                        sub.updateGeometry (child, item.getPaddedItemBounds());
+                        LayoutItem::updateGeometry (child, item.getPaddedItemBounds());
                         if (juce::Component* c = item.getComponent()) {
                             // component in a layout is a GroupComponent, so don't pad component but contents
                             c->setBounds (item.getItemBounds());
@@ -884,7 +879,6 @@ void LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> bou
                 else {
                     float sx, sy;
                     LayoutItem::getStretch (child, sx, sy);
-                    //jassert (sx > 0.0);
 
                     float w = availableWidth * sx /cummulatedX;
                     if (orientation == RightToLeft) {
