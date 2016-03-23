@@ -48,12 +48,16 @@ class Layout;
 //==============================================================================
 /**
  LayoutItems are used to store links to components to layout. Also information
- like size hints and stretch factors are stored in the LayoutItems.
+ like size hints and stretch factors are stored in the LayoutItems. To create a new 
+ node in the layout use the static makeChildComponent and similar methods.
+ To interact with an item simply create one on the stack from it's state in the
+ ValueTree, e.g.:
+ \code{.cpp}
+ LayoutItem item (myLayout.state);
+ item.setOrientation (TopDown);
+ \endcode
  
- @see makeSubLayout
- @see makeComponentItem
- @see makeSpliterItem
- @see makeSpacerItem
+ @see makeSubLayout, makeChildComponent, makeChildSplitter, makeChildSpacer
  */
 class LayoutItem
 {
@@ -182,13 +186,6 @@ public:
     
     /** Returns true if orientation is topDown or BottomUp */
     bool isVertical ()   const;
-        
-    /**
-     Return the owningComponent of the root layout. All layouted components are 
-     supposed to be children of owningComponent
-     */
-    const juce::Component* getOwningComponent () const;
-    juce::Component* getOwningComponent ();
     
     /**
      If overlay is set the item will be placed over an earlier defined item. Possible values are
@@ -199,18 +196,22 @@ public:
     int isOverlay () const;
     void setIsOverlay (const int overlay);
     
-    /**
-     Overlay width and overlay height are given in relative sizes to the referenced item @see isOverlay
-     */
+    /** Overlay width and overlay height are given in relative sizes to the referenced item @see isOverlay */
     float getOverlayWidth () const;
+    /** Overlay width and overlay height are given in relative sizes to the referenced item @see isOverlay */
     void setOverlayWidth (float w);
+    /** Overlay width and overlay height are given in relative sizes to the referenced item @see isOverlay */
     float getOverlayHeight () const;
+    /** Overlay width and overlay height are given in relative sizes to the referenced item @see isOverlay */
     void setOverlayHeight (float h);
 
     /**
      overlayJustification defines, where the item is placed inside the referenced item
      */
     int getOverlayJustification () const;
+    /**
+     overlayJustification defines, where the item is placed inside the referenced item
+     */
     void setOverlayJustification (int j);
 
     /**
@@ -387,11 +388,42 @@ public:
         setAspectRatio (inAspectRatio, undo);
     }
 
-    juce::Identifier getItemType() const { return state.getType(); }
+    /**
+     create a sub layout under the node parent with the given orientation.
+     @param parent the node in the hierarchical layout structure
+     @param orientation of the child nodes
+     @param idx the position in the sequence of already present nodes. If -1 the item is appended at the end
+     @param undo the UndoManager for the ValueTree, so changes can be rolled back
+     */
+    static LayoutItem makeSubLayout (juce::ValueTree& parent, Orientation orientation, int idx=-1, juce::UndoManager* undo=nullptr);
 
-    static LayoutItem makeSubLayout (juce::ValueTree& parent, Orientation o, int idx=-1, juce::UndoManager* undo=nullptr);
+    /**
+     create a sub layout under the node parent with the given orientation.
+     @param parent the node in the hierarchical layout structure
+     @param component to be sized and moved by the layout
+     @param owned if set to true the layout takes ownership of the component and will destroy it when the layout or this specific node is destroyed
+     @param idx the position in the sequence of already present nodes. If -1 the item is appended at the end
+     @param undo the UndoManager for the ValueTree, so changes can be rolled back
+     */
     static LayoutItem makeChildComponent (juce::ValueTree& parent, juce::Component* component, bool owned=false, int idx=-1, juce::UndoManager* undo=nullptr);
+
+    /**
+     create a splitter under the node parent with the given orientation. The splitter has an owned component to be dragged around.
+     @param parent the node in the hierarchical layout structure
+     @param position is a relative position where the splitter is placed initially
+     @param idx the position in the sequence of already present nodes. If -1 the item is appended at the end
+     @param undo the UndoManager for the ValueTree, so changes can be rolled back
+     */
     static LayoutItem makeChildSplitter (juce::ValueTree& parent, float position, int idx=-1, juce::UndoManager* undo=nullptr);
+
+    /**
+     create a splitter under the node parent with the given orientation. The splitter has an owned component to be dragged around.
+     @param parent the node in the hierarchical layout structure
+     @param stretchX is a multiplier how many space the spacer wants to reserve in horizontal direction
+     @param stretchY is a multiplier how many space the spacer wants to reserve in vertical direction
+     @param idx the position in the sequence of already present nodes. If -1 the item is appended at the end
+     @param undo the UndoManager for the ValueTree, so changes can be rolled back
+     */
     static LayoutItem makeChildSpacer (juce::ValueTree& parent, float stretchX=1.0, float stretchY=1.0, int idx=-1, juce::UndoManager* undo=nullptr);
     
     /**

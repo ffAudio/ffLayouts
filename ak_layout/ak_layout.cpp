@@ -135,49 +135,6 @@ LayoutItem* Layout::addLabeledComponent (juce::Component* c, juce::StringRef tex
     LayoutItem* labeledItem = sub->addComponent (c);
     return labeledItem;
 }
-
-Layout* Layout::addSubLayout (juce::ValueTree& parent, LayoutItem::Orientation o, int idx)
-{
-    Layout* sub = new Layout (o, owningComponent, this);
-    itemsList.insert (idx, sub);
-    return sub;
-}
-
-LayoutSplitter* Layout::addSplitterItem (juce::ValueTree& parent, float position, int idx)
-{
-    // a splitter is a component. If you hit this assert your splitter will not be displayed
-    jassert(owningComponent);
-    
-    LayoutSplitter* splitter = new LayoutSplitter (owningComponent, position, isHorizontal(), this);
-    owningComponent->addAndMakeVisible (splitter);
-    itemsList.insert (idx, splitter);
-    return splitter;
-}
-
-LayoutItem* Layout::addSpacer (juce::ValueTree& parent, float sx, float sy, int idx)
-{
-    LayoutItem* item = itemsList.insert (idx, new LayoutItem (LayoutItem::SpacerItem));
-    item->setStretch (sx, sy);
-    return item;
-}
-
-LayoutItem* Layout::addLine (int width, int idx)
-{
-    juce::DrawableRectangle* c = new juce::DrawableRectangle;
-    c->setFill (juce::FillType (juce::Colours::black));
-    if (juce::Component* owningComponent = getOwningComponent()) {
-        owningComponent->addAndMakeVisible (c);
-    }
-    LayoutItem* item = itemsList.insert (idx, new LayoutItem (c, this, true));
-    if (isHorizontal()) {
-        setFixedWidth (width);
-    }
-    if (isVertical()) {
-        setFixedHeight (width);
-    }
-    
-    return item;
-}
 */
 
 juce::ValueTree Layout::getLayoutItem (juce::Component* component)
@@ -191,8 +148,11 @@ void Layout::clearLayout (juce::UndoManager* undo)
     state.removeAllChildren (undo);
 }
 
-void Layout::realize()
+void Layout::realize (juce::Component* owningComponent_)
 {
+    if (owningComponent_) {
+        owningComponent = owningComponent_;
+    }
     LayoutItem root (state);
     root.realize (state, owningComponent, this);
 }
@@ -213,26 +173,6 @@ void Layout::paintBounds (juce::Graphics& g) const
 {
     LayoutItem::paintBounds (state, g);
 }
-
-/*
-void Layout::fixUpLayoutItems ()
-{
-    if (isFixing) {
-        return;
-    }
-    isFixing = true;
-    
-    // if it's the root layout save the bounds as well
-    if (this == getRootLayout() && !getItemBounds().isEmpty()) {
-        setProperty ("layoutBounds", getItemBounds().toString(), nullptr);
-    }
-    
-    for (int i=0; i<itemsList.size(); ++i) {
-        itemsList.getUnchecked (i)->fixUpLayoutItems();
-    }
-    isFixing = false;
-}
-*/
 
 //==============================================================================
 

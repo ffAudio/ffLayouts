@@ -44,7 +44,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /**
  \mainpage
- <h1>Juce Layout</h1>
+ <h1>Layout for juce</h1>
  
  This JUCE module provides a simple to use layout mechanism. The items to be laid out are LayoutItems.
  Each LayoutItem can be either a sub layout, a spacer to leave space or a component item which refers to a
@@ -53,11 +53,14 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
  @see LayoutItem
  
  <p>
+ The major benefit is, that the layout can be defined as xml file and load on creation of the
+ GUI elements. So the GUI can be rearranged without changing the implementation. Different XML
+ files dependent on screen dimensions are also feasible.
+ 
+ <p>
  The basic usage is to add a Layout instance to your parent component where you want to lay the children in.
  This component doesn't need to be the top most component, it also works for sub components.
  Use the Constructor providing a this pointer to the component, so the overall bounds can be used.
- Also if you want to use the helper LabeledComponent it is needed that the created Label can be displayed
- on the owned component.
  @see Layout
  
  <p>
@@ -85,9 +88,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
          addAndMakeVisible (button1);
          addAndMakeVisible (button2);
          addAndMakeVisible (button3);
-         myLayout.addComponent (&button1);
-         myLayout.addComponent (&button2);
-         myLayout.addComponent (&button3);
+         LayoutItem::makeComponentItem (myLayout.state, &button1);
+         LayoutItem::makeComponentItem (myLayout.state, &button2);
+         LayoutItem::makeComponentItem (myLayout.state, &button3);
+         myLayout.realize ();
      }
  
      void resized() override {
@@ -166,52 +170,13 @@ public:
      */
     juce::Component* getOwningComponent();
     const juce::Component* getOwningComponent() const;
-
-    /**
-     addComponent creates a LayoutItem to wrap the given Component. To add 
-     properties like stretch factor, minimum sizes etc. a pointer to the created
-     LayoutItem is returned. You don't need and should not keep this pointer longer 
-     than current scope. If you need to alter the item you can access it via @see Layout::getLayoutItem
-     */
-    //LayoutItem addComponent (juce::ValueTree& parent, juce::Component*, bool owned=false, int idx=-1);
-    
-    // TODO: grid layout
-    //virtual LayoutItem* addComponent (Component*, const int x, const int y);
     
     /**
      Remove a component from the layout. The LayoutItem is destructed, but the
      Component is left untouched.
      */
     void removeComponent (juce::Component* component);
-    
-    /**
-     Add a component with a label in a sub layout. By chosing the orientation the
-     placement of the label can be set. Either a pointer to a Label pointer can be
-     set to return the created label, or you can call getLabel on the returned LayoutItem.
-     */
-    //LayoutItem* addLabeledComponent (juce::Component*, juce::StringRef, LayoutItem::Orientation o=LayoutItem::TopDown, int idx=-1);
-    
-    /**
-     Creates a nested layout inside a layout.
-     */
-    //Layout* addSubLayout (juce::ValueTree& parent, LayoutItem::Orientation, int idx=-1);
-    
-    /**
-     Creates a splitter item to separate a layout manually
-     */
-    //LayoutSplitter* addSplitterItem (juce::ValueTree& parent, float position, int idx=-1);
 
-    /**
-     Creates a spacer to put space between items. Use stretch factors to increase
-     the space it occupies
-     */
-    //LayoutItem* addSpacer (juce::ValueTree& parent, float sx=1.0, float sy=1.0, int idx=-1);
-
-    /**
-     add a line to separate items
-     */
-    //LayoutItem* addLine (int width, int idx=-1);
-    
     /**
      Retrieve the LayoutItem for a component. If the Component is not found in the
      Layout, an invalid ValueTree node is returned.
@@ -219,9 +184,12 @@ public:
     juce::ValueTree getLayoutItem (juce::Component*);
     
     /**
-     Call this to connect a fresh state to the owningComponent
+     Call this to connect a fresh state to the owningComponent. In this step layout defined 
+     components like the splitter component and text labels are created and the items in the 
+     hierarchy are hooked up to children of owningComponent identified by componentID or 
+     componentName.
      */
-    void realize();
+    void realize (juce::Component* owningComponent=nullptr);
     
     /**
      Call this method in your Component::resized() callback.
@@ -244,18 +212,15 @@ public:
     /** Clears the layout and resets to zero state */
     void clearLayout (juce::UndoManager* undo=nullptr);
 
-    /**
-     Chance for LayoutItems to fix properties that might have changed for saving
-     */
-    //void fixUpLayoutItems () override;
-
+    /** Use the state to identify nodes in the hierarchy where to add layout items */
+    juce::ValueTree state;
+    
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Layout)
     
     juce::WeakReference<Layout>::Master masterReference;
     friend class juce::WeakReference<Layout>;
     
-    juce::ValueTree state;
     juce::Component::SafePointer<juce::Component> owningComponent;
 
 };
