@@ -417,18 +417,18 @@ float LayoutItem::getAspectRatio () const
 
 juce::ValueTree LayoutItem::getLayoutItem (juce::ValueTree& node, juce::Component* component)
 {
-    if (node.getType() == itemTypeComponent) {
-        LayoutItem item (node);
+    LayoutItem item (node);
+    if (item.hasComponent()) {
         if (item.getComponent() == component) {
             return node;
         }
     }
-    else if (node.getType() == itemTypeSubLayout) {
+    if (node.getType() == itemTypeSubLayout) {
         for (int i=0; i < node.getNumChildren(); ++i) {
             juce::ValueTree child (node.getChild (i));
-            LayoutItem item (child);
-            if (item.getComponent() == component) {
-                return child;
+            juce::ValueTree result = LayoutItem::getLayoutItem (child, component);
+            if (result.isValid()) {
+                return result;
             }
         }
     }
@@ -603,16 +603,17 @@ void LayoutItem::realize (juce::ValueTree& node, juce::Component* owningComponen
     else if (node.getType() == itemTypeSplitter) {
         LayoutSplitter::Component* splitterComponent = new LayoutSplitter::Component (layout);
         LayoutSplitter splitter (node);
+        LayoutItem parent (node.getParent());
         if (node.hasProperty (propComponentID)) {
             splitterComponent->setComponentID (node.getProperty (propComponentID).toString());
         }
-        if (item.isHorizontal()) {
+        if (parent.isHorizontal()) {
             splitter.setFixedWidth (3);
             splitterComponent->setMouseCursor (juce::MouseCursor::LeftRightResizeCursor);
         }
         else {
             splitter.setFixedHeight (3);
-            splitterComponent->setMouseCursor (juce::MouseCursor::LeftRightResizeCursor);
+            splitterComponent->setMouseCursor (juce::MouseCursor::UpDownResizeCursor);
         }
         splitter.setComponent (splitterComponent, owningComponent);
         owningComponent->addAndMakeVisible (splitterComponent);
@@ -1290,29 +1291,31 @@ void LayoutSplitter::Component::mouseDrag (const juce::MouseEvent &event)
 {
     if (layoutPtr) {
         juce::ValueTree item = layoutPtr->getLayoutItem (this);
-        juce::ValueTree parentNode (item.getParent());
-        LayoutSplitter  splitter (item);
-        LayoutItem      parent   (parentNode);
-        
-        if (juce::Component* parentComponent = getParentComponent()) {
-            float pos;
-            bool horizontal = true;
-            juce::Rectangle<int> layoutBounds (parentComponent->getLocalBounds());
+        if (item.isValid()) {
+            juce::ValueTree parentNode (item.getParent());
+            LayoutSplitter  splitter (item);
+            LayoutItem      parent   (parentNode);
             
-            horizontal = parent.isHorizontal();
-            if (!parent.getItemBounds().isEmpty()) {
-                layoutBounds = parent.getItemBounds();
+            if (juce::Component* parentComponent = getParentComponent()) {
+                float pos;
+                bool horizontal = true;
+                juce::Rectangle<int> layoutBounds (parentComponent->getLocalBounds());
+                
+                horizontal = parent.isHorizontal();
+                if (!parent.getItemBounds().isEmpty()) {
+                    layoutBounds = parent.getItemBounds();
+                }
+                if (horizontal) {
+                    pos = (event.getEventRelativeTo(parentComponent).position.getX() - layoutBounds.getX()) / layoutBounds.getWidth();
+                }
+                else {
+                    pos = (event.getEventRelativeTo(parentComponent).position.getY() - layoutBounds.getY()) / layoutBounds.getHeight();
+                }
+                splitter.setRelativePosition (juce::jmax (splitter.getMinimumRelativePosition(), juce::jmin (splitter.getMaximumRelativePosition(), pos)));
+                
+                layoutPtr->updateGeometry();
+                splitter.callListenersCallback (splitter.getRelativePosition(), false);
             }
-            if (horizontal) {
-                pos = (event.getEventRelativeTo(parentComponent).position.getX() - layoutBounds.getX()) / layoutBounds.getWidth();
-            }
-            else {
-                pos = (event.getEventRelativeTo(parentComponent).position.getY() - layoutBounds.getY()) / layoutBounds.getHeight();
-            }
-            splitter.setRelativePosition (juce::jmax (splitter.getMinimumRelativePosition(), juce::jmin (splitter.getMaximumRelativePosition(), pos)));
-            
-            layoutPtr->updateGeometry();
-            splitter.callListenersCallback (splitter.getRelativePosition(), false);
         }
     }
 }
@@ -1321,9 +1324,11 @@ void LayoutSplitter::Component::mouseUp (const juce::MouseEvent& event)
 {
     if (layoutPtr) {
         juce::ValueTree item = layoutPtr->getLayoutItem (this);
-        LayoutSplitter  splitter (item);
-        if (splitter.isValid()) {
-            splitter.callListenersCallback (splitter.getRelativePosition(), true);
+        if (item.isValid()) {
+            LayoutSplitter  splitter (item);
+            if (splitter.isValid()) {
+                splitter.callListenersCallback (splitter.getRelativePosition(), true);
+            }
         }
     }
 }
