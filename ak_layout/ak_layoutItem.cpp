@@ -96,12 +96,23 @@ LayoutItem::~LayoutItem()
 {
 }
 
+LayoutItem LayoutItem::makeSubLayout (juce::ValueTree& parent, Orientation o, int idx, juce::UndoManager* undo)
+{
+    if (undo) undo->beginNewTransaction (TRANS ("Add sub layout"));
+    juce::ValueTree child (itemTypeSubLayout);
+    parent.addChild (child, idx, undo);
+    LayoutItem item (child);
+    item.setOrientation (o, undo);
+    return item;
+}
+
 LayoutItem LayoutItem::makeChildComponent (juce::ValueTree& parent, juce::Component* component, bool owned, int idx, juce::UndoManager* undo)
 {
+    if (undo) undo->beginNewTransaction (TRANS ("Add Component item"));
     juce::ValueTree child (itemTypeComponent);
-    parent.addChild (child, idx, nullptr);
+    parent.addChild (child, idx, undo);
     LayoutItem item (child);
-    item.setComponent (component, owned);
+    item.setComponent (component, owned, undo);
     return item;
 }
 
@@ -258,7 +269,7 @@ juce::Component* LayoutItem::getComponent () const
     return nullptr;
 }
 
-LayoutItem::SharedLayoutData* LayoutItem::getOrCreateData (juce::ValueTree& node)
+LayoutItem::SharedLayoutData* LayoutItem::getOrCreateData (juce::ValueTree& node, juce::UndoManager* undo)
 {
     if (node.hasProperty (volatileSharedLayoutData)) {
         if (SharedLayoutData* data = dynamic_cast<SharedLayoutData*>(node.getProperty(volatileSharedLayoutData).getObject())) {
@@ -268,25 +279,25 @@ LayoutItem::SharedLayoutData* LayoutItem::getOrCreateData (juce::ValueTree& node
         jassertfalse;
     }
     SharedLayoutData* data = new SharedLayoutData;
-    node.setProperty (volatileSharedLayoutData, data, nullptr);
+    node.setProperty (volatileSharedLayoutData, data, undo);
     return data;
 }
 
-LayoutItem::SharedLayoutData* LayoutItem::getOrCreateData ()
+LayoutItem::SharedLayoutData* LayoutItem::getOrCreateData (juce::UndoManager* undo)
 {
-    return LayoutItem::getOrCreateData (state);
+    return LayoutItem::getOrCreateData (state, undo);
 }
 
-void LayoutItem::setComponent (juce::Component* ptr, bool owned)
+void LayoutItem::setComponent (juce::Component* ptr, bool owned, juce::UndoManager* undo)
 {
-    SharedLayoutData* data = getOrCreateData();
+    SharedLayoutData* data = getOrCreateData (undo);
     data->setComponent(ptr, owned);
 
     if (ptr->getComponentID().isEmpty()) {
-        state.removeProperty (propComponentID, nullptr);
+        state.removeProperty (propComponentID, undo);
     }
     else {
-        state.setProperty (propComponentID, ptr->getComponentID(), nullptr);
+        state.setProperty (propComponentID, ptr->getComponentID(), undo);
     }
 }
 

@@ -50,7 +50,10 @@ class Layout;
  LayoutItems are used to store links to components to layout. Also information
  like size hints and stretch factors are stored in the LayoutItems.
  
- @see Layout
+ @see makeSubLayout
+ @see makeComponentItem
+ @see makeSpliterItem
+ @see makeSpacerItem
  */
 class LayoutItem
 {
@@ -89,22 +92,31 @@ private:
     private:
         friend LayoutItem;
         
+        /** @internal */
         const juce::Component* getComponent() const;
         
+        /** @internal */
         juce::Component* getComponent();
         
+        /** @internal */
         void setComponent (juce::Component* c, bool owned=false);
         
+        /** @internal */
         bool hasComponent () const;
         
+        /** @internal */
         void addLayoutListener (LayoutItem::Listener* l);
         
+        /** @internal */
         void removeLayoutListener (LayoutItem::Listener* l);
         
+        /** @internal */
         void removeAllListeners ();
         
+        /** @internal */
         void callListenersCallback (juce::Rectangle<int> newBounds);
 
+        /** @internal */
         void callListenersCallback (float relativePosition, bool final);
         
     private:
@@ -136,6 +148,10 @@ public:
         //GridLayout
     };
     
+    /**
+     Instanciate a LayoutItem from it's state. To create a new item use the static methods
+     @see make
+     */
     LayoutItem (juce::ValueTree state);
         
     virtual ~LayoutItem();
@@ -161,12 +177,15 @@ public:
     
     static juce::Identifier getNameFromOrientation (LayoutItem::Orientation o);
     
+    /** Returns true if orientation is leftToRight or rightToLeft */
     bool isHorizontal () const;
     
+    /** Returns true if orientation is topDown or BottomUp */
     bool isVertical ()   const;
         
     /**
-     Return the owningComponent of the root layout
+     Return the owningComponent of the root layout. All layouted components are 
+     supposed to be children of owningComponent
      */
     const juce::Component* getOwningComponent () const;
     juce::Component* getOwningComponent ();
@@ -214,20 +233,21 @@ public:
      when the item is destroyed or another component or nullptr is set. It is always only one
      pointer present, each call to setComponent removes the other variant.
      */
-    void setComponent (juce::Component* ptr, bool owned=false);
+    void setComponent (juce::Component* ptr, bool owned=false, juce::UndoManager* undo=nullptr);
 
     
     /**
      Get or create a shared layout data blob for state node. @see SharedLayoutData
      */
-    static LayoutItem::SharedLayoutData* getOrCreateData (juce::ValueTree& node);
+    static LayoutItem::SharedLayoutData* getOrCreateData (juce::ValueTree& node, juce::UndoManager* undo=nullptr);
 
     /**
      Get or create a shared layout data blob. @see SharedLayoutData
      */
-    LayoutItem::SharedLayoutData* getOrCreateData ();
+    LayoutItem::SharedLayoutData* getOrCreateData (juce::UndoManager* undo=nullptr);
     
     
+    bool isSpacerItem ()        const { return state.getType() == itemTypeSpacer; }
     bool isComponentItem ()     const { return state.getType() == itemTypeComponent; }
     bool isSplitterItem ()      const { return state.getType() == itemTypeSplitter; }
     bool isSubLayout ()         const { return state.getType() == itemTypeSubLayout; }
@@ -276,7 +296,7 @@ public:
     /**
      Return the size limits of the item. You can use this method to cummulate
      the limits. if you don't want that, it is your responsibility to set the
-     parameters to no limit, i.e. a negative value
+     parameters to no limit (i.e. a negative value) before calling this method
      */
     virtual void getSizeLimits (int& minW, int& maxW, int& minH, int& maxH);
 
@@ -369,6 +389,7 @@ public:
 
     juce::Identifier getItemType() const { return state.getType(); }
 
+    static LayoutItem makeSubLayout (juce::ValueTree& parent, Orientation o, int idx=-1, juce::UndoManager* undo=nullptr);
     static LayoutItem makeChildComponent (juce::ValueTree& parent, juce::Component* component, bool owned=false, int idx=-1, juce::UndoManager* undo=nullptr);
     static LayoutItem makeChildSplitter (juce::ValueTree& parent, float position, int idx=-1, juce::UndoManager* undo=nullptr);
     static LayoutItem makeChildSpacer (juce::ValueTree& parent, float stretchX=1.0, float stretchY=1.0, int idx=-1, juce::UndoManager* undo=nullptr);
@@ -490,7 +511,13 @@ public:
      */
     void callListenersCallback (float relativePosition, bool final);
 
-protected:
+    // =============================================================================
+
+    /**
+     The layout item's node in the ValueTree. You can use this to e.g. specify a 
+     position in the graph where to hang child nodes into. To manipulate rather use 
+     the methods implemented in LayoutItem
+     */
     juce::ValueTree state;
 
 private:
