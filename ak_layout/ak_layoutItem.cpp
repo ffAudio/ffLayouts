@@ -883,6 +883,8 @@ int LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> boun
                     overlayTarget = bounds;
                 }
                 juce::Rectangle<int> overlayBounds (0, 0, item.getOverlayWidth() * overlayTarget.getWidth(), item.getOverlayHeight() * overlayTarget.getHeight());
+                bool changedWidth, changedHeight;
+                item.constrainBounds (overlayBounds, changedWidth, changedHeight, true);
                 juce::Justification j (item.getOverlayJustification());
                 item.setItemBounds (j.appliedToRectangle (overlayBounds, overlayTarget));
                 if (child.getType() == itemTypeSubLayout) {
@@ -994,6 +996,8 @@ int LayoutItem::updateGeometry (juce::ValueTree& node, juce::Rectangle<int> boun
                     overlayTarget = bounds;
                 }
                 juce::Rectangle<int> overlayBounds (0, 0, item.getOverlayWidth() * overlayTarget.getWidth(), item.getOverlayHeight() * overlayTarget.getHeight());
+                bool changedWidth, changedHeight;
+                item.constrainBounds (overlayBounds, changedWidth, changedHeight, true);
                 juce::Justification j (item.getOverlayJustification());
                 item.setItemBounds (j.appliedToRectangle (overlayBounds, overlayTarget));
                 if (child.getType() == itemTypeSubLayout) {
