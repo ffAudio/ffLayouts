@@ -42,6 +42,7 @@
 
 const juce::Identifier LayoutItem::itemTypeInvalid          ("Invalid");
 const juce::Identifier LayoutItem::itemTypeComponent        ("Component");
+const juce::Identifier LayoutItem::itemTypeBuilder          ("Builder");
 const juce::Identifier LayoutItem::itemTypeLabeledComponent ("LabeledComponent");
 const juce::Identifier LayoutItem::itemTypeSplitter         ("Splitter");
 const juce::Identifier LayoutItem::itemTypeSpacer           ("Spacer");
@@ -617,6 +618,22 @@ void LayoutItem::realize (juce::ValueTree& node, juce::Component* owningComponen
         }
         splitter.setComponent (splitterComponent, owningComponent);
         owningComponent->addAndMakeVisible (splitterComponent);
+    }
+    else if (node.getType() == itemTypeBuilder) {
+        if (node.getNumChildren() > 0) {
+            juce::ValueTree buildNode = node.getChild (0);
+            juce::ComponentBuilder builder (buildNode);
+            builder.registerStandardComponentTypes();
+            juce::Component* component = builder.createComponent();
+            if (node.hasProperty (propComponentName)) {
+                component->setName (node.getProperty (propComponentName).toString());
+            }
+            if (node.hasProperty (propComponentID)) {
+                component->setComponentID (node.getProperty (propComponentID).toString());
+            }
+            owningComponent->addAndMakeVisible (component);
+            item.setComponent (component, true /* owned */);
+        }
     }
     else if (node.getType() == itemTypeSubLayout) {
         if (node.hasProperty (propGroupName) || node.hasProperty (propGroupText)) {

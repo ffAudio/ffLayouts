@@ -557,6 +557,7 @@ private:
     
     static const juce::Identifier itemTypeInvalid;
     static const juce::Identifier itemTypeComponent;
+    static const juce::Identifier itemTypeBuilder;
     static const juce::Identifier itemTypeLabeledComponent;
     static const juce::Identifier itemTypeSplitter;
     static const juce::Identifier itemTypeSpacer;
