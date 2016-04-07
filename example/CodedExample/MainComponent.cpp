@@ -40,16 +40,15 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 //==============================================================================
-MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this)
+MainContentComponent::MainContentComponent() : layout (LayoutItem::LeftToRight, this)
 {
     // Juce resizer to demo updates
     resizeConstraints = new ComponentBoundsConstrainer();
     resizeConstraints->setMinimumSize(200, 150);
     resizer = new ResizableCornerComponent (this, resizeConstraints);
 
-
     // minimal example
-    Layout* minimal = layout.addSubLayout (Layout::TopDown);
+    LayoutItem minimal = LayoutItem::makeSubLayout (layout.state, LayoutItem::TopDown);
     gain.setSliderStyle  (Slider::RotaryHorizontalVerticalDrag);
     phase.setSliderStyle (Slider::RotaryHorizontalVerticalDrag);
     pan.setSliderStyle   (Slider::RotaryHorizontalVerticalDrag);
@@ -62,78 +61,64 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
     addAndMakeVisible (gain);
     addAndMakeVisible (phase);
     addAndMakeVisible (pan);
-    minimal->addLabeledComponent (&gain,  "Gain");      // <- this is the only line necessary for each component
-    minimal->addLabeledComponent (&phase, "Phase");
-    minimal->addLabeledComponent (&pan,   "Pan");
-
+    
+    LayoutItem::makeLabeledChildComponent (minimal.state, &gain,  "Gain");   // <- this is the only line necessary for each component
+    LayoutItem::makeLabeledChildComponent (minimal.state, &phase, "Phase");
+    LayoutItem::makeLabeledChildComponent (minimal.state, &pan,   "Pan");
+    
     // other use cases - just tested as many edge cases I could think of...
     // add some sliders in a column
-    Layout* column = layout.addSubLayout (Layout::TopDown);
+    LayoutItem column = LayoutItem::makeSubLayout (layout.state, LayoutItem::TopDown);
     for (int i=0; i<5; ++i) {
         Slider* slider = new Slider (Slider::LinearHorizontal, Slider::TextBoxBelow);
         components.add (slider);
-        column->addComponent (slider);
+        LayoutItem::makeChildComponent (column.state, slider);
         addAndMakeVisible (slider);
     }
     
-    Layout* row = column->addSubLayout(Layout::LeftToRight);
+    LayoutItem row = LayoutItem::makeSubLayout (column.state, LayoutItem::LeftToRight);
     TextButton* b1 = new TextButton ("B1");
     b1->setComponentID ("B1");
     components.add (b1);
-    row->addComponent (b1)->setItemParameters(0.5, 1.0, 50, 30, 100, 60, 3, 0, 3, 3, 1.5);
+    LayoutItem::makeChildComponent (row.state, b1).setItemParameters(0.5, 1.0, 50, 30, 100, 60, 3, 0, 3, 3, 1.5);
     addAndMakeVisible (b1);
     TextButton* b2 = new TextButton ("B2");
     components.add (b2);
-    row->addComponent (b2);
+    LayoutItem::makeChildComponent (row.state, b2);
     addAndMakeVisible (b2);
     TextButton* b3 = new TextButton ("B3");
     components.add (b3);
     addAndMakeVisible (b3);
-    LayoutItem* rowItem = row->addComponent (b3);
-    rowItem->setMinimumWidth (80);
-    rowItem->setMaximumWidth (120);
+    LayoutItem rowItem = LayoutItem::makeChildComponent (row.state, b3);
+    rowItem.setMinimumWidth (80);
+    rowItem.setMaximumWidth (120);
 
-    // you can also access the component from the item
-    LayoutItem* item = layout.addComponent (new Label ("some text", "Some Text"));
-    components.add (item->getComponent());
-    addAndMakeVisible (item->getComponent());
-
-    layout.addSplitterItem (0.5)->setMinimumRelativePosition (0.2);
+    LayoutSplitter splitter = LayoutItem::makeChildSplitter (layout.state, 0.5f);
+    splitter.setMinimumRelativePosition (0.2f);
     
     // in another column we use a spacer
-    Layout* column3 = layout.addSubLayout (Layout::BottomUp);
+    LayoutItem column3 = LayoutItem::makeSubLayout (layout.state, LayoutItem::BottomUp);
     for (int i=0; i<5; ++i) {
         TextButton* button = new TextButton ("Button " + String (i+1));
         components.add (button);
-        column3->addComponent (button);
+        LayoutItem::makeChildComponent (column3.state, button);
         addAndMakeVisible (button);
     }
-    TextButton* button = new TextButton ("Constrained");
-    components.add (button);
-    LayoutItem* constrained = column3->addComponent (button);
-    constrained->setMinimumHeight (100);
-    constrained->setMaximumHeight (110);
-    addAndMakeVisible (button);
-
-    column3->addSplitterItem (0.5, 3)->setMinimumRelativePosition (0.2);
-
-    column3->addSpacer();
-
+    
+   
     // my favourite example, three labeled knobs in a column
-    Layout* column4 = layout.addSubLayout (Layout::TopDown);
-    if (LayoutItem* c4 = dynamic_cast<LayoutItem*>(column4)) {
-        c4->setPadding (10);
-    }
+    LayoutItem column4 = LayoutItem::makeSubLayout (layout.state, LayoutItem::TopDown);
     for (int i=0; i<3; ++i) {
         Slider* slider = new Slider (Slider::RotaryHorizontalVerticalDrag, Slider::NoTextBox);
         components.add (slider);
-        column4->addLabeledComponent (slider, "Knob " + String(i+1), Layout::BottomUp);
+        
+        LayoutItem::makeLabeledChildComponent (column4.state, slider, "Knob " + String(i+1), LayoutItem::BottomUp);
         if (i<2) {
-            column4->addSpacer (1.0, 0.2);
+            LayoutItem::makeChildSpacer (column4.state, 1.0, 0.2);
         }
         addAndMakeVisible (slider);
     }
-    
+
     for (int i=0; i<components.size(); ++i) {
         Component* c = components.getUnchecked (i);
         if (c->getComponentID().isEmpty()) {
@@ -176,6 +161,8 @@ MainContentComponent::MainContentComponent() : layout (Layout::LeftToRight, this
         outDiff.flush();
     }
      */
+    
+    layout.realize (this);
 
     // juce again
     setSize (600, 400);
@@ -192,7 +179,6 @@ void MainContentComponent::paint (Graphics& g)
 
 void MainContentComponent::resized()
 {
-    resizer->setBounds (getRight()-16, getBottom()-16, 16, 16);
-    
-    layout.updateGeometry (getLocalBounds());
+    layout.updateGeometry ();
+    resizer->setBounds (getRight()-16, getBottom()-16, 16, 16);    
 }
