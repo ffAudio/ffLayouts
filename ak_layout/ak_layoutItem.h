@@ -404,7 +404,7 @@ public:
     static LayoutItem makeSubLayout (juce::ValueTree& parent, Orientation orientation, int idx=-1, juce::UndoManager* undo=nullptr);
 
     /**
-     create a sub layout under the node parent with the given orientation.
+     create a component container under the node parent.
      @param parent the node in the hierarchical layout structure
      @param component to be sized and moved by the layout
      @param owned if set to true the layout takes ownership of the component and will destroy it when the layout or this specific node is destroyed
@@ -414,7 +414,20 @@ public:
     static LayoutItem makeChildComponent (juce::ValueTree& parent, juce::Component* component, bool owned=false, int idx=-1, juce::UndoManager* undo=nullptr);
 
     /**
-     create a splitter under the node parent with the given orientation. The splitter has an owned component to be dragged around.
+     create a sub layout under the node parent with a child component and a label component.
+     @param parent the node in the hierarchical layout structure
+     @param component to be sized and moved by the layout
+     @param text to be displayed beneath the component
+     @param o is the orientation to define, on what side to put the text
+     @param owned if set to true the layout takes ownership of the component and will destroy it when the layout or this specific node is destroyed
+     @param idx the position in the sequence of already present nodes. If -1 the item is appended at the end
+     @param undo the UndoManager for the ValueTree, so changes can be rolled back
+     */
+    static LayoutItem makeLabeledChildComponent (juce::ValueTree& parent, juce::Component* component, juce::String text,
+                                                 LayoutItem::Orientation o=LayoutItem::TopDown, bool owned=false, int idx=-1, juce::UndoManager* undo=nullptr);
+    
+    /**
+     create a splitter under the node parent. The splitter has an owned component to be dragged around.
      @param parent the node in the hierarchical layout structure
      @param position is a relative position where the splitter is placed initially
      @param idx the position in the sequence of already present nodes. If -1 the item is appended at the end
@@ -423,7 +436,7 @@ public:
     static LayoutSplitter makeChildSplitter (juce::ValueTree& parent, float position, int idx=-1, juce::UndoManager* undo=nullptr);
 
     /**
-     create a splitter under the node parent with the given orientation. The splitter has an owned component to be dragged around.
+     create a spacer under the node parent. It simply leaves out space.
      @param parent the node in the hierarchical layout structure
      @param stretchX is a multiplier how many space the spacer wants to reserve in horizontal direction
      @param stretchY is a multiplier how many space the spacer wants to reserve in vertical direction

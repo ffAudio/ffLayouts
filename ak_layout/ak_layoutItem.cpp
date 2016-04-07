@@ -124,6 +124,19 @@ LayoutItem LayoutItem::makeChildComponent (juce::ValueTree& parent, juce::Compon
     return item;
 }
 
+LayoutItem LayoutItem::makeLabeledChildComponent (juce::ValueTree& parent, juce::Component* component, juce::String text, LayoutItem::Orientation o, bool owned, int idx, juce::UndoManager* undo)
+{
+    LayoutItem sub = LayoutItem::makeSubLayout (parent, o, idx, undo);
+    LayoutItem container = LayoutItem::makeChildComponent(sub.state, component, owned);
+    juce::Label* label = new juce::Label (component->getName() + "_label");
+    label->setText (text, juce::dontSendNotification);
+    label->setComponentID (component->getComponentID() + "_label");
+    label->setJustificationType (juce::Justification::centred);
+    LayoutItem labelItem = LayoutItem::makeChildComponent (sub.state, label, true);
+    labelItem.setLabelText (text, undo);
+    return sub;
+}
+
 LayoutSplitter LayoutItem::makeChildSplitter (juce::ValueTree& parent, float position, int idx, juce::UndoManager* undo)
 {
     if (undo) undo->beginNewTransaction (TRANS ("Add splitter item"));
