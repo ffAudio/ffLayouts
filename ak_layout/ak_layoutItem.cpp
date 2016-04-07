@@ -78,6 +78,7 @@ const juce::Identifier LayoutItem::propComponentID          ("componentID");
 const juce::Identifier LayoutItem::propComponentName        ("componentName");
 const juce::Identifier LayoutItem::propLabelText            ("labelText");
 const juce::Identifier LayoutItem::propLabelFontSize        ("labelFontSize");
+const juce::Identifier LayoutItem::propLabelJustification   ("labelJustification");
 const juce::Identifier LayoutItem::propGroupName            ("groupName");
 const juce::Identifier LayoutItem::propGroupText            ("groupText");
 const juce::Identifier LayoutItem::propGroupJustification   ("groupJustification");
@@ -589,6 +590,9 @@ void LayoutItem::realize (juce::ValueTree& node, juce::Component* owningComponen
             newLabel->setText (node.getProperty (propLabelText).toString(), juce::dontSendNotification);
             if (node.hasProperty (propLabelFontSize)) {
                 newLabel->setFont (juce::Font (node.getProperty (propLabelFontSize), 12.0));
+            }
+            if (node.hasProperty (propLabelJustification)) {
+                newLabel->setJustificationType (juce::Justification (node.getProperty (propLabelJustification, 36)));
             }
             if (node.hasProperty (propComponentName)) {
                 newLabel->setName (node.getProperty (propComponentName).toString());
