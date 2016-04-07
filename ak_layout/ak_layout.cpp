@@ -53,9 +53,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 
-Layout::Layout (juce::Component* owner)
+Layout::Layout (LayoutItem::Orientation o, juce::Component* owner)
 : owningComponent (owner)
 {
+    state = LayoutItem (o).state;
 }
 
 Layout::Layout (const juce::String& xml, juce::Component* owner)

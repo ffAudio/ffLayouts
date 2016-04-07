@@ -89,6 +89,12 @@ const juce::Identifier LayoutItem::volatileItemBoundsFixed  ("volatileItemBounds
 const juce::Identifier LayoutItem::volatileIsUpdating       ("volatileIsUpdating");
 
 
+LayoutItem::LayoutItem (LayoutItem::Orientation o)
+{
+    state = juce::ValueTree (LayoutItem::itemTypeSubLayout);
+    setOrientation (o);
+}
+
 LayoutItem::LayoutItem (juce::ValueTree state_)
   : state (state_)
 {
@@ -118,7 +124,7 @@ LayoutItem LayoutItem::makeChildComponent (juce::ValueTree& parent, juce::Compon
     return item;
 }
 
-LayoutItem LayoutItem::makeChildSplitter (juce::ValueTree& parent, float position, int idx, juce::UndoManager* undo)
+LayoutSplitter LayoutItem::makeChildSplitter (juce::ValueTree& parent, float position, int idx, juce::UndoManager* undo)
 {
     if (undo) undo->beginNewTransaction (TRANS ("Add splitter item"));
     juce::ValueTree child (itemTypeSplitter);

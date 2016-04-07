@@ -159,7 +159,7 @@ public:
      \li \p groupJustification: specifies the position of the groupText. Add the flags to one integer value
      
      */
-    Layout (juce::Component* owner=nullptr);
+    Layout (LayoutItem::Orientation o, juce::Component* owner=nullptr);
     Layout (const juce::String& xml, juce::Component* owner=nullptr);
     Layout (const juce::ValueTree& state, juce::Component* owner=nullptr);
 

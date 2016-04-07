@@ -44,6 +44,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "juce_gui_basics/juce_gui_basics.h"
 
 class Layout;
+class LayoutSplitter;
 
 //==============================================================================
 /**
@@ -151,6 +152,11 @@ public:
         BottomUp,
         //GridLayout
     };
+    
+    /**
+     Create an empty layout as root node. Is created in the Layout constructor.
+     */
+    LayoutItem (LayoutItem::Orientation o);
     
     /**
      Instanciate a LayoutItem from it's state. To create a new item use the static methods
@@ -414,7 +420,7 @@ public:
      @param idx the position in the sequence of already present nodes. If -1 the item is appended at the end
      @param undo the UndoManager for the ValueTree, so changes can be rolled back
      */
-    static LayoutItem makeChildSplitter (juce::ValueTree& parent, float position, int idx=-1, juce::UndoManager* undo=nullptr);
+    static LayoutSplitter makeChildSplitter (juce::ValueTree& parent, float position, int idx=-1, juce::UndoManager* undo=nullptr);
 
     /**
      create a splitter under the node parent with the given orientation. The splitter has an owned component to be dragged around.
