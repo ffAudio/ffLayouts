@@ -64,6 +64,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
  @see Layout
  
  <p>
+ I you use automatically created and owned components like labels and splitters, you should call
+ Layout::realize() at the end of the constructor.
+ 
+ <p>
  Add a call to updateGeometry() in your component's resized() method.
  @see Layout::updateGeometry()
  
@@ -145,6 +149,7 @@ public:
      \li \p componentName: the componentName to connect to. All child components of the \p owningComponent are searched
      \li \p labelText: if a text is provided, a label owned by the layout is created to display the text
      \li \p labelFontSize: if a \p labelText is present, this font size is used for the label
+     \li \p labelJustification: justification flag (as integer) how to align the text in the label
      
      The Splitter understands the following proberties:
      \li \p relativePosition: The position in normalized form where the splitter is initially set
