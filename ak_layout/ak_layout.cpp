@@ -188,15 +188,17 @@ void Layout::realize (juce::Component* owningComponent_)
 
 void Layout::updateGeometry ()
 {
-    LayoutItem root (state);
-    juce::Rectangle<int> bounds = root.getItemBounds();
-    if (bounds.isEmpty() && owningComponent) {
-        bounds = owningComponent->getLocalBounds();
-    }
-    if (!bounds.isEmpty()) {
-        LayoutItem::updateGeometry (state, bounds);
-        if (resizer) {
-            resizer->setBounds(bounds.getRight() - resizer->getWidth(), bounds.getBottom() - resizer->getHeight(), resizer->getWidth(), resizer->getHeight());
+    if (state.isValid()) {
+        LayoutItem root (state);
+        juce::Rectangle<int> bounds = root.getItemBounds();
+        if (bounds.isEmpty() && owningComponent) {
+            bounds = owningComponent->getLocalBounds();
+        }
+        if (!bounds.isEmpty()) {
+            LayoutItem::updateGeometry (state, bounds);
+            if (resizer) {
+                resizer->setBounds(bounds.getRight() - resizer->getWidth(), bounds.getBottom() - resizer->getHeight(), resizer->getWidth(), resizer->getHeight());
+            }
         }
     }
 }

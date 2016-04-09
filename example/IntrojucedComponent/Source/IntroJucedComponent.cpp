@@ -148,7 +148,7 @@ void IntroJucedComponent::resized()
     slider3->setBounds (512, 24, 150, 128);
     label->setBounds (336, 192, 150, 24);
     //[UserResized] Add your own custom resize handling here..
-    layout->updateGeometry();
+    if (layout) layout->updateGeometry();
     //[/UserResized]
 }
 
