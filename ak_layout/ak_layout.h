@@ -227,7 +227,9 @@ public:
     /** Clears the layout and resets to zero state */
     void clearLayout (juce::UndoManager* undo=nullptr);
     
-    /** Set a ValueTree for keeping track of current positions */
+    /** 
+     Set a ValueTree for keeping track of current positions. The layout will create a new lode inside the given tree.
+     */
     void setSettingsTree (juce::ValueTree settings);
 
     /** This is the callback to track resizer settings */
