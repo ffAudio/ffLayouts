@@ -290,6 +290,11 @@ juce::Component* LayoutItem::getComponent () const
     return nullptr;
 }
 
+juce::String LayoutItem::getComponentID () const
+{
+    return state.getProperty (propComponentID, "");
+}
+
 LayoutItem::SharedLayoutData* LayoutItem::getOrCreateData (juce::ValueTree& node, juce::UndoManager* undo)
 {
     if (node.hasProperty (volatileSharedLayoutData)) {
@@ -448,6 +453,25 @@ juce::ValueTree LayoutItem::getLayoutItem (juce::ValueTree& node, juce::Componen
         for (int i=0; i < node.getNumChildren(); ++i) {
             juce::ValueTree child (node.getChild (i));
             juce::ValueTree result = LayoutItem::getLayoutItem (child, component);
+            if (result.isValid()) {
+                return result;
+            }
+        }
+    }
+    return juce::ValueTree();
+}
+
+juce::ValueTree LayoutItem::getLayoutItem (juce::ValueTree& node, juce::String& componentID)
+{
+    if (node.hasProperty (propComponentID)) {
+        if (node.getProperty (propComponentID) == componentID) {
+            return node;
+        }
+    }
+    if (node.getType() == itemTypeSubLayout) {
+        for (int i=0; i < node.getNumChildren(); ++i) {
+            juce::ValueTree child (node.getChild (i));
+            juce::ValueTree result = LayoutItem::getLayoutItem (child, componentID);
             if (result.isValid()) {
                 return result;
             }
@@ -641,6 +665,7 @@ void LayoutItem::realize (juce::ValueTree& node, juce::Component* owningComponen
         }
         splitter.setComponent (splitterComponent, owningComponent);
         owningComponent->addAndMakeVisible (splitterComponent);
+        splitter.addListener (layout);
     }
     else if (node.getType() == itemTypeBuilder) {
         if (node.getNumChildren() > 0) {
@@ -1224,14 +1249,14 @@ void LayoutItem::SharedLayoutData::removeAllListeners () {
     layoutItemListeners.clear();
 }
 
-void LayoutItem::SharedLayoutData::callListenersCallback (juce::Rectangle<int> newBounds)
+void LayoutItem::SharedLayoutData::callListenersCallback (juce::ValueTree item, juce::Rectangle<int> newBounds)
 {
-    layoutItemListeners.call(&LayoutItem::Listener::layoutBoundsChanged, newBounds);
+    layoutItemListeners.call(&LayoutItem::Listener::layoutBoundsChanged, item, newBounds);
 }
 
-void LayoutItem::SharedLayoutData::callListenersCallback (float relativePosition, bool final)
+void LayoutItem::SharedLayoutData::callListenersCallback (juce::ValueTree item, float relativePosition, bool final)
 {
-    layoutItemListeners.call(&LayoutItem::Listener::layoutSplitterMoved, relativePosition, final);
+    layoutItemListeners.call(&LayoutItem::Listener::layoutSplitterMoved, item, relativePosition, final);
 }
 
 // =============================================================================
@@ -1252,13 +1277,13 @@ void LayoutItem::removeListener (LayoutItemListener* const listener)
 void LayoutItem::callListenersCallback (juce::Rectangle<int> newBounds)
 {
     SharedLayoutData* data = getOrCreateData (state);
-    data->callListenersCallback (newBounds);
+    data->callListenersCallback (state, newBounds);
 }
 
 void LayoutItem::callListenersCallback (float relativePosition, bool final)
 {
     SharedLayoutData* data = getOrCreateData (state);
-    data->callListenersCallback (relativePosition, final);
+    data->callListenersCallback (state, relativePosition, final);
 }
 
 //==============================================================================

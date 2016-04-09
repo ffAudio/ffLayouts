@@ -74,7 +74,7 @@ public:
         virtual ~Listener()  {}
         
         /** Callback when the layout items bounds are changed */
-        virtual void layoutBoundsChanged (juce::Rectangle<int> newBounds) = 0;
+        virtual void layoutBoundsChanged (juce::ValueTree item, juce::Rectangle<int> newBounds) = 0;
         
         /**
          Callback when the item is a splitter and is just moved.
@@ -82,7 +82,7 @@ public:
          To add a listener to a splitter from xml you can set the \p componentName or \p componentID
          to find it as child of the \p owningComponent.
          */
-        virtual void layoutSplitterMoved (float relativePos, bool final) {}
+        virtual void layoutSplitterMoved (juce::ValueTree item, float relativePos, bool final) {}
         
     };
 
@@ -119,10 +119,10 @@ private:
         void removeAllListeners ();
         
         /** @internal */
-        void callListenersCallback (juce::Rectangle<int> newBounds);
+        void callListenersCallback (juce::ValueTree item, juce::Rectangle<int> newBounds);
 
         /** @internal */
-        void callListenersCallback (float relativePosition, bool final);
+        void callListenersCallback (juce::ValueTree item, float relativePosition, bool final);
         
     private:
         juce::Component::SafePointer<juce::Component>   componentPtr;
@@ -224,6 +224,11 @@ public:
      Return the managed component. Tries first the ownedComponent and then the wrappedComponent.
      */
     juce::Component* getComponent ()  const;
+    
+    /**
+     Return the componentID. This is taken from the properties, not the actual component
+     */
+    juce::String getComponentID () const;
     
     /**
      Returns true, if a component is set and available as pointer
@@ -457,6 +462,12 @@ public:
     static juce::ValueTree getLayoutItem (juce::ValueTree& node, juce::Component*);
 
     /**
+     Retrieve the LayoutItem for a component by componentID. If the Component is 
+     not found in the Layout, an invalid ValueTree node is returned.
+     */
+    static juce::ValueTree getLayoutItem (juce::ValueTree& node, juce::String& componentID);
+
+    /**
      Applies the size constraints to the items.
      set preferVertical to true to adapt height of the item or false to adapt the width.
      */
@@ -571,9 +582,7 @@ public:
      */
     juce::ValueTree state;
 
-private:
-    JUCE_LEAK_DETECTOR (LayoutItem)
-    
+
     static const juce::Identifier itemTypeInvalid;
     static const juce::Identifier itemTypeComponent;
     static const juce::Identifier itemTypeBuilder;
@@ -617,6 +626,9 @@ private:
     static const juce::Identifier propGroupText;
     static const juce::Identifier propGroupJustification;
     
+private:
+    JUCE_LEAK_DETECTOR (LayoutItem)
+
     static const juce::Identifier volatileSharedLayoutData;
     static const juce::Identifier volatileItemBounds;
     static const juce::Identifier volatileItemBoundsFixed;

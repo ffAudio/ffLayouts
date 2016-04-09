@@ -117,7 +117,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
  @see LayoutItem
  */
 
-class Layout
+class Layout : public LayoutItemListener
 {
 public:
     
@@ -226,7 +226,16 @@ public:
 
     /** Clears the layout and resets to zero state */
     void clearLayout (juce::UndoManager* undo=nullptr);
+    
+    /** Set a ValueTree for keeping track of current positions */
+    void setSettingsTree (juce::ValueTree settings);
 
+    /** This is the callback to track resizer settings */
+    void layoutBoundsChanged (juce::ValueTree item, juce::Rectangle< int > newBounds) override;
+
+    /** This is the callback to track resizer settings */
+    void layoutSplitterMoved (juce::ValueTree item, float relativePos, bool final) override;
+    
     /** Use the state to identify nodes in the hierarchy where to add layout items */
     juce::ValueTree state;
     
@@ -240,6 +249,13 @@ public:
     static const juce::Identifier propMaxHeight;
     static const juce::Identifier propAspectRatio;
 
+    static const juce::Identifier settingsType;
+    static const juce::Identifier settingsPositionX;
+    static const juce::Identifier settingsPositionY;
+    static const juce::Identifier settingsWidth;
+    static const juce::Identifier settingsHeight;
+    static const juce::Identifier settingsSplittersList;
+    static const juce::Identifier settingsSplitterPos;
     
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Layout)
@@ -248,6 +264,12 @@ private:
     friend class juce::WeakReference<Layout>;
     
     juce::Component::SafePointer<juce::Component> owningComponent;
+    
+    /**
+     This tree keeps track of resize bounds, splitter positions et al. You can
+     use it for saving and restoring the positions
+     */
+    juce::ValueTree currentSettings;
     
     std::unique_ptr<juce::ResizableCornerComponent>     resizer;
     std::unique_ptr<juce::ComponentBoundsConstrainer>   resizeConstraints;

@@ -61,6 +61,13 @@ const juce::Identifier Layout::propMinHeight        ("minHeight");
 const juce::Identifier Layout::propMaxHeight        ("maxHeight");
 const juce::Identifier Layout::propAspectRatio      ("aspectRatio");
 
+const juce::Identifier Layout::settingsType         ("layoutSettings");
+const juce::Identifier Layout::settingsPositionX    ("positionX");
+const juce::Identifier Layout::settingsPositionY    ("positionY");
+const juce::Identifier Layout::settingsWidth        ("width");
+const juce::Identifier Layout::settingsHeight       ("height");
+const juce::Identifier Layout::settingsSplittersList("splittersList");
+const juce::Identifier Layout::settingsSplitterPos  ("splitterPos");
 
 Layout::Layout (LayoutItem::Orientation o, juce::Component* owner)
 : owningComponent (owner)
@@ -157,9 +164,62 @@ void Layout::clearLayout (juce::UndoManager* undo)
     state.removeAllChildren (undo);
 }
 
+void Layout::setSettingsTree (juce::ValueTree settings)
+{
+    currentSettings = settings;
+    if (currentSettings.isValid()) {
+        if (owningComponent) {
+            if (currentSettings.hasProperty (settingsWidth) && currentSettings.hasProperty (settingsHeight)) {
+                owningComponent->setSize (currentSettings.getProperty (settingsWidth),
+                                          currentSettings.getProperty (settingsHeight));
+            }
+        }
+        juce::ValueTree splitters = currentSettings.getChildWithName (settingsSplittersList);
+        if (splitters.isValid()) {
+            for (int i=0; i<splitters.getNumChildren(); ++i) {
+                juce::ValueTree node = splitters.getChild (i);
+                if (node.hasProperty (settingsSplitterPos)) {
+                    juce::String splitterID = node.getType().toString();
+                    juce::ValueTree layoutItemNode = LayoutItem::getLayoutItem (state, splitterID);
+                    if (layoutItemNode.isValid() && layoutItemNode.getType() == LayoutItem::itemTypeSplitter) {
+                        LayoutSplitter splitter (layoutItemNode);
+                        splitter.setRelativePosition (node.getProperty (settingsSplitterPos));
+                    }
+                }
+            }
+        }
+    }
+    updateGeometry();
+}
+
+void Layout::layoutBoundsChanged (juce::ValueTree item, juce::Rectangle<int> newBounds)
+{
+    if (currentSettings.isValid()) {
+        currentSettings.setProperty (settingsPositionX, newBounds.getX(), nullptr);
+        currentSettings.setProperty (settingsPositionY, newBounds.getY(), nullptr);
+        currentSettings.setProperty (settingsWidth,     newBounds.getWidth(), nullptr);
+        currentSettings.setProperty (settingsHeight,    newBounds.getHeight(), nullptr);
+    }
+}
+
+void Layout::layoutSplitterMoved (juce::ValueTree item, float relativePos, bool final)
+{
+    if (currentSettings.isValid() && item.getType() == LayoutItem::itemTypeSplitter) {
+        LayoutSplitter splitter (item);
+        juce::String splitterID = splitter.getComponentID();
+        if ( !splitterID.isEmpty()) {
+            juce::ValueTree splittersList = currentSettings.getOrCreateChildWithName (settingsSplittersList, nullptr);
+            juce::ValueTree splitterNode = splittersList.getOrCreateChildWithName (splitterID, nullptr);
+            splitterNode.setProperty (settingsSplitterPos, splitter.getRelativePosition(), nullptr);
+        }
+    }
+}
+
 void Layout::realize (juce::Component* owningComponent_)
 {
     LayoutItem root (state);
+    
+    root.addListener (this);
 
     if (owningComponent_) {
         owningComponent = owningComponent_;
@@ -199,6 +259,7 @@ void Layout::updateGeometry ()
             if (resizer) {
                 resizer->setBounds(bounds.getRight() - resizer->getWidth(), bounds.getBottom() - resizer->getHeight(), resizer->getWidth(), resizer->getHeight());
             }
+            root.callListenersCallback (bounds);
         }
     }
 }
