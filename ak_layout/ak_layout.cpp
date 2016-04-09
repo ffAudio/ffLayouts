@@ -52,6 +52,15 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ak_layoutItem.cpp"
 
 
+const juce::Identifier Layout::propResizable        ("resizable");
+const juce::Identifier Layout::propResizerWidth     ("resizerWidth");
+const juce::Identifier Layout::propResizerHeight    ("resizerHeight");
+const juce::Identifier Layout::propMinWidth         ("minWidth");
+const juce::Identifier Layout::propMaxWidth         ("maxWidth");
+const juce::Identifier Layout::propMinHeight        ("minHeight");
+const juce::Identifier Layout::propMaxHeight        ("maxHeight");
+const juce::Identifier Layout::propAspectRatio      ("aspectRatio");
+
 
 Layout::Layout (LayoutItem::Orientation o, juce::Component* owner)
 : owningComponent (owner)
@@ -69,8 +78,7 @@ Layout::Layout (const juce::String& xml, juce::Component* owner)
     
     if (mainElement) {
         state = juce::ValueTree::fromXml (*mainElement);
-        LayoutItem root (state);
-        root.realize (state, owner, this);
+        realize ();
         updateGeometry();
     }
 }
@@ -151,10 +159,30 @@ void Layout::clearLayout (juce::UndoManager* undo)
 
 void Layout::realize (juce::Component* owningComponent_)
 {
+    LayoutItem root (state);
+
     if (owningComponent_) {
         owningComponent = owningComponent_;
     }
-    LayoutItem root (state);
+    
+    if (owningComponent &&
+        state.hasProperty (propResizable) &&
+        state.getProperty (propResizable)) {
+        resizeConstraints = std::unique_ptr<juce::ComponentBoundsConstrainer> (new juce::ComponentBoundsConstrainer());
+        if (state.hasProperty (propMinWidth))    resizeConstraints->setMinimumWidth     (state.getProperty (propMinWidth));
+        if (state.hasProperty (propMaxWidth))    resizeConstraints->setMaximumWidth     (state.getProperty (propMaxWidth));
+        if (state.hasProperty (propMinHeight))   resizeConstraints->setMinimumHeight    (state.getProperty (propMinHeight));
+        if (state.hasProperty (propMaxHeight))   resizeConstraints->setMaximumHeight    (state.getProperty (propMaxHeight));
+        if (state.hasProperty (propAspectRatio)) resizeConstraints->setFixedAspectRatio (state.getProperty (propAspectRatio));
+
+        resizer = std::unique_ptr<juce::ResizableCornerComponent> (new juce::ResizableCornerComponent (owningComponent, resizeConstraints.get()));
+        resizer->setSize (state.getProperty (propResizerWidth,  16),
+                          state.getProperty (propResizerHeight, 16));
+        owningComponent->addAndMakeVisible (resizer.get());
+        juce::Rectangle<int> newBounds = owningComponent->getLocalBounds();
+        resizeConstraints->setBoundsForComponent (owningComponent, newBounds, false, false, true, true);
+        
+    }
     root.realize (state, owningComponent, this);
 }
 
@@ -162,11 +190,14 @@ void Layout::updateGeometry ()
 {
     LayoutItem root (state);
     juce::Rectangle<int> bounds = root.getItemBounds();
+    if (bounds.isEmpty() && owningComponent) {
+        bounds = owningComponent->getLocalBounds();
+    }
     if (!bounds.isEmpty()) {
         LayoutItem::updateGeometry (state, bounds);
-    }
-    else if (owningComponent) {
-        LayoutItem::updateGeometry (state, owningComponent->getLocalBounds());
+        if (resizer) {
+            resizer->setBounds(bounds.getRight() - resizer->getWidth(), bounds.getBottom() - resizer->getHeight(), resizer->getWidth(), resizer->getHeight());
+        }
     }
 }
 

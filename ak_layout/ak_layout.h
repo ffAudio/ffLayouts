@@ -163,7 +163,17 @@ public:
      \li \p groupText: add a GroupComponent around the sub-layout with the given text
      \li \p groupJustification: specifies the position of the groupText. Add the flags to one integer value
      
+     Additionally the root node may contain
+     \li \p resizable: set this to 1 to add a resizer to the component the layout manages
+     \li \p resizerWidth: the width of the resizer handle
+     \li \p resizerHeight: the height of the resizer handle
+     \li \p minWidth: the width the component shall not shrink below
+     \li \p maxWidth: the maximum width the component may occupy
+     \li \p minHeight: the height the component shall not shrink below
+     \li \p maxHeight: the maximum height the component may occupy
+     
      */
+    
     Layout (LayoutItem::Orientation o, juce::Component* owner=nullptr);
     Layout (const juce::String& xml, juce::Component* owner=nullptr);
     Layout (const juce::ValueTree& state, juce::Component* owner=nullptr);
@@ -220,6 +230,17 @@ public:
     /** Use the state to identify nodes in the hierarchy where to add layout items */
     juce::ValueTree state;
     
+    
+    static const juce::Identifier propResizable;
+    static const juce::Identifier propResizerWidth;
+    static const juce::Identifier propResizerHeight;
+    static const juce::Identifier propMinWidth;
+    static const juce::Identifier propMaxWidth;
+    static const juce::Identifier propMinHeight;
+    static const juce::Identifier propMaxHeight;
+    static const juce::Identifier propAspectRatio;
+
+    
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Layout)
     
@@ -227,6 +248,10 @@ private:
     friend class juce::WeakReference<Layout>;
     
     juce::Component::SafePointer<juce::Component> owningComponent;
+    
+    std::unique_ptr<juce::ResizableCornerComponent>     resizer;
+    std::unique_ptr<juce::ComponentBoundsConstrainer>   resizeConstraints;
+
 
 };
 
