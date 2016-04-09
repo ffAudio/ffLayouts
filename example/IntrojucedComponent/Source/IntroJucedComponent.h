@@ -49,8 +49,8 @@ public:
     // The line below can be used to visualize the computed bounds for debugging
     //void paintOverChildren (Graphics& g) override { if (layout) layout->paintBounds (g); }
 
-    void layoutBoundsChanged (juce::Rectangle<int> newBounds) override;
-    void layoutSplitterMoved (float pos, bool final) override;
+    void layoutBoundsChanged (juce::ValueTree node, juce::Rectangle<int> newBounds) override;
+    void layoutSplitterMoved (juce::ValueTree node, float pos, bool final) override;
 
     //[/UserMethods]
 

@@ -216,11 +216,11 @@ void IntroJucedComponent::sliderValueChanged (Slider* sliderThatWasMoved)
 
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
 
-void IntroJucedComponent::layoutBoundsChanged (juce::Rectangle<int> newBounds)
+void IntroJucedComponent::layoutBoundsChanged (juce::ValueTree node, juce::Rectangle<int> newBounds)
 {
 }
 
-void IntroJucedComponent::layoutSplitterMoved (float pos, bool final)
+void IntroJucedComponent::layoutSplitterMoved (juce::ValueTree node, float pos, bool final)
 {
     label->setText(String (pos), dontSendNotification);
     label->setColour (Label::textColourId, final ? Colours::black : Colours::red);
