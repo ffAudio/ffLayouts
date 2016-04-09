@@ -21,10 +21,6 @@ class debugComponent    : public Component
 public:
     debugComponent() : showBounds (true)
     {
-        resizeConstraints = new ComponentBoundsConstrainer();
-        resizeConstraints->setMinimumSize(100, 100);
-        resizer = new ResizableCornerComponent (this, resizeConstraints);
-
         WildcardFileFilter wildcardFilter ("*", String::empty, "Layout file");
         FileBrowserComponent browser (FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles,
                                       File::nonexistent,
@@ -40,8 +36,10 @@ public:
             loadLayout (browser.getSelectedFile (0));
         }
         
-        addAndMakeVisible (resizer);
-        setSize (400, 250);
+        if (getWidth() * getHeight() < 1) {
+            // if a size constraint is set in the xml, the component has already a valid size
+            setSize (100, 100);
+        }
     }
 
     ~debugComponent()
@@ -93,11 +91,12 @@ public:
         juce::ScopedPointer<juce::XmlElement> mainElement = juce::XmlDocument::parse (layoutCode);
         if (mainElement) {
             juce::ValueTree myLoadedTree = juce::ValueTree::fromXml (*mainElement);
+
+            // for this debugger create for each component of the xml a label to display as placeholder
             createDummyComponents (myLoadedTree);
         }
         
         layout = new Layout (layoutCode, this);
-        layout->updateGeometry();
     }
     
     // set showBounds to true to paint the bounds of individual layouts
@@ -109,18 +108,14 @@ public:
     void resized() override
     {
         if (layout) layout->updateGeometry();
-        resizer->setBounds (getRight()-16, getBottom()-16, 16, 16);
     }
 
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (debugComponent)
     
     bool showBounds;
-    
     ScopedPointer<Layout>                       layout;
-    ScopedPointer<ResizableCornerComponent>     resizer;
-    ScopedPointer<ComponentBoundsConstrainer>   resizeConstraints;
-    
+
     OwnedArray<Component> testComponents;
 };
 

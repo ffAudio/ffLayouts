@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Layout orientation="leftToRight" resizable="1" minWidth="450" minHeight="300">
+  <Component componentID="canvas" stretchX="3.0" minWidth="50"/>
+  <Component componentID="speakers" overlay="2" overlayWidth="0.25" overlayHeight="0.3" maxWidth="200" overlayJustification="18" paddingBottom="30"/>
+  <Splitter relativePosition="0.75" componentID="mainSplitter"/>
+  <Layout orientation="topDown" minWidth="180">
+    <Layout orientation="topDown" groupText="Source Settings" paddingTop="20" paddingLeft="10" paddingRight="10" paddingBottom="10" minHeight="55">
+      <Layout orientation="leftToRight">
+        <Layout orientation="topDown">
+          <Component componentID="sourceGain"/>
+          <Component labelText="Input" minHeight="20" maxHeight="20" labelJustification="36"/>
+        </Layout>
+        <Layout orientation="topDown">
+          <Component componentID="stereoAngle"/>
+          <Component labelText="Angle" minHeight="20" maxHeight="20" labelJustification="36"/>
+        </Layout>
+        <Layout orientation="topDown">
+          <Component componentID="rotation"/>
+          <Component labelText="Rotation" minHeight="20" maxHeight="20" labelJustification="36"/>
+        </Layout>
+        <Layout orientation="topDown" stretchX="0.5">
+          <Component componentID="inputMeter"/>
+          <Component labelText="Input" minHeight="20" maxHeight="20"/>
+        </Layout>
+      </Layout>
+      <Layout orientation="leftToRight" stretchY="0.3" maxHeight="24">
+        <Spacer/>
+        <Component componentID="directionMode" maxHeight="20"/>
+      </Layout>
+    </Layout>
+    <Layout orientation="leftToRight" groupText="Physics Settings" paddingTop="20" paddingLeft="10" paddingRight="10" paddingBottom="10" minHeight="40">
+      <Layout orientation="topDown">
+        <Component componentID="soundSpeed"/>
+        <Component labelText="Sound Speed" minHeight="20" maxHeight="20" labelJustification="36"/>
+      </Layout>
+      <Layout orientation="topDown">
+          <Component componentID="attenuation"/>
+          <Component labelText="Attenuation" minHeight="20" maxHeight="20" labelJustification="36"/>
+      </Layout>
+      <Layout orientation="topDown">
+          <Component componentID="highDamp"/>
+          <Component labelText="High Damp" minHeight="20" maxHeight="20" labelJustification="36"/>
+      </Layout>
+    </Layout>
+    <Layout orientation="leftToRight" groupText="Speakers Setup" paddingTop="20" paddingLeft="10" paddingRight="10" paddingBottom="10" minHeight="40">
+        <Layout orientation="topDown">
+            <Component componentID="circularSetup"/>
+            <Component componentID="rectangularSetup"/>
+            <Component componentID="customSetup"/>
+            <Component labelText="relative to"/>
+            <Component componentID="relativeSpeaker"/>
+            <Component componentID="relativeListener"/>
+        </Layout>
+        <Layout orientation="topDown">
+            <Component componentID="stereoBase"/>
+            <Component labelText="Stereo base" minHeight="20" maxHeight="20" labelJustification="36"/>
+        </Layout>
+        <Layout orientation="topDown" stretchX="1">
+            <Component componentID="bassFreq"/>
+            <Component labelText="Bass freq" minHeight="20" maxHeight="20" labelJustification="36"/>
+        </Layout>
+    </Layout>
+    <Splitter relativePosition="0.6" componentID="smallSplitter"/>
+    <Component componentID="wayPointsGUI"/>
+  </Layout>
+</Layout>
