@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="hdwq3f" name="layoutDebugger" projectType="guiapp" version="1.0.0"
               bundleIdentifier="com.yourcompany.layoutDebugger" includeBinaryInAppConfig="1"
-              jucerVersion="4.1.0">
+              jucerVersion="4.2.0">
   <MAINGROUP id="KmRgHh" name="layoutDebugger">
     <GROUP id="{B4A5BA76-378A-F1D5-9512-9FD7BEC78A2A}" name="Source">
       <FILE id="i56xsy" name="debugComponent.h" compile="0" resource="0"
@@ -21,13 +21,13 @@
                        cppLibType="libc++"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_core" path="../../../juceOsx/modules"/>
-        <MODULEPATH id="juce_events" path="../../../juceOsx/modules"/>
-        <MODULEPATH id="juce_graphics" path="../../../juceOsx/modules"/>
-        <MODULEPATH id="juce_data_structures" path="../../../juceOsx/modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../../../juceOsx/modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../../../juceOsx/modules"/>
-        <MODULEPATH id="ak_layout" path="../../../juceLayouts"/>
+        <MODULEPATH id="juce_core" path="../../../juceNew/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../../../juceNew/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../../juceNew/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../../juceNew/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../../juceNew/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../../juceNew/JUCE/modules"/>
+        <MODULEPATH id="ak_layout" path="../../../ak_layout"/>
       </MODULEPATHS>
     </XCODE_MAC>
   </EXPORTFORMATS>
