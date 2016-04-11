@@ -49,9 +49,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "ak_layout.h"
 
-#include "ak_layoutItem.cpp"
-
-
 const juce::Identifier Layout::propResizable        ("resizable");
 const juce::Identifier Layout::propResizerWidth     ("resizerWidth");
 const juce::Identifier Layout::propResizerHeight    ("resizerHeight");
