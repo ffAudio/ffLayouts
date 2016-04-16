@@ -31,7 +31,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
     
   ==============================================================================
 
-    juce_ak_layout.cpp
+    ak_layout.cpp
     Created: 21 Feb 2016 9:14:52pm
 
   ==============================================================================
@@ -83,7 +83,6 @@ Layout::Layout (const juce::String& xml, juce::Component* owner)
     if (mainElement) {
         state = juce::ValueTree::fromXml (*mainElement);
         realize ();
-        updateGeometry();
     }
 }
 
@@ -92,8 +91,7 @@ Layout::Layout (const juce::ValueTree& state_, juce::Component* owner)
 {
     state = state_;
     LayoutItem root (state);
-    root.realize (state, owner, this);
-    updateGeometry();
+    realize ();
 }
 
 Layout::~Layout ()
@@ -110,12 +108,6 @@ const juce::Component* Layout::getOwningComponent() const
 {
     return owningComponent;    
 }
-/*
-LayoutItem Layout::addComponent (juce::ValueTree& parent, juce::Component* c, bool owned, int idx)
-{
-    return LayoutItem::makeChildComponent (parent, c, owned, idx);
-}
-*/
 
 void Layout::removeComponent (juce::Component* component)
 {
@@ -124,31 +116,6 @@ void Layout::removeComponent (juce::Component* component)
         node.getParent().removeChild (node, nullptr);
     }
 }
-
-/*
-LayoutItem* Layout::addLabeledComponent (juce::Component* c, juce::StringRef text, Orientation o, int idx)
-{
-    // if the layout is not owned by a component, the label will not show up,
-    // because addAndMakeVisible can not be called.
-    jassert (owningComponent);
-    
-    juce::Label* label = new juce::Label (juce::String::empty, text);
-    label->setJustificationType (juce::Justification::centred);
-    if (owningComponent) {
-        owningComponent->addAndMakeVisible (label);
-    }
-    Layout* sub = addSubLayout (o, idx);
-    LayoutItem* labelItem = sub->addComponent (label, true);
-    if (sub->isVertical()) {
-        float h = label->getFont().getHeight();
-        labelItem->setFixedHeight (h);
-    }
-    labelItem->setLabelText (label->getText());
-
-    LayoutItem* labeledItem = sub->addComponent (c);
-    return labeledItem;
-}
-*/
 
 juce::ValueTree Layout::getLayoutItem (juce::Component* component)
 {
