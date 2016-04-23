@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="hdwq3f" name="layoutDebugger" projectType="guiapp" version="1.0.0"
               bundleIdentifier="com.yourcompany.layoutDebugger" includeBinaryInAppConfig="1"
-              jucerVersion="4.2.0">
+              jucerVersion="4.2.1">
   <MAINGROUP id="KmRgHh" name="layoutDebugger">
     <GROUP id="{B4A5BA76-378A-F1D5-9512-9FD7BEC78A2A}" name="Source">
       <FILE id="i56xsy" name="debugComponent.h" compile="0" resource="0"
