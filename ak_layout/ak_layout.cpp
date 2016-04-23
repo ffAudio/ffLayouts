@@ -219,7 +219,15 @@ void Layout::updateGeometry ()
             bounds = owningComponent->getLocalBounds();
         }
         if (!bounds.isEmpty()) {
-            LayoutItem::updateGeometry (state, bounds);
+            const int shrinkX = root.getPaddingLeft() + root.getPaddingRight();
+            const int shrinkY = root.getPaddingTop() + root.getPaddingBottom();
+            if (bounds.getWidth() > shrinkX && bounds.getHeight() > shrinkY) {
+                juce::Rectangle<int> padded (bounds.getX() + root.getPaddingLeft(),
+                                             bounds.getY() + root.getPaddingRight(),
+                                             bounds.getWidth() - shrinkX,
+                                             bounds.getHeight() - shrinkY);
+                LayoutItem::updateGeometry (state, padded);
+            }
             if (resizer) {
                 resizer->setBounds(bounds.getRight() - resizer->getWidth(), bounds.getBottom() - resizer->getHeight(), resizer->getWidth(), resizer->getHeight());
             }
