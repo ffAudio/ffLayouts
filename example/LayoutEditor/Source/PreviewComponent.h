@@ -16,33 +16,27 @@
 //==============================================================================
 /*
 */
-class debugComponent    : public Component
+class DebugComponent    : public DocumentWindow
 {
 public:
-    debugComponent() : showBounds (true)
+    DebugComponent(const String &  	name,
+                   Colour  	backgroundColour,
+                   int  	requiredButtons,
+                   bool  	addToDesktop = true )
+      : DocumentWindow (name, backgroundColour, requiredButtons, addToDesktop),
+        showBounds (true)
     {
-        WildcardFileFilter wildcardFilter ("*", String::empty, "Layout file");
-        FileBrowserComponent browser (FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles,
-                                      File::nonexistent,
-                                      &wildcardFilter,
-                                      nullptr);
-        FileChooserDialogBox dialogBox ("Open layout file",
-                                        "Please choose a layout file...",
-                                        browser,
-                                        false,
-                                        Colours::lightgrey);
-        if (dialogBox.show())
-        {
-            loadLayout (browser.getSelectedFile (0));
-        }
+        setUsingNativeTitleBar (true);
         
-        if (getWidth() * getHeight() < 1) {
-            // if a size constraint is set in the xml, the component has already a valid size
-            setSize (100, 100);
-        }
+        mainComponent = new Component();
+        mainComponent->setSize (500, 380);
+        setContentNonOwned (mainComponent, true);
+        centreWithSize (getWidth(), getHeight());
+        mainComponent->setVisible (true);
+        setResizable (true, false);
     }
 
-    ~debugComponent()
+    ~DebugComponent()
     {
     }
 
@@ -61,7 +55,7 @@ public:
                 newComponent->setText ("Name:" + componentName, dontSendNotification);
             }
             newComponent->setJustificationType (Justification::centred);
-            addAndMakeVisible (newComponent);
+            mainComponent->addAndMakeVisible (newComponent);
             testComponents.add (newComponent);
         }
         else if (tree.hasProperty ("componentID")) {
@@ -71,7 +65,7 @@ public:
             newComponent->setText ("ID:" + componentID, dontSendNotification);
             newComponent->setJustificationType (Justification::centred);
             newComponent->setColour (Label::backgroundColourId, Colour::fromRGB (rand() % 128 + 127, rand() % 128 + 127, rand() % 128 + 127));
-            addAndMakeVisible (newComponent);
+            mainComponent->addAndMakeVisible (newComponent);
             testComponents.add (newComponent);
         }
         for (int i=0; i<tree.getNumChildren(); ++i) {
@@ -96,7 +90,27 @@ public:
             createDummyComponents (myLoadedTree);
         }
         
-        layout = new Layout (layoutCode, this);
+        layout = new Layout (layoutCode, mainComponent);
+    }
+    
+    void setLayoutFromString (String code)
+    {
+        // read the ValueTree and create dummy components
+        juce::ScopedPointer<juce::XmlElement> mainElement = juce::XmlDocument::parse (code);
+        if (mainElement) {
+            juce::ValueTree myLoadedTree = juce::ValueTree::fromXml (*mainElement);
+            
+            // for this debugger create for each component of the xml a label to display as placeholder
+            createDummyComponents (myLoadedTree);
+        
+            layout = new Layout (code, mainComponent);
+            layout->updateGeometry();
+        }
+    }
+    
+    void closeButtonPressed () override
+    {
+        delete this;
     }
     
     // set showBounds to true to paint the bounds of individual layouts
@@ -107,14 +121,16 @@ public:
 
     void resized() override
     {
-        if (layout) layout->updateGeometry();
+        if (mainComponent) mainComponent->setBounds (getLocalBounds());
+        if (layout)        layout->updateGeometry();
     }
 
 private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (debugComponent)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DebugComponent)
     
     bool showBounds;
-    ScopedPointer<Layout>                       layout;
+    ScopedPointer<Layout>    layout;
+    ScopedPointer<Component> mainComponent;
 
     OwnedArray<Component> testComponents;
 };
