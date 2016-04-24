@@ -9,6 +9,7 @@
 */
 
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "LayoutItemView.h"
 #include "LayoutXMLEditor.h"
 #include "EditorMenuBar.h"
 #include "LayoutEditorApplication.h"

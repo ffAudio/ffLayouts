@@ -11,6 +11,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "LayoutEditorApplication.h"
+#include "LayoutItemView.h"
 #include "LayoutXMLEditor.h"
 #include "EditorMenuBar.h"
 

@@ -10,6 +10,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "PreviewComponent.h"
+#include "LayoutItemView.h"
 #include "LayoutXMLEditor.h"
 
 //==============================================================================
@@ -22,8 +23,29 @@ LayoutXMLEditor::LayoutXMLEditor()
     codeDocument  = new CodeDocument;
     codeEditor    = new CodeEditorComponent (*codeDocument, codeTokeniser);
     addAndMakeVisible (codeEditor);
+    
+    layoutTree    = new TreeView;
+    addAndMakeVisible (layoutTree);
+    
+    nodeProperties = new PropertyPanel;
+    addAndMakeVisible (nodeProperties);
 
-    setSize (500, 300);
+    Label* text = new Label;
+    text->setText (TRANS ("Properties"), dontSendNotification);
+    addAndMakeVisible (text);
+    
+    layout = new Layout (LayoutItem::LeftToRight, this);
+    LayoutItem::makeChildComponent (layout->state, codeEditor);
+    LayoutItem::makeChildSplitter  (layout->state, 0.7f);
+    LayoutItem right = LayoutItem::makeSubLayout (layout->state, LayoutItem::TopDown);
+    LayoutItem::makeChildComponent (right.state, layoutTree);
+    LayoutItem::makeChildSplitter  (right.state, 0.7f);
+    LayoutItem::makeChildComponent (right.state, text, true).setFixedHeight (24);
+    LayoutItem::makeChildComponent (right.state, nodeProperties);
+
+    setSize (700, 700);
+    layout->realize();
+    layout->updateGeometry();
 }
 
 LayoutXMLEditor::~LayoutXMLEditor()
@@ -31,6 +53,7 @@ LayoutXMLEditor::~LayoutXMLEditor()
     if (previewWindow) {
         delete previewWindow;
     }
+    layoutTree->deleteRootItem();
 }
 
 ApplicationCommandTarget* LayoutXMLEditor::getNextCommandTarget ()
@@ -62,11 +85,11 @@ void LayoutXMLEditor::getCommandInfo (CommandID commandID, ApplicationCommandInf
             break;
         case CMDLayoutEditor_Save:
             result.setInfo ("Save Layout", "Save the current layout XML definition", "File", 0);
-            result.defaultKeypresses.add (KeyPress ('o', ModifierKeys::commandModifier, 0));
+            result.defaultKeypresses.add (KeyPress ('s', ModifierKeys::commandModifier, 0));
             break;
         case CMDLayoutEditor_SaveAs:
             result.setInfo ("Save Layout as...", "Save the current layout XML definition under a new name", "File", 0);
-            result.defaultKeypresses.add (KeyPress ('o', ModifierKeys::commandModifier | ModifierKeys::shiftModifier, 0));
+            result.defaultKeypresses.add (KeyPress ('s', ModifierKeys::commandModifier | ModifierKeys::shiftModifier, 0));
             break;
         case CMDLayoutEditor_Run:
             result.setInfo ("Open Layout", "Open a window showing the layout", "Run", 0);
@@ -93,7 +116,8 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
             }
             else {
                 Layout layout (LayoutItem::LeftToRight);
-                String templateText = layout.state.toXmlString();
+                documentContent = layout.state;
+                String templateText = documentContent.toXmlString();
                 openedFile = File();
                 
                 codeDocument->replaceAllContent (templateText);
@@ -119,6 +143,7 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
                         openedFile = browser.getSelectedFile (0);
                         codeDocument->loadFromStream (input);
                         codeDocument->clearUndoHistory();
+                        updateTreeView();
                     }
                     return true;
                 }
@@ -168,6 +193,10 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
             }
             previewWindow->setLayoutFromString (codeDocument->getAllContent());
             break;
+        case CMDLayoutEditor_Refresh:
+            codeDocument->replaceAllContent (documentContent.toXmlString());
+            previewWindow->setLayoutFromString (codeDocument->getAllContent());
+            break;
         default:
             break;
     }
@@ -175,13 +204,31 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
     return true;
 }
 
+void LayoutXMLEditor::updateTreeView ()
+{
+    XmlDocument doc (codeDocument->getAllContent());
+    ScopedPointer<XmlElement> element = doc.getDocumentElement();
+    if (element) {
+        documentContent = ValueTree::fromXml (*element);
+        layoutTree->setRootItem (new LayoutItemView (documentContent, this));
+    }
+}
+
+void LayoutXMLEditor::updatePropertiesView (ValueTree state)
+{
+    nodeProperties->clear();
+    Array<PropertyComponent*> properties;
+    for (int i=0; i<state.getNumProperties(); ++i) {
+        String propertyName = state.getPropertyName (i).toString();
+        PropertyComponent* c = new TextPropertyComponent (state.getPropertyAsValue (propertyName, nullptr), propertyName, 255, false);
+        properties.add (c);
+    }
+    nodeProperties->addProperties (properties);
+}
 
 void LayoutXMLEditor::resized()
 {
-    // This method is where you should set the bounds of any child
-    // components that your component contains..
-
-    if (codeEditor) {
-        codeEditor->setBounds (getLocalBounds());
+    if (layout) {
+        layout->updateGeometry();
     }
 }

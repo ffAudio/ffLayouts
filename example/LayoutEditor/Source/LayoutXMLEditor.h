@@ -11,9 +11,9 @@
 #ifndef LAYOUTXMLEDITOR_H_INCLUDED
 #define LAYOUTXMLEDITOR_H_INCLUDED
 
-#include "../JuceLibraryCode/JuceHeader.h"
 
 class DebugComponent;
+class LayoutItemView;
 
 //==============================================================================
 /*
@@ -28,9 +28,13 @@ public:
     void getAllCommands (Array< CommandID > &commands) override;
     void getCommandInfo (CommandID commandID, ApplicationCommandInfo &result) override;
     bool perform (const InvocationInfo &info) override;
+
+    void updateTreeView ();
     
+    void updatePropertiesView (ValueTree state);
+
     void resized() override;
-    
+
     enum {
         CMDLayoutEditor_New = 0x1101,
         CMDLayoutEditor_Open,
@@ -45,9 +49,16 @@ private:
     
     File                               openedFile;
     
+    ValueTree                          documentContent;
+    
     ScopedPointer<CodeDocument>        codeDocument;
     ScopedPointer<CodeEditorComponent> codeEditor;
     ScopedPointer<CodeTokeniser>       codeTokeniser;
+    
+    ScopedPointer<TreeView>            layoutTree;
+    ScopedPointer<PropertyPanel>       nodeProperties;
+    
+    ScopedPointer<Layout>              layout;
     
     SafePointer<DebugComponent>        previewWindow;
     

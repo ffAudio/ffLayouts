@@ -11,7 +11,6 @@
 #ifndef DEBUGCOMPONENT_H_INCLUDED
 #define DEBUGCOMPONENT_H_INCLUDED
 
-#include "../JuceLibraryCode/JuceHeader.h"
 
 //==============================================================================
 /*

@@ -6,6 +6,14 @@
   <MAINGROUP id="KmRgHh" name="LayoutEditor">
     <GROUP id="{B4A5BA76-378A-F1D5-9512-9FD7BEC78A2A}" name="Source">
       <FILE id="aGl6Nj" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+      <FILE id="yzshvY" name="LayoutXMLEditor.cpp" compile="1" resource="0"
+            file="Source/LayoutXMLEditor.cpp"/>
+      <FILE id="SgIHfW" name="LayoutXMLEditor.h" compile="0" resource="0"
+            file="Source/LayoutXMLEditor.h"/>
+      <FILE id="cPddqv" name="LayoutItemView.cpp" compile="1" resource="0"
+            file="Source/LayoutItemView.cpp"/>
+      <FILE id="E7VwXb" name="LayoutItemView.h" compile="0" resource="0"
+            file="Source/LayoutItemView.h"/>
       <FILE id="izbT8m" name="LayoutEditorApplication.cpp" compile="1" resource="0"
             file="Source/LayoutEditorApplication.cpp"/>
       <FILE id="MkvENn" name="LayoutEditorApplication.h" compile="0" resource="0"
@@ -13,10 +21,6 @@
       <FILE id="IXEfcV" name="EditorMenuBar.cpp" compile="1" resource="0"
             file="Source/EditorMenuBar.cpp"/>
       <FILE id="Ryt6t2" name="EditorMenuBar.h" compile="0" resource="0" file="Source/EditorMenuBar.h"/>
-      <FILE id="yzshvY" name="LayoutXMLEditor.cpp" compile="1" resource="0"
-            file="Source/LayoutXMLEditor.cpp"/>
-      <FILE id="SgIHfW" name="LayoutXMLEditor.h" compile="0" resource="0"
-            file="Source/LayoutXMLEditor.h"/>
       <FILE id="dngKMQ" name="PreviewComponent.h" compile="0" resource="0"
             file="Source/PreviewComponent.h"/>
     </GROUP>
