@@ -84,24 +84,28 @@ String LayoutItemView::getUniqueName () const
 
 void LayoutItemView::paintItem (Graphics &g, int width, int height)
 {
+    Graphics::ScopedSaveState save (g);
     LayoutItem item (state);
     if (item.isSubLayout()) {
+        g.setColour (Colours::black);
         g.drawText (LayoutItem::getNameFromOrientation (item.getOrientation()).toString(), 0, 0, width, height, Justification::left);
     }
     else if (item.isSplitterItem()) {
+        g.setColour (Colours::darkblue);
         g.drawText (TRANS ("Splitter"), 0, 0, width, height, Justification::left);
     }
     else if (item.isSpacerItem()) {
+        g.setColour (Colours::darkgreen);
         g.drawText (TRANS ("Spacer"), 0, 0, width, height, Justification::left);
     }
     else if (item.isComponentItem()) {
+        g.setColour (Colours::darkred);
         String componentID = item.getComponentID();
         if (!componentID.isEmpty()) {
             g.drawText (String ("ID:") + componentID, 0, 0, width, height, Justification::left);
         }
         else {
             String labelText   = state.getProperty ("labelText", "");
-            Graphics::ScopedSaveState save (g);
             Font f = g.getCurrentFont();
             f.setItalic (true);
             g.setFont (f);

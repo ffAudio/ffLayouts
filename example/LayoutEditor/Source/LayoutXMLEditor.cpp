@@ -300,9 +300,12 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
                     if (li.isSubLayout()) {
                         item->state.addChild (node, -1, nullptr);
                     }
-                    else if (item->state.getParent().isValid()) {
-                        int index = item->state.getParent().indexOf (item->state);
-                        item->state.addChild (node, index+1, nullptr);
+                    else {
+                        ValueTree parent = item->state.getParent();
+                        if (parent.isValid()) {
+                            int index = parent.indexOf (item->state);
+                            parent.addChild (node, index+1, nullptr);
+                        }
                     }
                 }
             }
@@ -383,9 +386,22 @@ void LayoutXMLEditor::updatePropertiesView (ValueTree state)
     nodeProperties->clear();
     Array<PropertyComponent*> properties;
     for (int i=0; i<state.getNumProperties(); ++i) {
-        String propertyName = state.getPropertyName (i).toString();
-        PropertyComponent* c = new TextPropertyComponent (state.getPropertyAsValue (propertyName, nullptr), propertyName, 255, false);
-        properties.add (c);
+        Identifier propertyName = state.getPropertyName (i);
+        if (propertyName == LayoutItem::propOrientation) {
+            StringArray o;
+            Array<var>  v;
+            for (int i=0; i<5; ++i) {
+                Identifier orientation = LayoutItem::getNameFromOrientation (LayoutItem::Orientation (i));
+                o.add (orientation.toString());
+                v.add (orientation.toString());
+            }
+            PropertyComponent* c = new ChoicePropertyComponent (state.getPropertyAsValue (propertyName, nullptr), propertyName.toString(), o, v);
+            properties.add (c);
+        }
+        else {
+            PropertyComponent* c = new TextPropertyComponent (state.getPropertyAsValue (propertyName, nullptr), propertyName.toString(), 255, false);
+            properties.add (c);
+        }
     }
     nodeProperties->addProperties (properties);
 }
@@ -400,6 +416,7 @@ void LayoutXMLEditor::resized()
 void LayoutXMLEditor::valueTreePropertyChanged (ValueTree &treeWhosePropertyHasChanged, const Identifier &property)
 {
     codeDocument->replaceAllContent (documentContent.toXmlString());
+    layoutTree->repaint();
     if (previewWindow) {
         previewWindow->setLayoutFromString (codeDocument->getAllContent());
     }
