@@ -42,6 +42,7 @@
 #include "PreviewComponent.h"
 #include "LayoutItemView.h"
 #include "LayoutXMLEditor.h"
+#include "LayoutEditorApplication.h"
 
 //==============================================================================
 LayoutXMLEditor::LayoutXMLEditor()
@@ -53,26 +54,31 @@ LayoutXMLEditor::LayoutXMLEditor()
     codeDocument  = new CodeDocument;
     codeEditor    = new CodeEditorComponent (*codeDocument, codeTokeniser);
     addAndMakeVisible (codeEditor);
-    
+
     layoutTree    = new TreeView;
     addAndMakeVisible (layoutTree);
-    
+
     nodeProperties = new PropertyPanel;
     addAndMakeVisible (nodeProperties);
 
     Label* text = new Label;
     text->setText (TRANS ("Properties"), dontSendNotification);
     addAndMakeVisible (text);
-    
+
+    insertButtons = new Toolbar;
+    insertButtons->addDefaultItems (*this);
+    addAndMakeVisible (insertButtons);
+
     layout = new Layout (LayoutItem::LeftToRight, this);
     LayoutItem::makeChildComponent (layout->state, codeEditor);
     LayoutItem::makeChildSplitter  (layout->state, 0.7f);
     LayoutItem right = LayoutItem::makeSubLayout (layout->state, LayoutItem::TopDown);
+    LayoutItem::makeChildComponent (right.state, insertButtons).setFixedHeight (36);
     LayoutItem::makeChildComponent (right.state, layoutTree);
     LayoutItem::makeChildSplitter  (right.state, 0.7f);
     LayoutItem::makeChildComponent (right.state, text, true).setFixedHeight (24);
     LayoutItem::makeChildComponent (right.state, nodeProperties);
-    
+
     documentContent.addListener (this);
 
     setSize (700, 700);
@@ -93,7 +99,6 @@ ApplicationCommandTarget* LayoutXMLEditor::getNextCommandTarget ()
 {
     return nullptr;
 }
-
 
 void LayoutXMLEditor::getAllCommands (Array< CommandID > &commands)
 {
@@ -175,9 +180,9 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
                 documentContent = layout.state;
                 String templateText = documentContent.toXmlString();
                 openedFile = File();
-                
+
                 codeDocument->replaceAllContent (templateText);
-                
+
                 XmlDocument doc (templateText);
                 ScopedPointer<XmlElement> element = doc.getDocumentElement();
                 if (element) {
@@ -351,22 +356,12 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
                 ValueTree parent = item->state.getParent();
                 if (parent.isValid()) {
                     parent.removeChild (item->state, nullptr);
-                    TreeViewItem* parentView = item->getParentItem();
-                    if (parentView) {
-                        for (int i=0; i<parentView->getNumSubItems(); ++i ) {
-                            if (parentView->getSubItem (i) == item) {
-                                parentView->removeSubItem (i);
-                                break;
-                            }
-                        }
-                    }
                 }
             }
-            
         default:
             break;
     }
-    
+
     return true;
 }
 
@@ -446,5 +441,90 @@ void LayoutXMLEditor::valueTreeParentChanged (ValueTree &treeWhoseParentHasChang
 {
     updateTreeView();
     
+}
+
+// toolbar factory
+void LayoutXMLEditor::getAllToolbarItemIds (Array<int> &ids)
+{
+    ids.add (CMDLayoutEditor_InsertLayout);
+    ids.add (CMDLayoutEditor_InsertComponent);
+    ids.add (CMDLayoutEditor_InsertSplitter);
+    ids.add (CMDLayoutEditor_InsertSpacer);
+    ids.add (StandardApplicationCommandIDs::del);
+}
+
+void LayoutXMLEditor::getDefaultItemSet (Array<int> &ids)
+{
+    ids.add (CMDLayoutEditor_InsertLayout);
+    ids.add (CMDLayoutEditor_InsertComponent);
+    ids.add (CMDLayoutEditor_InsertSplitter);
+    ids.add (CMDLayoutEditor_InsertSpacer);
+    ids.add (StandardApplicationCommandIDs::del);
+}
+
+ToolbarItemComponent* LayoutXMLEditor::createItem (int itemId)
+{
+    ApplicationCommandManager* cm = LayoutEditorApplication::getApp()->getCommandManager();
+    switch (itemId) {
+        case CMDLayoutEditor_InsertLayout:
+            {
+                DrawableText* text = new DrawableText();
+                text->setText (TRANS ("Layout"));
+                DrawableText* textOff = new DrawableText();
+                textOff->setText (TRANS ("Layout"));
+                ToolbarButton* button = new ToolbarButton (itemId, TRANS ("Layout"), text, textOff);
+                button->setCommandToTrigger (cm, itemId, true);
+                return button;
+            }
+            break;
+        case CMDLayoutEditor_InsertComponent:
+            {
+                DrawableText* text = new DrawableText();
+                text->setText (TRANS ("Component"));
+                DrawableText* textOff = new DrawableText();
+                textOff->setText (TRANS ("Component"));
+                ToolbarButton* button = new ToolbarButton (itemId, TRANS ("Component"), text, textOff);
+                button->setCommandToTrigger (cm, itemId, true);
+                return button;
+            }
+            break;
+        case CMDLayoutEditor_InsertSplitter:
+            {
+                DrawableText* text = new DrawableText();
+                text->setText (TRANS ("Splitter"));
+                DrawableText* textOff = new DrawableText();
+                textOff->setText (TRANS ("Splitter"));
+                ToolbarButton* button = new ToolbarButton (itemId, TRANS ("Splitter"), text, textOff);
+                button->setCommandToTrigger (cm, itemId, true);
+                return button;
+            }
+            break;
+        case CMDLayoutEditor_InsertSpacer:
+            {
+                DrawableText* text = new DrawableText();
+                text->setText (TRANS ("Spacer"));
+                DrawableText* textOff = new DrawableText();
+                textOff->setText (TRANS ("Spacer"));
+                ToolbarButton* button = new ToolbarButton (itemId, TRANS ("Spacer"), text, textOff);
+                button->setCommandToTrigger (cm, itemId, true);
+                return button;
+            }
+            break;
+        case StandardApplicationCommandIDs::del:
+            {
+                DrawableText* text = new DrawableText();
+                text->setText (TRANS ("Delete"));
+                DrawableText* textOff = new DrawableText();
+                textOff->setText (TRANS ("Delete"));
+                ToolbarButton* button = new ToolbarButton (itemId, TRANS ("Delete"), text, textOff);
+                button->setCommandToTrigger (cm, itemId, true);
+                return button;
+            }
+            break;
+
+        default:
+            break;
+    }
+    return nullptr;
 }
 

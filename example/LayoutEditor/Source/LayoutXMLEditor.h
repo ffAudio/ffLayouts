@@ -51,7 +51,8 @@ class LayoutItemView;
 */
 class LayoutXMLEditor : public Component,
                         public ApplicationCommandTarget,
-                        public ValueTree::Listener
+                        public ValueTree::Listener,
+                        private ToolbarItemFactory
 {
 public:
     LayoutXMLEditor();
@@ -73,7 +74,7 @@ public:
     void valueTreeChildRemoved (ValueTree &parentTree, ValueTree &childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override;
     void valueTreeChildOrderChanged (ValueTree &parentTreeWhoseChildrenHaveMoved, int oldIndex, int newIndex) override;
     void valueTreeParentChanged (ValueTree &treeWhoseParentHasChanged) override;
-    
+
     enum {
         CMDLayoutEditor_New = 0x1101,
         CMDLayoutEditor_Open,
@@ -86,7 +87,12 @@ public:
         CMDLayoutEditor_InsertSplitter,
         CMDLayoutEditor_InsertSpacer
     };
-    
+
+    // toolbar factory
+    void getAllToolbarItemIds (Array<int> &ids) override;
+    void getDefaultItemSet (Array<int> &ids) override;
+    ToolbarItemComponent* createItem (int itemId) override;
+
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LayoutXMLEditor)
     
@@ -98,13 +104,14 @@ private:
     ScopedPointer<CodeEditorComponent> codeEditor;
     ScopedPointer<CodeTokeniser>       codeTokeniser;
     
+    ScopedPointer<Toolbar>             insertButtons;
     ScopedPointer<TreeView>            layoutTree;
     ScopedPointer<PropertyPanel>       nodeProperties;
     
     ScopedPointer<Layout>              layout;
     
     SafePointer<PreviewComponent>      previewWindow;
-    
+
 };
 
 
