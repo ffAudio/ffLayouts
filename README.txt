@@ -13,14 +13,23 @@ framework (www.juce.com) next to each others.
 Find the api-documentation here: https://audiokinematics.github.io/juceLayouts/
 
 The highlights:
+In the examples folder is a LayoutEditor. You can create layouts as XML definitions
+and show them with placeholders to see how the space would be distributed.
+
+To use the layout in a JUCE component it is easiest to add a Layout member to
+the component, load the layout definition via ValueTree, e.g. from an XML file
+from BinaryData.
+Call in the resized() callback layout->updateGeometry() and all child components
+are layouted according to the XML definition.
+
+Other features:
 Only one member variable necessary
 Self contained with SafePointers to the components to minimize risk of dangling pointers
-Can be serialized to/from a XML file via ValueTree
 Stretch factors to distribute the available space proportionally
 Restrict minimum and maximum sizes of items
 Add sublayouts nested horizontally and vertically in each directions
 Add labels and GroupComponents from XML definition
-Add a labeled component in one line of code
+Movable splitters to split layouts interactively
 Add spacers between components
 
 Have fun using it...
