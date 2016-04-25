@@ -70,6 +70,11 @@ public:
     ~PreviewComponent()
     {
     }
+    
+    void paint (Graphics& g) override
+    {
+        g.fillAll (findColour (backgroundColourId));
+    }
 
     // creates a label for each layout item that references a component
     void createDummyComponents (ValueTree& tree)
@@ -85,6 +90,8 @@ public:
             else {
                 newComponent->setText ("Name:" + componentName, dontSendNotification);
             }
+            int hashCode = componentName.hashCode();
+            newComponent->setColour (Label::backgroundColourId, Colour::fromRGB (hashCode % 128 + 127, (hashCode / 255) % 128 + 127, (hashCode / 1024) % 128 + 127));
             newComponent->setJustificationType (Justification::centred);
             mainComponent->addAndMakeVisible (newComponent);
             testComponents.add (newComponent);
@@ -95,7 +102,8 @@ public:
             newComponent->setComponentID (componentID);
             newComponent->setText ("ID:" + componentID, dontSendNotification);
             newComponent->setJustificationType (Justification::centred);
-            newComponent->setColour (Label::backgroundColourId, Colour::fromRGB (rand() % 128 + 127, rand() % 128 + 127, rand() % 128 + 127));
+            int hashCode = componentID.hashCode();
+            newComponent->setColour (Label::backgroundColourId, Colour::fromRGB (hashCode % 128 + 127, (hashCode / 255) % 128 + 127, (hashCode / 1024) % 128 + 127));
             mainComponent->addAndMakeVisible (newComponent);
             testComponents.add (newComponent);
         }
