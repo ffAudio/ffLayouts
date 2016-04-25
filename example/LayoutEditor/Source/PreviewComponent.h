@@ -57,6 +57,7 @@ public:
         showBounds (true)
     {
         setUsingNativeTitleBar (true);
+        setColour (backgroundColourId, Colours::darkslateblue);
         
         mainComponent = new Component();
         mainComponent->setSize (500, 380);
