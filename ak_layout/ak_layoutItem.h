@@ -705,13 +705,13 @@ public:
     private:
         juce::WeakReference<Layout> layoutPtr;
     };
-    
-private:
-    JUCE_LEAK_DETECTOR (LayoutSplitter)
 
     static const juce::Identifier propRelativePosition;
     static const juce::Identifier propRelativeMinPosition;
     static const juce::Identifier propRelativeMaxPosition;
+    
+private:
+    JUCE_LEAK_DETECTOR (LayoutSplitter)
 
 };
 
