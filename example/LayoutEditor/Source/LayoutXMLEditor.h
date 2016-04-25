@@ -65,7 +65,11 @@ public:
 
     void updateTreeView ();
     
+    // properties view
+
     void updatePropertiesView (ValueTree state);
+    
+    void getPropertiesForItem (const Identifier type, Array<Identifier>& props);
 
     void resized() override;
 

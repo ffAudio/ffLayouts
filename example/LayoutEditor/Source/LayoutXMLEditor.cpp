@@ -376,12 +376,97 @@ void LayoutXMLEditor::updateTreeView ()
     }
 }
 
+
+// properties view
+
+void LayoutXMLEditor::getPropertiesForItem (const Identifier type, Array<Identifier>& props)
+{
+    if (type == LayoutItem::itemTypeSubLayout) {
+        props.add (LayoutItem::propOrientation);
+        props.add (LayoutItem::propMinWidth);
+        props.add (LayoutItem::propMaxWidth);
+        props.add (LayoutItem::propMinHeight);
+        props.add (LayoutItem::propMaxHeight);
+        props.add (LayoutItem::propAspectRatio);
+        props.add (LayoutItem::propPaddingLeft);
+        props.add (LayoutItem::propPaddingRight);
+        props.add (LayoutItem::propPaddingTop);
+        props.add (LayoutItem::propPaddingBottom);
+        props.add (LayoutItem::propStretchX);
+        props.add (LayoutItem::propStretchY);
+        props.add (LayoutItem::propGroupName);
+        props.add (LayoutItem::propGroupText);
+        props.add (LayoutItem::propGroupJustification);
+        props.add (LayoutItem::propOverlay);
+        props.add (LayoutItem::propOverlayWidth);
+        props.add (LayoutItem::propOverlayHeight);
+        props.add (LayoutItem::propOverlayJustification);
+    }
+    else if (type == LayoutItem::itemTypeComponent) {
+        props.add (LayoutItem::propComponentName);
+        props.add (LayoutItem::propComponentID);
+        props.add (LayoutItem::propLabelText);
+        props.add (LayoutItem::propLabelFontSize);
+        props.add (LayoutItem::propLabelJustification);
+        props.add (LayoutItem::propMinWidth);
+        props.add (LayoutItem::propMaxWidth);
+        props.add (LayoutItem::propMinHeight);
+        props.add (LayoutItem::propMaxHeight);
+        props.add (LayoutItem::propAspectRatio);
+        props.add (LayoutItem::propPaddingLeft);
+        props.add (LayoutItem::propPaddingRight);
+        props.add (LayoutItem::propPaddingTop);
+        props.add (LayoutItem::propPaddingBottom);
+        props.add (LayoutItem::propStretchX);
+        props.add (LayoutItem::propStretchY);
+        props.add (LayoutItem::propOverlay);
+        props.add (LayoutItem::propOverlayWidth);
+        props.add (LayoutItem::propOverlayHeight);
+        props.add (LayoutItem::propOverlayJustification);
+    }
+    else if (type == LayoutItem::itemTypeSplitter) {
+        props.add (LayoutSplitter::propComponentName);
+        props.add (LayoutSplitter::propComponentID);
+        props.add (LayoutSplitter::propRelativePosition);
+        props.add (LayoutSplitter::propRelativeMinPosition);
+        props.add (LayoutSplitter::propRelativeMaxPosition);
+        props.add (LayoutItem::propMinWidth);
+        props.add (LayoutItem::propMinWidth);
+        props.add (LayoutItem::propMinWidth);
+        props.add (LayoutItem::propMaxWidth);
+        props.add (LayoutItem::propMinHeight);
+        props.add (LayoutItem::propMaxHeight);
+        props.add (LayoutItem::propAspectRatio);
+        props.add (LayoutItem::propPaddingLeft);
+        props.add (LayoutItem::propPaddingRight);
+        props.add (LayoutItem::propPaddingTop);
+        props.add (LayoutItem::propPaddingBottom);
+        props.add (LayoutItem::propStretchX);
+        props.add (LayoutItem::propStretchY);
+    }
+    else if (type == LayoutItem::itemTypeSpacer) {
+        props.add (LayoutItem::propMinWidth);
+        props.add (LayoutItem::propMaxWidth);
+        props.add (LayoutItem::propMinHeight);
+        props.add (LayoutItem::propMaxHeight);
+        props.add (LayoutItem::propAspectRatio);
+        props.add (LayoutItem::propPaddingLeft);
+        props.add (LayoutItem::propPaddingRight);
+        props.add (LayoutItem::propPaddingTop);
+        props.add (LayoutItem::propPaddingBottom);
+        props.add (LayoutItem::propStretchX);
+        props.add (LayoutItem::propStretchY);
+    }
+}
+
 void LayoutXMLEditor::updatePropertiesView (ValueTree state)
 {
     nodeProperties->clear();
     Array<PropertyComponent*> properties;
-    for (int i=0; i<state.getNumProperties(); ++i) {
-        Identifier propertyName = state.getPropertyName (i);
+    Array<Identifier> propNames;
+    getPropertiesForItem (state.getType(), propNames);
+    for (int i=0; i<propNames.size(); ++i) {
+        Identifier propertyName = propNames.getUnchecked (i);
         if (propertyName == LayoutItem::propOrientation) {
             StringArray o;
             Array<var>  v;
@@ -391,6 +476,75 @@ void LayoutXMLEditor::updatePropertiesView (ValueTree state)
                 v.add (orientation.toString());
             }
             PropertyComponent* c = new ChoicePropertyComponent (state.getPropertyAsValue (propertyName, nullptr), propertyName.toString(), o, v);
+            properties.add (c);
+        }
+        else if (propertyName == LayoutItem::propGroupJustification ||
+                 propertyName == LayoutItem::propLabelJustification ||
+                 propertyName == LayoutItem::propOverlayJustification )
+        {
+            StringArray o;
+            Array<var>  v;
+            o.add (TRANS ("top left"));
+            v.add (Justification::topLeft);
+            o.add (TRANS ("top"));
+            v.add (Justification::top);
+            o.add (TRANS ("top right"));
+            v.add (Justification::topRight);
+            o.add (TRANS ("left"));
+            v.add (Justification::left);
+            o.add (TRANS ("centred"));
+            v.add (Justification::centred);
+            o.add (TRANS ("right"));
+            v.add (Justification::right);
+            o.add (TRANS ("bottom left"));
+            v.add (Justification::bottomLeft);
+            o.add (TRANS ("bottom"));
+            v.add (Justification::bottom);
+            o.add (TRANS ("bottom right"));
+            v.add (Justification::bottomRight);
+            PropertyComponent* c = new ChoicePropertyComponent (state.getPropertyAsValue (propertyName, nullptr), propertyName.toString(), o, v);
+            properties.add (c);
+        }
+        else if (propertyName == LayoutItem::propOverlay)
+        {
+            StringArray o;
+            Array<var>  v;
+            o.add (TRANS ("No overlay"));
+            v.add (0);
+            o.add (TRANS ("Previous"));
+            v.add (1);
+            o.add (TRANS ("Parent"));
+            v.add (2);
+            PropertyComponent* c = new ChoicePropertyComponent (state.getPropertyAsValue (propertyName, nullptr), propertyName.toString(), o, v);
+            properties.add (c);
+        }
+        else if (propertyName == LayoutItem::propStretchX ||
+                 propertyName == LayoutItem::propStretchY )
+        {
+            PropertyComponent* c = new SliderPropertyComponent (state.getPropertyAsValue (propertyName, nullptr), propertyName.toString(), -1.0f, 99.0f, 0.1f);
+            properties.add (c);
+        }
+        else if (propertyName == LayoutItem::propOverlayWidth ||
+                 propertyName == LayoutItem::propOverlayHeight )
+        {
+            PropertyComponent* c = new SliderPropertyComponent (state.getPropertyAsValue (propertyName, nullptr), propertyName.toString(), 0.0f, 2.0f, 0.01f);
+            properties.add (c);
+        }
+        else if (propertyName == LayoutItem::propAspectRatio )
+        {
+            PropertyComponent* c = new SliderPropertyComponent (state.getPropertyAsValue (propertyName, nullptr), propertyName.toString(), 0.01f, 50.0f, 0.01f);
+            properties.add (c);
+        }
+        else if (propertyName == LayoutItem::propMinWidth ||
+                 propertyName == LayoutItem::propMaxWidth ||
+                 propertyName == LayoutItem::propMinHeight ||
+                 propertyName == LayoutItem::propMaxHeight ||
+                 propertyName == LayoutItem::propPaddingLeft ||
+                 propertyName == LayoutItem::propPaddingTop ||
+                 propertyName == LayoutItem::propPaddingRight ||
+                 propertyName == LayoutItem::propPaddingBottom )
+        {
+            PropertyComponent* c = new SliderPropertyComponent (state.getPropertyAsValue (propertyName, nullptr), propertyName.toString(), -1.0f, 2400.0f, 1.0f);
             properties.add (c);
         }
         else {
