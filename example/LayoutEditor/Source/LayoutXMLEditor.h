@@ -12,7 +12,7 @@
 #define LAYOUTXMLEDITOR_H_INCLUDED
 
 
-class DebugComponent;
+class PreviewComponent;
 class LayoutItemView;
 
 //==============================================================================
@@ -68,7 +68,7 @@ private:
     
     ScopedPointer<Layout>              layout;
     
-    SafePointer<DebugComponent>        previewWindow;
+    SafePointer<PreviewComponent>      previewWindow;
     
 };
 

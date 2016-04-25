@@ -1,27 +1,27 @@
 /*
   ==============================================================================
 
-    debugComponent.h
+    PreviewComponent.h
     Created: 15 Mar 2016 4:20:15pm
     Author:  Daniel Walz
 
   ==============================================================================
 */
 
-#ifndef DEBUGCOMPONENT_H_INCLUDED
-#define DEBUGCOMPONENT_H_INCLUDED
+#ifndef PREVIEWCOMPONENT_H_INCLUDED
+#define PREVIEWCOMPONENT_H_INCLUDED
 
 
 //==============================================================================
 /*
 */
-class DebugComponent    : public DocumentWindow
+class PreviewComponent    : public DocumentWindow
 {
 public:
-    DebugComponent(const String &  	name,
-                   Colour  	backgroundColour,
-                   int  	requiredButtons,
-                   bool  	addToDesktop = true )
+    PreviewComponent(const String &  	name,
+                     Colour backgroundColour,
+                     int  	requiredButtons,
+                     bool  	addToDesktop = true )
       : DocumentWindow (name, backgroundColour, requiredButtons, addToDesktop),
         showBounds (true)
     {
@@ -35,7 +35,7 @@ public:
         setResizable (true, false);
     }
 
-    ~DebugComponent()
+    ~PreviewComponent()
     {
     }
 
@@ -125,7 +125,7 @@ public:
     }
 
 private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DebugComponent)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PreviewComponent)
     
     bool showBounds;
     ScopedPointer<Layout>    layout;
@@ -135,4 +135,4 @@ private:
 };
 
 
-#endif  // DEBUGCOMPONENT_H_INCLUDED
+#endif  // PREVIEWCOMPONENT_H_INCLUDED

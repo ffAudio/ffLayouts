@@ -54,7 +54,7 @@ LayoutXMLEditor::~LayoutXMLEditor()
 {
     documentContent.removeListener (this);
     if (previewWindow) {
-        delete previewWindow;
+        deleteAndZero (previewWindow);
     }
     layoutTree->deleteRootItem();
 }
@@ -124,6 +124,7 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
                 openedFile = File();
                 
                 codeDocument->replaceAllContent (templateText);
+                updateTreeView();
             }
             break;
         case CMDLayoutEditor_Open:
@@ -190,7 +191,7 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
             break;
         case CMDLayoutEditor_Run:
             if (!previewWindow) {
-                previewWindow = new DebugComponent (TRANS ("Layout Preview"), Colours::darkgrey, DocumentWindow::allButtons);
+                previewWindow = new PreviewComponent (TRANS ("Layout Preview"), Colours::darkgrey, DocumentWindow::allButtons);
                 previewWindow->setSize (500, 350);
                 previewWindow->setVisible (true);
             }
