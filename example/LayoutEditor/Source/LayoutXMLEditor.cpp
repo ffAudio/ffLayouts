@@ -42,6 +42,8 @@ LayoutXMLEditor::LayoutXMLEditor()
     LayoutItem::makeChildSplitter  (right.state, 0.7f);
     LayoutItem::makeChildComponent (right.state, text, true).setFixedHeight (24);
     LayoutItem::makeChildComponent (right.state, nodeProperties);
+    
+    documentContent.addListener (this);
 
     setSize (700, 700);
     layout->realize();
@@ -50,6 +52,7 @@ LayoutXMLEditor::LayoutXMLEditor()
 
 LayoutXMLEditor::~LayoutXMLEditor()
 {
+    documentContent.removeListener (this);
     if (previewWindow) {
         delete previewWindow;
     }
@@ -195,7 +198,9 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
             break;
         case CMDLayoutEditor_Refresh:
             codeDocument->replaceAllContent (documentContent.toXmlString());
-            previewWindow->setLayoutFromString (codeDocument->getAllContent());
+            if (previewWindow) {
+                previewWindow->setLayoutFromString (codeDocument->getAllContent());
+            }
             break;
         default:
             break;
@@ -232,3 +237,31 @@ void LayoutXMLEditor::resized()
         layout->updateGeometry();
     }
 }
+
+void LayoutXMLEditor::valueTreePropertyChanged (ValueTree &treeWhosePropertyHasChanged, const Identifier &property)
+{
+    codeDocument->replaceAllContent (documentContent.toXmlString());
+    if (previewWindow) {
+        previewWindow->setLayoutFromString (codeDocument->getAllContent());
+    }
+}
+void LayoutXMLEditor::valueTreeChildAdded (ValueTree &parentTree, ValueTree &childWhichHasBeenAdded)
+{
+    codeDocument->replaceAllContent (documentContent.toXmlString());
+    if (previewWindow) {
+        previewWindow->setLayoutFromString (codeDocument->getAllContent());
+    }
+}
+void LayoutXMLEditor::valueTreeChildRemoved (ValueTree &parentTree, ValueTree &childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved)
+{
+    
+}
+void LayoutXMLEditor::valueTreeChildOrderChanged (ValueTree &parentTreeWhoseChildrenHaveMoved, int oldIndex, int newIndex)
+{
+    
+}
+void LayoutXMLEditor::valueTreeParentChanged (ValueTree &treeWhoseParentHasChanged)
+{
+    
+}
+

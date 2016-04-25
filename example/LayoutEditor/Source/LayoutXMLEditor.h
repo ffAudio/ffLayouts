@@ -18,7 +18,9 @@ class LayoutItemView;
 //==============================================================================
 /*
 */
-class LayoutXMLEditor    : public Component, public ApplicationCommandTarget
+class LayoutXMLEditor : public Component,
+                        public ApplicationCommandTarget,
+                        public ValueTree::Listener
 {
 public:
     LayoutXMLEditor();
@@ -35,6 +37,12 @@ public:
 
     void resized() override;
 
+    void valueTreePropertyChanged (ValueTree &treeWhosePropertyHasChanged, const Identifier &property) override;
+    void valueTreeChildAdded (ValueTree &parentTree, ValueTree &childWhichHasBeenAdded) override;
+    void valueTreeChildRemoved (ValueTree &parentTree, ValueTree &childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override;
+    void valueTreeChildOrderChanged (ValueTree &parentTreeWhoseChildrenHaveMoved, int oldIndex, int newIndex) override;
+    void valueTreeParentChanged (ValueTree &treeWhoseParentHasChanged) override;
+    
     enum {
         CMDLayoutEditor_New = 0x1101,
         CMDLayoutEditor_Open,
@@ -43,7 +51,7 @@ public:
         CMDLayoutEditor_Run,
         CMDLayoutEditor_Refresh,
     };
-
+    
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LayoutXMLEditor)
     
