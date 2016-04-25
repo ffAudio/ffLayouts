@@ -59,6 +59,8 @@ public:
     
     void itemSelectionChanged (bool isNowSelected) override;
 
+    void itemClicked (const MouseEvent& event) override;
+
     ValueTree state;
 
 private:

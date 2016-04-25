@@ -40,6 +40,7 @@
 */
 
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "LayoutEditorApplication.h"
 #include "LayoutXMLEditor.h"
 #include "LayoutItemView.h"
 
@@ -126,3 +127,20 @@ void LayoutItemView::itemSelectionChanged (bool isNowSelected)
         editor->updatePropertiesView (state);
     }
 }
+
+void LayoutItemView::itemClicked (const MouseEvent& event)
+{
+    if (event.mods.isRightButtonDown()) {
+        ApplicationCommandManager* cm = LayoutEditorApplication::getApp()->getCommandManager();
+        PopupMenu menu;
+        menu.addCommandItem (cm, LayoutXMLEditor::CMDLayoutEditor_InsertLayout);
+        menu.addCommandItem (cm, LayoutXMLEditor::CMDLayoutEditor_InsertComponent);
+        menu.addCommandItem (cm, LayoutXMLEditor::CMDLayoutEditor_InsertSplitter);
+        menu.addCommandItem (cm, LayoutXMLEditor::CMDLayoutEditor_InsertSpacer);
+        menu.addSeparator();
+        menu.addCommandItem (cm, StandardApplicationCommandIDs::del);
+
+        menu.show();
+    }
+}
+
