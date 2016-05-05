@@ -74,7 +74,7 @@ public:
      This class implements the desktop window that contains an instance of
      our MainContentComponent class.
      */
-    class MainWindow    : public DocumentWindow
+    class MainWindow    : public DocumentWindow, public DragAndDropContainer
     {
     public:
         MainWindow (String name);

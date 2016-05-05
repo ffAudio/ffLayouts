@@ -32,22 +32,23 @@
 
   ==============================================================================
 
-    LayoutItemView.h
+    LayoutTreeViewItem.h
     Created: 24 Apr 2016 10:47:36pm
     Author:  Daniel Walz
 
   ==============================================================================
 */
 
-#ifndef LAYOUTITEMVIEW_H_INCLUDED
-#define LAYOUTITEMVIEW_H_INCLUDED
+#ifndef LAYOUTTREEVIEWITEM_H_INCLUDED
+#define LAYOUTTREEVIEWITEM_H_INCLUDED
 
 class LayoutXMLEditor;
 
-class LayoutItemView : public TreeViewItem
+class LayoutTreeViewItem : public TreeViewItem,
+                           public DragAndDropTarget
 {
 public:
-    LayoutItemView (ValueTree node, LayoutXMLEditor* editor);
+    LayoutTreeViewItem (ValueTree node, LayoutXMLEditor* editor);
     
     void setState (ValueTree, LayoutXMLEditor* editor);
     
@@ -61,14 +62,20 @@ public:
 
     void itemClicked (const MouseEvent& event) override;
 
+    var getDragSourceDescription () override;
+
+    bool isInterestedInDragSource (const SourceDetails &dragSourceDetails) override;
+
+    void itemDropped (const SourceDetails &dragSourceDetails) override;
+
     ValueTree state;
 
 private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LayoutItemView)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LayoutTreeViewItem)
     
     Component::SafePointer<LayoutXMLEditor> editor;
 };
 
 
 
-#endif  // LAYOUTITEMVIEW_H_INCLUDED
+#endif  // LAYOUTTREEVIEWITEM_H_INCLUDED

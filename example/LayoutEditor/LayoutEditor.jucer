@@ -10,10 +10,14 @@
             file="Source/LayoutXMLEditor.cpp"/>
       <FILE id="SgIHfW" name="LayoutXMLEditor.h" compile="0" resource="0"
             file="Source/LayoutXMLEditor.h"/>
-      <FILE id="cPddqv" name="LayoutItemView.cpp" compile="1" resource="0"
-            file="Source/LayoutItemView.cpp"/>
-      <FILE id="E7VwXb" name="LayoutItemView.h" compile="0" resource="0"
-            file="Source/LayoutItemView.h"/>
+      <FILE id="gSOobN" name="LayoutTreeView.cpp" compile="1" resource="0"
+            file="Source/LayoutTreeView.cpp"/>
+      <FILE id="QJ2C5f" name="LayoutTreeView.h" compile="0" resource="0"
+            file="Source/LayoutTreeView.h"/>
+      <FILE id="Y9WlIv" name="LayoutTreeViewItem.cpp" compile="1" resource="0"
+            file="Source/LayoutTreeViewItem.cpp"/>
+      <FILE id="fCaIeD" name="LayoutTreeViewItem.h" compile="0" resource="0"
+            file="Source/LayoutTreeViewItem.h"/>
       <FILE id="izbT8m" name="LayoutEditorApplication.cpp" compile="1" resource="0"
             file="Source/LayoutEditorApplication.cpp"/>
       <FILE id="MkvENn" name="LayoutEditorApplication.h" compile="0" resource="0"

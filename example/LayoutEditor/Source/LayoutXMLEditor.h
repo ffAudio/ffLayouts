@@ -44,7 +44,7 @@
 
 
 class PreviewComponent;
-class LayoutItemView;
+class LayoutTreeView;
 
 //==============================================================================
 /*
@@ -109,7 +109,7 @@ private:
     ScopedPointer<CodeTokeniser>       codeTokeniser;
     
     ScopedPointer<Toolbar>             insertButtons;
-    ScopedPointer<TreeView>            layoutTree;
+    ScopedPointer<LayoutTreeView>      layoutTree;
     ScopedPointer<PropertyPanel>       nodeProperties;
     
     ScopedPointer<Layout>              layout;

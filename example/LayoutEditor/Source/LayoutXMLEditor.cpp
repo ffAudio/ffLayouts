@@ -40,7 +40,8 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "PreviewComponent.h"
-#include "LayoutItemView.h"
+#include "LayoutTreeView.h"
+#include "LayoutTreeViewItem.h"
 #include "LayoutXMLEditor.h"
 #include "LayoutEditorApplication.h"
 
@@ -55,8 +56,9 @@ LayoutXMLEditor::LayoutXMLEditor()
     codeEditor    = new CodeEditorComponent (*codeDocument, codeTokeniser);
     addAndMakeVisible (codeEditor);
 
-    layoutTree    = new TreeView;
+    layoutTree    = new LayoutTreeView;
     addAndMakeVisible (layoutTree);
+    layoutTree->setDefaultOpenness (true);
 
     nodeProperties = new PropertyPanel;
     addAndMakeVisible (nodeProperties);
@@ -188,7 +190,7 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
                 if (element) {
                     layoutTree->deleteRootItem();
                     documentContent = ValueTree::fromXml (*element);
-                    layoutTree->setRootItem (new LayoutItemView (documentContent, this));
+                    layoutTree->setRootItem (new LayoutTreeViewItem (documentContent, this));
                 }
             }
             break;
@@ -218,7 +220,7 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
                         if (element) {
                             layoutTree->deleteRootItem();
                             documentContent = ValueTree::fromXml (*element);
-                            layoutTree->setRootItem (new LayoutItemView (documentContent, this));
+                            layoutTree->setRootItem (new LayoutTreeViewItem (documentContent, this));
                         }
                     }
                     return true;
@@ -279,7 +281,7 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
         // Insert methods
         case CMDLayoutEditor_InsertLayout:
             {
-                if (LayoutItemView* item = dynamic_cast<LayoutItemView*> (layoutTree->getSelectedItem(0)))
+                if (LayoutTreeViewItem* item = dynamic_cast<LayoutTreeViewItem*> (layoutTree->getSelectedItem(0)))
                 {
                     LayoutItem li (item->state);
                     if (li.isSubLayout()) {
@@ -297,7 +299,7 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
             break;
         case CMDLayoutEditor_InsertComponent:
             {
-                if (LayoutItemView* item = dynamic_cast<LayoutItemView*> (layoutTree->getSelectedItem(0)))
+                if (LayoutTreeViewItem* item = dynamic_cast<LayoutTreeViewItem*> (layoutTree->getSelectedItem(0)))
                 {
                     ValueTree node (LayoutItem::itemTypeComponent);
                     node.setProperty (LayoutItem::propComponentID, TRANS ("unknown"), nullptr);
@@ -317,7 +319,7 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
             break;
         case CMDLayoutEditor_InsertSplitter:
             {
-                if (LayoutItemView* item = dynamic_cast<LayoutItemView*> (layoutTree->getSelectedItem(0)))
+                if (LayoutTreeViewItem* item = dynamic_cast<LayoutTreeViewItem*> (layoutTree->getSelectedItem(0)))
                 {
                     LayoutItem li (item->state);
                     if (li.isSubLayout()) {
@@ -335,7 +337,7 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
             break;
         case CMDLayoutEditor_InsertSpacer:
             {
-                if (LayoutItemView* item = dynamic_cast<LayoutItemView*> (layoutTree->getSelectedItem(0)))
+                if (LayoutTreeViewItem* item = dynamic_cast<LayoutTreeViewItem*> (layoutTree->getSelectedItem(0)))
                 {
                     LayoutItem li (item->state);
                     if (li.isSubLayout()) {
@@ -352,7 +354,7 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
             }
             break;
         case StandardApplicationCommandIDs::del:
-            if (LayoutItemView* item = dynamic_cast<LayoutItemView*> (layoutTree->getSelectedItem(0))) {
+            if (LayoutTreeViewItem* item = dynamic_cast<LayoutTreeViewItem*> (layoutTree->getSelectedItem(0))) {
                 ValueTree parent = item->state.getParent();
                 if (parent.isValid()) {
                     parent.removeChild (item->state, nullptr);
@@ -367,12 +369,12 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
 
 void LayoutXMLEditor::updateTreeView ()
 {
-    if (LayoutItemView* itemView = dynamic_cast<LayoutItemView*> (layoutTree->getRootItem())) {
+    if (LayoutTreeViewItem* itemView = dynamic_cast<LayoutTreeViewItem*> (layoutTree->getRootItem())) {
         itemView->setState (documentContent, this);
     }
     else {
         layoutTree->deleteRootItem();
-        layoutTree->setRootItem (new LayoutItemView (documentContent, this));
+        layoutTree->setRootItem (new LayoutTreeViewItem (documentContent, this));
     }
 }
 

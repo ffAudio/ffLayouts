@@ -42,16 +42,16 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "LayoutEditorApplication.h"
 #include "LayoutXMLEditor.h"
-#include "LayoutItemView.h"
+#include "LayoutTreeViewItem.h"
 
 
-LayoutItemView::LayoutItemView (ValueTree _state, LayoutXMLEditor* _editor)
+LayoutTreeViewItem::LayoutTreeViewItem (ValueTree _state, LayoutXMLEditor* _editor)
   : state (_state), editor (_editor)
 {
     setState (state, editor);
 }
 
-void LayoutItemView::setState (ValueTree _state, LayoutXMLEditor* _editor)
+void LayoutTreeViewItem::setState (ValueTree _state, LayoutXMLEditor* _editor)
 {
     OpennessRestorer restorer (*this);
     state  = _state;
@@ -60,30 +60,30 @@ void LayoutItemView::setState (ValueTree _state, LayoutXMLEditor* _editor)
     clearSubItems();
     if (item.isSubLayout()) {
         for (int i=0; i<state.getNumChildren(); ++i) {
-            addSubItem (new LayoutItemView (state.getChild (i), editor));
+            addSubItem (new LayoutTreeViewItem (state.getChild (i), editor));
         }
     }
 }
 
 
-String LayoutItemView::getUniqueName () const
+String LayoutTreeViewItem::getUniqueName () const
 {
     String name = state.getType().toString();
     if (state.getType() == LayoutItem::itemTypeSubLayout) {
-        name += state.getProperty (LayoutItem::propOrientation).toString();
+        name += ":" + state.getProperty (LayoutItem::propOrientation).toString();
     }
     if (state.hasProperty (LayoutItem::propComponentID)) {
-        name += state.getProperty (LayoutItem::propComponentID).toString();
+        name += ":" + state.getProperty (LayoutItem::propComponentID).toString();
     }
     if (state.hasProperty (LayoutItem::propComponentName)) {
-        name += state.getProperty (LayoutItem::propComponentName).toString();
+        name += ":" + state.getProperty (LayoutItem::propComponentName).toString();
     }
     
     
     return name;
 }
 
-void LayoutItemView::paintItem (Graphics &g, int width, int height)
+void LayoutTreeViewItem::paintItem (Graphics &g, int width, int height)
 {
     Graphics::ScopedSaveState save (g);
     LayoutItem item (state);
@@ -115,20 +115,20 @@ void LayoutItemView::paintItem (Graphics &g, int width, int height)
     }
 }
 
-bool LayoutItemView::mightContainSubItems ()
+bool LayoutTreeViewItem::mightContainSubItems ()
 {
     LayoutItem item (state);
     return item.isSubLayout();
 }
 
-void LayoutItemView::itemSelectionChanged (bool isNowSelected)
+void LayoutTreeViewItem::itemSelectionChanged (bool isNowSelected)
 {
     if (editor && isNowSelected) {
         editor->updatePropertiesView (state);
     }
 }
 
-void LayoutItemView::itemClicked (const MouseEvent& event)
+void LayoutTreeViewItem::itemClicked (const MouseEvent& event)
 {
     if (event.mods.isRightButtonDown()) {
         ApplicationCommandManager* cm = LayoutEditorApplication::getApp()->getCommandManager();
@@ -142,5 +142,31 @@ void LayoutItemView::itemClicked (const MouseEvent& event)
 
         menu.show();
     }
+}
+
+var LayoutTreeViewItem::getDragSourceDescription ()
+{
+    String name;
+    ValueTree item   = state;
+    ValueTree parent = item.getParent();
+    while (parent.isValid()) {
+        name   = String (parent.indexOf (item)) + ";" + name;
+        item   = parent;
+        parent = item.getParent();
+    }
+    return name;
+}
+
+bool LayoutTreeViewItem::isInterestedInDragSource (const SourceDetails &dragSourceDetails)
+{
+    if (state.getType() == LayoutItem::itemTypeSubLayout) {
+        return true;
+    }
+    return false;
+}
+
+void LayoutTreeViewItem::itemDropped (const SourceDetails &dragSourceDetails)
+{
+    DBG ("Drop Item: " + dragSourceDetails.description.toString());
 }
 
