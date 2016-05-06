@@ -13,7 +13,7 @@ framework (www.juce.com) next to each others.
 Find the api-documentation here: https://audiokinematics.github.io/juceLayouts/
 
 The highlights:
-In the examples folder is a LayoutEditor. You can create layouts as XML definitions
+In the Tools folder is a LayoutEditor. You can create layouts as XML definitions
 and show them with placeholders to see how the space would be distributed.
 
 To use the layout in a JUCE component it is easiest to add a Layout member to
