@@ -191,6 +191,9 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
                     layoutTree->deleteRootItem();
                     documentContent = ValueTree::fromXml (*element);
                     layoutTree->setRootItem (new LayoutTreeViewItem (documentContent, this));
+                    if (previewWindow) {
+                        previewWindow->setLayoutFromString (codeDocument->getAllContent());
+                    }
                 }
             }
             break;
@@ -221,6 +224,9 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
                             layoutTree->deleteRootItem();
                             documentContent = ValueTree::fromXml (*element);
                             layoutTree->setRootItem (new LayoutTreeViewItem (documentContent, this));
+                            if (previewWindow) {
+                                previewWindow->setLayoutFromString (codeDocument->getAllContent());
+                            }
                         }
                     }
                     return true;
