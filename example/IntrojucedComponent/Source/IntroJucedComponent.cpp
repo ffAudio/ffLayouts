@@ -136,6 +136,7 @@ void IntroJucedComponent::paint (Graphics& g)
 void IntroJucedComponent::resized()
 {
     //[UserPreResize] Add your own custom resize code here..
+    /*
     //[/UserPreResize]
 
     textButton1->setBounds (0, 24, 150, 24);
@@ -148,6 +149,7 @@ void IntroJucedComponent::resized()
     slider3->setBounds (512, 24, 150, 128);
     label->setBounds (336, 192, 150, 24);
     //[UserResized] Add your own custom resize handling here..
+    */
     if (layout) layout->updateGeometry();
     //[/UserResized]
 }

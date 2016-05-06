@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="nqqUdN" name="ak_layout IJ-example" projectType="guiapp"
               version="1.0.0" bundleIdentifier="com.yourcompany.IntrojucedComponent"
-              includeBinaryInAppConfig="1" jucerVersion="4.1.0">
+              includeBinaryInAppConfig="1" jucerVersion="4.2.1">
   <MAINGROUP id="do0b5f" name="ak_layout IJ-example">
     <GROUP id="{9490A8E3-0830-8C27-6621-D9C74F6A8304}" name="Source">
       <FILE id="lOHxCK" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
@@ -25,22 +25,24 @@
                        cppLibType="libc++"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_core" path="../../../juceOsx/modules"/>
-        <MODULEPATH id="juce_events" path="../../../juceOsx/modules"/>
-        <MODULEPATH id="juce_graphics" path="../../../juceOsx/modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../../../juceOsx/modules"/>
-        <MODULEPATH id="juce_data_structures" path="../../../juceOsx/modules"/>
-        <MODULEPATH id="ak_layout" path="../../ak_layout"/>
+        <MODULEPATH id="juce_core" path="../../../juceNew/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../../../juceNew/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../../juceNew/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../../juceNew/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../../juceNew/JUCE/modules"/>
+        <MODULEPATH id="ak_layout" path="../../../ak_layout"/>
+        <MODULEPATH id="juce_gui_extra" path="../../../juceNew/JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
   </EXPORTFORMATS>
   <MODULES>
-    <MODULE id="ak_layout" showAllCode="1" useLocalCopy="1"/>
+    <MODULE id="ak_layout" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_core" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_events" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0"/>
   </MODULES>
   <JUCEOPTIONS/>
 </JUCERPROJECT>
