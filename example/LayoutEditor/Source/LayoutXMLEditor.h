@@ -52,6 +52,7 @@ class LayoutTreeView;
 class LayoutXMLEditor : public Component,
                         public ApplicationCommandTarget,
                         public ValueTree::Listener,
+                        public CodeDocument::Listener,
                         private ToolbarItemFactory
 {
 public:
@@ -72,6 +73,9 @@ public:
     void getPropertiesForItem (const Identifier type, Array<Identifier>& props);
 
     void resized() override;
+
+    void codeDocumentTextInserted (const String &newText, int insertIndex) override;
+    void codeDocumentTextDeleted (int startIndex, int endIndex) override;
 
     void valueTreePropertyChanged (ValueTree &treeWhosePropertyHasChanged, const Identifier &property) override;
     void valueTreeChildAdded (ValueTree &parentTree, ValueTree &childWhichHasBeenAdded) override;
@@ -99,7 +103,9 @@ public:
 
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LayoutXMLEditor)
-    
+
+    void updateFromCodeDocument();
+
     File                               openedFile;
     
     ValueTree                          documentContent;

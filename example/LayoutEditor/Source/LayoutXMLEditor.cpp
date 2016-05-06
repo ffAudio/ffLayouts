@@ -55,6 +55,7 @@ LayoutXMLEditor::LayoutXMLEditor()
     codeDocument  = new CodeDocument;
     codeEditor    = new CodeEditorComponent (*codeDocument, codeTokeniser);
     addAndMakeVisible (codeEditor);
+    codeDocument->addListener (this);
 
     layoutTree    = new LayoutTreeView;
     addAndMakeVisible (layoutTree);
@@ -91,6 +92,7 @@ LayoutXMLEditor::LayoutXMLEditor()
 LayoutXMLEditor::~LayoutXMLEditor()
 {
     documentContent.removeListener (this);
+    codeDocument->removeListener (this);
     if (previewWindow) {
         deleteAndZero (previewWindow);
     }
@@ -185,16 +187,7 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
 
                 codeDocument->replaceAllContent (templateText);
 
-                XmlDocument doc (templateText);
-                ScopedPointer<XmlElement> element = doc.getDocumentElement();
-                if (element) {
-                    layoutTree->deleteRootItem();
-                    documentContent = ValueTree::fromXml (*element);
-                    layoutTree->setRootItem (new LayoutTreeViewItem (documentContent, this));
-                    if (previewWindow) {
-                        previewWindow->setLayoutFromString (codeDocument->getAllContent());
-                    }
-                }
+                updateFromCodeDocument();
             }
             break;
         case CMDLayoutEditor_Open:
@@ -217,17 +210,8 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
                         openedFile = browser.getSelectedFile (0);
                         codeDocument->loadFromStream (input);
                         codeDocument->clearUndoHistory();
-                        
-                        XmlDocument doc (codeDocument->getAllContent());
-                        ScopedPointer<XmlElement> element = doc.getDocumentElement();
-                        if (element) {
-                            layoutTree->deleteRootItem();
-                            documentContent = ValueTree::fromXml (*element);
-                            layoutTree->setRootItem (new LayoutTreeViewItem (documentContent, this));
-                            if (previewWindow) {
-                                previewWindow->setLayoutFromString (codeDocument->getAllContent());
-                            }
-                        }
+
+                        updateFromCodeDocument();
                     }
                     return true;
                 }
@@ -569,6 +553,31 @@ void LayoutXMLEditor::resized()
         layout->updateGeometry();
     }
 }
+
+void LayoutXMLEditor::codeDocumentTextInserted (const String &newText, int insertIndex)
+{
+    updateFromCodeDocument();
+}
+
+void LayoutXMLEditor::codeDocumentTextDeleted (int startIndex, int endIndex)
+{
+    updateFromCodeDocument();
+}
+
+void LayoutXMLEditor::updateFromCodeDocument ()
+{
+    XmlDocument doc (codeDocument->getAllContent());
+    ScopedPointer<XmlElement> element = doc.getDocumentElement();
+    if (element) {
+        layoutTree->deleteRootItem();
+        documentContent = ValueTree::fromXml (*element);
+        layoutTree->setRootItem (new LayoutTreeViewItem (documentContent, this));
+        if (previewWindow) {
+            previewWindow->setLayoutFromString (codeDocument->getAllContent());
+        }
+    }
+}
+
 
 void LayoutXMLEditor::valueTreePropertyChanged (ValueTree &treeWhosePropertyHasChanged, const Identifier &property)
 {
