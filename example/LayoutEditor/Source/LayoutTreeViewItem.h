@@ -44,8 +44,7 @@
 
 class LayoutXMLEditor;
 
-class LayoutTreeViewItem : public TreeViewItem,
-                           public DragAndDropTarget
+class LayoutTreeViewItem : public TreeViewItem//, public DragAndDropTarget
 {
 public:
     LayoutTreeViewItem (ValueTree node, LayoutXMLEditor* editor);
@@ -64,9 +63,9 @@ public:
 
     var getDragSourceDescription () override;
 
-    bool isInterestedInDragSource (const SourceDetails &dragSourceDetails) override;
+    bool isInterestedInDragSource (const DragAndDropTarget::SourceDetails& dragSourceDetails) override;
 
-    void itemDropped (const SourceDetails &dragSourceDetails) override;
+    void itemDropped (const DragAndDropTarget::SourceDetails& dragSourceDetails, int insertIndex) override;
 
     ValueTree state;
 

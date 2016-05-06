@@ -42,6 +42,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "LayoutEditorApplication.h"
 #include "LayoutXMLEditor.h"
+#include "LayoutTreeView.h"
 #include "LayoutTreeViewItem.h"
 
 
@@ -157,7 +158,7 @@ var LayoutTreeViewItem::getDragSourceDescription ()
     return name;
 }
 
-bool LayoutTreeViewItem::isInterestedInDragSource (const SourceDetails &dragSourceDetails)
+bool LayoutTreeViewItem::isInterestedInDragSource (const DragAndDropTarget::SourceDetails& dragSourceDetails)
 {
     if (state.getType() == LayoutItem::itemTypeSubLayout) {
         return true;
@@ -165,8 +166,19 @@ bool LayoutTreeViewItem::isInterestedInDragSource (const SourceDetails &dragSour
     return false;
 }
 
-void LayoutTreeViewItem::itemDropped (const SourceDetails &dragSourceDetails)
+void LayoutTreeViewItem::itemDropped (const DragAndDropTarget::SourceDetails& dragSourceDetails, int insertIndex)
 {
     DBG ("Drop Item: " + dragSourceDetails.description.toString());
+
+    LayoutTreeView* treeView = dynamic_cast<LayoutTreeView*> (dragSourceDetails.sourceComponent.get());
+    if (treeView != nullptr) {
+        if (LayoutTreeViewItem* dragged = dynamic_cast<LayoutTreeViewItem*> (treeView->getSelectedItem (0))) {
+            ValueTree movedNode = dragged->state;
+            if (movedNode.getParent().isValid()) {
+                movedNode.getParent().removeChild (movedNode, nullptr);
+                state.addChild (movedNode, insertIndex, nullptr);
+            }
+        }
+    }
 }
 

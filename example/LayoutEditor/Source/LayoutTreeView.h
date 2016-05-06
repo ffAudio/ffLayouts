@@ -24,9 +24,6 @@ public:
 
     bool isInterestedInDragSource (const SourceDetails &dragSourceDetails) override;
 
-    void itemDropped (const SourceDetails &dragSourceDetails) override;
-
-
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LayoutTreeView)
 
