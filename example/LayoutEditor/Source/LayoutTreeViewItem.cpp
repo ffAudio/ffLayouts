@@ -175,6 +175,9 @@ void LayoutTreeViewItem::itemDropped (const DragAndDropTarget::SourceDetails& dr
         if (LayoutTreeViewItem* dragged = dynamic_cast<LayoutTreeViewItem*> (treeView->getSelectedItem (0))) {
             ValueTree movedNode = dragged->state;
             if (movedNode.getParent().isValid()) {
+                if (state.isAChildOf (movedNode)) {
+                    return;
+                }
                 movedNode.getParent().removeChild (movedNode, nullptr);
                 state.addChild (movedNode, insertIndex, nullptr);
             }
