@@ -98,6 +98,20 @@ void LayoutEditorApplication::systemRequestedQuit()
 {
     // This is called when the app is being asked to quit: you can ignore this
     // request and let the app carry on running, or call quit() to allow the app to close.
+
+    if (mainWindow && mainWindow->editorNeedsSaving()) {
+        int result = AlertWindow::showYesNoCancelBox (AlertWindow::QuestionIcon, TRANS ("Save layout before Quit..."), TRANS ("Save layout before Quit?\nYes to save, no to discard changes and Cancel to continue editing"));
+
+        if (result == 0) {
+            // cancel quit
+            return;
+        }
+        else if (result == 1) {
+            // call save
+            commandManager->invokeDirectly (LayoutXMLEditor::CMDLayoutEditor_Save, false);
+        }
+    }
+    
     quit();
 }
 
@@ -128,6 +142,14 @@ void LayoutEditorApplication::MainWindow::closeButtonPressed()
     // ask the app to quit when this happens, but you can change this to do
     // whatever you need.
     JUCEApplication::getInstance()->systemRequestedQuit();
+}
+
+bool LayoutEditorApplication::MainWindow::editorNeedsSaving() const
+{
+    if (editorComponent) {
+        return editorComponent->getNeedsSaving();
+    }
+    return false;
 }
 
 ApplicationCommandTarget* LayoutEditorApplication::MainWindow::getApplicationCommandTarget ()

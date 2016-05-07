@@ -64,6 +64,8 @@ public:
     void getCommandInfo (CommandID commandID, ApplicationCommandInfo &result) override;
     bool perform (const InvocationInfo &info) override;
 
+    bool getNeedsSaving () const;
+
     void updateTreeView ();
     
     // properties view
@@ -107,7 +109,9 @@ private:
     void updateFromCodeDocument();
 
     File                               openedFile;
-    
+
+    bool                               needsSaving;
+
     ValueTree                          documentContent;
     
     ScopedPointer<CodeDocument>        codeDocument;

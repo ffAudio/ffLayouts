@@ -80,6 +80,8 @@ public:
         MainWindow (String name);
         
         void closeButtonPressed() override;
+
+        bool editorNeedsSaving() const;
         
         /* Note: Be careful if you override any DocumentWindow methods - the base
          class uses a lot of them, so by overriding you might break its functionality.

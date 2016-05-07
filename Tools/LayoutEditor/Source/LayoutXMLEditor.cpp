@@ -46,7 +46,7 @@
 #include "LayoutEditorApplication.h"
 
 //==============================================================================
-LayoutXMLEditor::LayoutXMLEditor()
+LayoutXMLEditor::LayoutXMLEditor() : needsSaving (false)
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
@@ -188,6 +188,7 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
                 codeDocument->replaceAllContent (templateText);
 
                 updateFromCodeDocument();
+                needsSaving = false;
             }
             break;
         case CMDLayoutEditor_Open:
@@ -213,6 +214,7 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
 
                         updateFromCodeDocument();
                     }
+                    needsSaving = false;
                     return true;
                 }
             }
@@ -224,6 +226,7 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
                     output.setPosition (0);
                     output.truncate();
                     codeDocument->writeToStream (output);
+                    needsSaving = false;
                     DBG (String ("Saved: ") + openedFile.getFileName());
                     return true;
                 }
@@ -248,6 +251,7 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
                         output.setPosition (0);
                         output.truncate();
                         codeDocument->writeToStream (output);
+                        needsSaving = false;
                     }
                     return true;
                 }
@@ -355,6 +359,11 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
     }
 
     return true;
+}
+
+bool LayoutXMLEditor::getNeedsSaving () const
+{
+    return needsSaving;
 }
 
 void LayoutXMLEditor::updateTreeView ()
@@ -576,6 +585,7 @@ void LayoutXMLEditor::updateFromCodeDocument ()
             previewWindow->setLayoutFromString (codeDocument->getAllContent());
         }
     }
+    needsSaving = true;
 }
 
 
@@ -586,6 +596,7 @@ void LayoutXMLEditor::valueTreePropertyChanged (ValueTree &treeWhosePropertyHasC
     if (previewWindow) {
         previewWindow->setLayoutFromString (codeDocument->getAllContent());
     }
+    needsSaving = true;
 }
 void LayoutXMLEditor::valueTreeChildAdded (ValueTree &parentTree, ValueTree &childWhichHasBeenAdded)
 {
@@ -594,6 +605,7 @@ void LayoutXMLEditor::valueTreeChildAdded (ValueTree &parentTree, ValueTree &chi
     if (previewWindow) {
         previewWindow->setLayoutFromString (codeDocument->getAllContent());
     }
+    needsSaving = true;
 }
 void LayoutXMLEditor::valueTreeChildRemoved (ValueTree &parentTree, ValueTree &childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved)
 {
@@ -602,16 +614,17 @@ void LayoutXMLEditor::valueTreeChildRemoved (ValueTree &parentTree, ValueTree &c
     if (previewWindow) {
         previewWindow->setLayoutFromString (codeDocument->getAllContent());
     }
+    needsSaving = true;
 }
 void LayoutXMLEditor::valueTreeChildOrderChanged (ValueTree &parentTreeWhoseChildrenHaveMoved, int oldIndex, int newIndex)
 {
     updateTreeView();
-    
+    needsSaving = true;
 }
 void LayoutXMLEditor::valueTreeParentChanged (ValueTree &treeWhoseParentHasChanged)
 {
     updateTreeView();
-    
+    needsSaving = true;
 }
 
 // toolbar factory
