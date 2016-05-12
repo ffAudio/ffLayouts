@@ -168,7 +168,7 @@ bool LayoutTreeViewItem::isInterestedInDragSource (const DragAndDropTarget::Sour
 
 void LayoutTreeViewItem::itemDropped (const DragAndDropTarget::SourceDetails& dragSourceDetails, int insertIndex)
 {
-    DBG ("Drop Item: " + dragSourceDetails.description.toString());
+    DBG (state.getType().toString() + ": drop Item: " + dragSourceDetails.description.toString());
 
     LayoutTreeView* treeView = dynamic_cast<LayoutTreeView*> (dragSourceDetails.sourceComponent.get());
     if (treeView != nullptr) {
