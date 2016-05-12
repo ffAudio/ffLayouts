@@ -630,7 +630,7 @@ void LayoutItem::realize (juce::ValueTree& node, juce::Component* owningComponen
         }
         if (node.hasProperty (propLabelText)) {
             juce::Label* newLabel = new juce::Label();
-            newLabel->setText (node.getProperty (propLabelText).toString(), juce::dontSendNotification);
+            newLabel->setText (juce::LocalisedStrings::translateWithCurrentMappings (node.getProperty (propLabelText).toString()), juce::dontSendNotification);
             if (node.hasProperty (propLabelFontSize)) {
                 newLabel->setFont (juce::Font (node.getProperty (propLabelFontSize), 12.0));
             }
