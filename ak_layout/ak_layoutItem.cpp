@@ -690,7 +690,7 @@ void LayoutItem::realize (juce::ValueTree& node, juce::Component* owningComponen
                 group->setName (node.getProperty (propGroupName).toString());
             }
             if (node.hasProperty (propGroupText)) {
-                group->setText (node.getProperty (propGroupText).toString());
+                group->setText (juce::LocalisedStrings::translateWithCurrentMappings (node.getProperty (propGroupText).toString()));
             }
             if (node.hasProperty (propGroupJustification)) {
                 group->setTextLabelPosition (juce::Justification (node.getProperty (propGroupJustification)));
