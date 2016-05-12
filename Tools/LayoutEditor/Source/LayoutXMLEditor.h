@@ -71,6 +71,8 @@ public:
     // properties view
 
     void updatePropertiesView (ValueTree state);
+
+    void collectLabelText (ValueTree node);
     
     void getPropertiesForItem (const Identifier type, Array<Identifier>& props);
 
@@ -121,6 +123,8 @@ private:
     ScopedPointer<Toolbar>             insertButtons;
     ScopedPointer<LayoutTreeView>      layoutTree;
     ScopedPointer<PropertyPanel>       nodeProperties;
+
+    ScopedPointer<TextEditor>          localisedStringsEditor;
     
     ScopedPointer<Layout>              layout;
     

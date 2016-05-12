@@ -57,6 +57,10 @@ LayoutXMLEditor::LayoutXMLEditor() : needsSaving (false)
     addAndMakeVisible (codeEditor);
     codeDocument->addListener (this);
 
+    localisedStringsEditor = new TextEditor;
+    localisedStringsEditor->setMultiLine (true);
+    addAndMakeVisible (localisedStringsEditor);
+
     layoutTree    = new LayoutTreeView;
     addAndMakeVisible (layoutTree);
     layoutTree->setDefaultOpenness (true);
@@ -73,7 +77,10 @@ LayoutXMLEditor::LayoutXMLEditor() : needsSaving (false)
     addAndMakeVisible (insertButtons);
 
     layout = new Layout (LayoutItem::LeftToRight, this);
-    LayoutItem::makeChildComponent (layout->state, codeEditor);
+    LayoutItem left = LayoutItem::makeSubLayout (layout->state, LayoutItem::TopDown);
+    LayoutItem::makeChildComponent (left.state, codeEditor);
+    LayoutItem::makeChildSplitter  (left.state, 0.7f);
+    LayoutItem::makeChildComponent (left.state, localisedStringsEditor);
     LayoutItem::makeChildSplitter  (layout->state, 0.7f);
     LayoutItem right = LayoutItem::makeSubLayout (layout->state, LayoutItem::TopDown);
     LayoutItem::makeChildComponent (right.state, insertButtons).setFixedHeight (36);
@@ -270,6 +277,7 @@ bool LayoutXMLEditor::perform (const InvocationInfo &info)
             if (previewWindow) {
                 previewWindow->setLayoutFromString (codeDocument->getAllContent());
             }
+            collectLabelText (documentContent);
             break;
             
         // Insert methods
@@ -554,6 +562,37 @@ void LayoutXMLEditor::updatePropertiesView (ValueTree state)
         }
     }
     nodeProperties->addProperties (properties);
+}
+
+void LayoutXMLEditor::collectLabelText (ValueTree node)
+{
+    if (node.hasProperty (LayoutItem::propLabelText)) {
+        String labelText = node.getProperty (LayoutItem::propLabelText).toString();
+        localisedStringsEditor->moveCaretToStartOfLine (false);
+        localisedStringsEditor->moveCaretToEndOfLine (true);
+        if (!localisedStringsEditor->getHighlightedText().isEmpty()) {
+            localisedStringsEditor->moveCaretToEndOfLine (false);
+            localisedStringsEditor->insertTextAtCaret ("\n");
+        }
+        localisedStringsEditor->insertTextAtCaret ("\"" + labelText + "\"");
+        localisedStringsEditor->insertTextAtCaret (" = ");
+        localisedStringsEditor->insertTextAtCaret ("\"" + labelText + "\"");
+    }
+    if (node.hasProperty (LayoutItem::propGroupText)) {
+        String labelText = node.getProperty (LayoutItem::propGroupText).toString();
+        localisedStringsEditor->moveCaretToStartOfLine (false);
+        localisedStringsEditor->moveCaretToEndOfLine (true);
+        if (!localisedStringsEditor->getHighlightedText().isEmpty()) {
+            localisedStringsEditor->moveCaretToEndOfLine (false);
+            localisedStringsEditor->insertTextAtCaret ("\n");
+        }
+        localisedStringsEditor->insertTextAtCaret ("\"" + labelText + "\"");
+        localisedStringsEditor->insertTextAtCaret (" = ");
+        localisedStringsEditor->insertTextAtCaret ("\"" + labelText + "\"");
+    }
+    for (int i=0; i<node.getNumChildren(); ++i) {
+        collectLabelText (node.getChild (i));
+    }
 }
 
 void LayoutXMLEditor::resized()
