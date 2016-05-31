@@ -10,7 +10,7 @@
 This project adds a simple to use layout class to align components of the JUCE
 framework (www.juce.com) next to each others.
 
-Find the api-documentation here: https://ffAudio.github.io/juceLayouts/
+Find the api-documentation here: https://ffAudio.github.io/ffLayouts/
 
 The highlights:
 In the Tools folder is a LayoutEditor. You can create layouts as XML definitions
