@@ -1,5 +1,5 @@
 /*******************************************************************************
-    juce module: ak_layout
+    juce module: ff_layout
     author:      Daniel Walz
 
     started:     Feb, 2016
