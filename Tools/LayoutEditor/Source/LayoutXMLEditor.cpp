@@ -51,6 +51,8 @@ LayoutXMLEditor::LayoutXMLEditor() : needsSaving (false)
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
 
+    //"DBG (ComponentBuilder::DrawableTypeHandler<DrawableText>::type);
+
     codeTokeniser = new XmlTokeniser;
     codeDocument  = new CodeDocument;
     codeEditor    = new CodeEditorComponent (*codeDocument, codeTokeniser);
@@ -604,12 +606,12 @@ void LayoutXMLEditor::resized()
 
 void LayoutXMLEditor::codeDocumentTextInserted (const String &newText, int insertIndex)
 {
-    updateFromCodeDocument();
+    //updateFromCodeDocument();
 }
 
 void LayoutXMLEditor::codeDocumentTextDeleted (int startIndex, int endIndex)
 {
-    updateFromCodeDocument();
+    //updateFromCodeDocument();
 }
 
 void LayoutXMLEditor::updateFromCodeDocument ()
