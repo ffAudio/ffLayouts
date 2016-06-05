@@ -31,7 +31,7 @@
     
   ==============================================================================
 
-    ak_layout.cpp
+    ff_layout.cpp
     Created: 21 Feb 2016 9:14:52pm
 
   ==============================================================================
@@ -47,7 +47,7 @@
 #endif
 
 
-#include "ak_layout.h"
+#include "ff_layout.h"
 
 const juce::Identifier Layout::propResizable        ("resizable");
 const juce::Identifier Layout::propResizerWidth     ("resizerWidth");

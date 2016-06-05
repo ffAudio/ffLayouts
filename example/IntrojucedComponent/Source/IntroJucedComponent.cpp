@@ -7,7 +7,7 @@
   the "//[xyz]" and "//[/xyz]" sections will be retained when the file is loaded
   and re-saved.
 
-  Created with Projucer version: 4.2.0
+  Created with Projucer version: 4.2.1
 
   ------------------------------------------------------------------------------
 
@@ -19,7 +19,7 @@
 
 //[Headers] You can add your own extra header files here...
 //[/Headers]
-#include "../JuceLibraryCode/JuceHeader.h"
+
 #include "IntroJucedComponent.h"
 
 

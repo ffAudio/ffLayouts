@@ -40,18 +40,18 @@
                        cppLibType="libc++"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_core" path="../../../juceNew/JUCE/modules"/>
-        <MODULEPATH id="juce_events" path="../../../juceNew/JUCE/modules"/>
-        <MODULEPATH id="juce_graphics" path="../../../juceNew/JUCE/modules"/>
-        <MODULEPATH id="juce_data_structures" path="../../../juceNew/JUCE/modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../../../juceNew/JUCE/modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../../../juceNew/JUCE/modules"/>
-        <MODULEPATH id="ak_layout" path="../../../ak_layout"/>
+        <MODULEPATH id="juce_core" path="../../../../../juce/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../../../../../juce/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../../../../juce/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../../../../juce/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../../../../juce/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../../../../juce/JUCE/modules"/>
+        <MODULEPATH id="ff_layout" path="../../../ff_layout"/>
       </MODULEPATHS>
     </XCODE_MAC>
   </EXPORTFORMATS>
   <MODULES>
-    <MODULE id="ak_layout" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="ff_layout" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_core" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_events" showAllCode="1" useLocalCopy="0"/>

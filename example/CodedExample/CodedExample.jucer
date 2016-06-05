@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="qNOZZc" name="CodedExample" projectType="guiapp" version="1.0.0"
               bundleIdentifier="com.yourcompany.CodedExample" includeBinaryInAppConfig="1"
-              jucerVersion="4.1.0">
+              jucerVersion="4.2.1">
   <MAINGROUP id="Wk3x6n" name="CodedExample">
     <FILE id="H15PzV" name="Main.cpp" compile="1" resource="0" file="Main.cpp"/>
     <FILE id="uvu9JL" name="MainComponent.cpp" compile="1" resource="0"
@@ -20,22 +20,22 @@
                        cppLibType="libc++"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_core" path="../../../juceOsx/modules"/>
-        <MODULEPATH id="juce_events" path="../../../juceOsx/modules"/>
-        <MODULEPATH id="juce_graphics" path="../../../juceOsx/modules"/>
-        <MODULEPATH id="juce_data_structures" path="../../../juceOsx/modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../../../juceOsx/modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../../../juceOsx/modules"/>
-        <MODULEPATH id="juce_audio_basics" path="../../../juceOsx/modules"/>
-        <MODULEPATH id="juce_audio_devices" path="../../../juceOsx/modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../../../juceOsx/modules"/>
-        <MODULEPATH id="juce_audio_processors" path="../../../juceOsx/modules"/>
-        <MODULEPATH id="ak_layout" path="../../../ak_layout"/>
+        <MODULEPATH id="juce_core" path="../../../../../juce/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../../../../../juce/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../../../../juce/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../../../../juce/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../../../../juce/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../../../../juce/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="../../../../../juce/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../../../../juce/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../../../../juce/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../../../../juce/JUCE/modules"/>
+        <MODULEPATH id="ff_layout" path="../../../ff_layout"/>
       </MODULEPATHS>
     </XCODE_MAC>
   </EXPORTFORMATS>
   <MODULES>
-    <MODULE id="ak_layout" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="ff_layout" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0"/>

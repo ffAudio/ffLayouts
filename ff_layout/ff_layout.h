@@ -33,8 +33,8 @@
  
  BEGIN_JUCE_MODULE_DECLARATION
  
- ID:            ak_layout
- vendor:        audiokinematics.com
+ ID:            ff_layout
+ vendor:        foleysfinest.com
  version:       0.9.1
  name:          Dynamic layout
  description:   Enables to layout gui components defined in a xml document
@@ -83,8 +83,8 @@
  */
 
 
-#include "ak_layoutCore.h"
-#include "ak_layoutItem.h"
+#include "ff_layoutCore.h"
+#include "ff_layoutItem.h"
 
 #endif /* AK_LAYOUT_H_INCLUDED */
 
