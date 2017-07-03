@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-  Copyright (c) 2016, Daniel Walz
+  Copyright (c) 2016 - 2017, Daniel Walz
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without modification,
@@ -37,8 +37,7 @@
   ==============================================================================
 */
 
-#ifndef JUCE_AK_LAYOUTITEM_H_INCLUDED
-#define JUCE_AK_LAYOUTITEM_H_INCLUDED
+#pragma once
 
 
 #include "juce_gui_basics/juce_gui_basics.h"
@@ -714,8 +713,3 @@ private:
     JUCE_LEAK_DETECTOR (LayoutSplitter)
 
 };
-
-
-
-
-#endif  // JUCE_AK_LAYOUTITEM_H_INCLUDED

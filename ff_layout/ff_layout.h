@@ -1,7 +1,7 @@
 /*
  ==============================================================================
  
- Copyright (c) 2016, Daniel Walz
+ Copyright (c) 2016 - 2017, Daniel Walz
  All rights reserved.
  
  Redistribution and use in source and binary forms, with or without modification,
@@ -35,7 +35,7 @@
  
  ID:            ff_layout
  vendor:        foleysfinest.com
- version:       0.9.1
+ version:       0.9.2
  name:          Dynamic layout
  description:   Enables to layout gui components defined in a xml document
  dependencies:  juce_core, juce_data_structures, juce_gui_basics, juce_gui_extra
@@ -47,8 +47,7 @@
  ==============================================================================
  */
 
-#ifndef AK_LAYOUT_H_INCLUDED
-#define AK_LAYOUT_H_INCLUDED
+#pragma once
 
 /**
  \mainpage
@@ -85,6 +84,3 @@
 
 #include "ff_layoutCore.h"
 #include "ff_layoutItem.h"
-
-#endif /* AK_LAYOUT_H_INCLUDED */
-

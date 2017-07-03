@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-  Copyright (c) 2016, Daniel Walz
+  Copyright (c) 2016 - 2017, Daniel Walz
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without modification,
