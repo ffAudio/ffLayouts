@@ -75,7 +75,7 @@ Layout::Layout (LayoutItem::Orientation o, juce::Component* owner)
 Layout::Layout (const juce::String& xml, juce::Component* owner)
 : owningComponent (owner)
 {
-    juce::ScopedPointer<juce::XmlElement> mainElement = juce::XmlDocument::parse (xml);
+    auto mainElement = juce::XmlDocument::parse (xml);
     
     // loading of the xml failed. Probably the xml was malformed, so that ValueTree could not parse it.
     jassert (mainElement);
